@@ -1,0 +1,93 @@
+<?xml version="1.0"?>
+
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+    <!-- IMU Sensor-->
+
+    <joint name="imu_joint" type="fixed">
+        <parent link="velodyne" />
+        <child link="imu_link" />
+        <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+    </joint>
+    
+    <link name="imu_link">
+        <visual>
+            <geometry>
+                <box size="0.0 0.0 0.0"/>    
+            </geometry>
+            <material name="orange" />
+        </visual>
+    </link>
+
+    <gazebo reference="imu_link">
+        <gravity>true</gravity>
+        <sensor name="imu_sensor" type="imu">
+          <always_on>true</always_on>
+          <update_rate>400</update_rate>
+          <visualize>true</visualize>
+          <topic>__default_topic__</topic>
+          <pose>0 0 0 0 0 0</pose>
+          <plugin filename="libgazebo_ros_imu_sensor.so" name="gazebo_imu">
+            <ros>
+              <namespace>/sensor</namespace>
+              <remapping>~/out:=/sensor/imu</remapping>
+            </ros>
+            <update_rate>0</update_rate>
+            <bodyName>imu_link</bodyName>
+            <updateRateHZ>400.0</updateRateHZ>
+            <gaussianNoise>0.0</gaussianNoise>
+            <xyzOffset>0 0 0</xyzOffset>
+            <rpyOffset>0 0 0</rpyOffset>
+            <frameName>imu_link</frameName>
+            <initialOrientationAsReference>true</initialOrientationAsReference>
+          </plugin>
+        </sensor>
+      </gazebo>
+
+      <!-- GPS Sensor-->
+
+      <joint name="gps_joint" type="fixed">
+            <parent link="chassis_link"/>
+            <child link="gps_link"/>
+            <origin xyz="0.0 0.0 0.3" rpy="0.0 0.0 0.0"/>
+      </joint>
+
+      <link name="gps_link">
+            <visual>
+                <geometry>
+                    <box size="0.03 0.03 0.03"/>    
+                </geometry>
+                <material name="orange" />
+            </visual>
+      </link>
+
+      <gazebo reference="gps_link">
+            <sensor name="sensor_name" type="gps">
+                <always_on>true</always_on>
+                <update_rate>400</update_rate>
+                <visualize>true</visualize>
+                <topic>__default_topic__</topic>
+                <pose>0 0 0 0 0 0</pose>            
+                <plugin name="gazebo_gps" filename="libgazebo_ros_gps_sensor.so">
+                    <updateRate>4.0</updateRate>
+                    <bodyName>gps_link</bodyName>
+                    <frameId>gps_link</frameId>
+                    <ros>
+                      <namespace>/sensor</namespace>
+                      <remapping>~/out:=/sensor/gps</remapping>
+                      <remapping>~/vel:=/sensor/vel</remapping>
+                    </ros>
+                    <velocityTopicName>gps/fix_velocity</velocityTopicName>
+                    <referenceLatitude>-30.06022459407145675</referenceLatitude>
+                    <referenceLongitude>-51.173913575780311191</referenceLongitude>
+                    <referenceHeading>90</referenceHeading>
+                    <referenceAltitude>10</referenceAltitude>
+                    <offset>0 0 0</offset>
+                    <drift>0.00 0.00 0.00</drift>
+                    <gaussianNoise>0.0 0.0 0.0</gaussianNoise>
+                    <velocityDrift>0.00 0.00 0.00</velocityDrift>
+                    <velocityGaussianNoise>0.0 0.0 0.0</velocityGaussianNoise>
+                </plugin>
+            </sensor>       
+      </gazebo>
+</robot>
