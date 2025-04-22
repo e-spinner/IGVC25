@@ -1,4 +1,8 @@
 
+## 422-2025 - 
+#### 10:45 PM - 1:00 PM: Setup Robot_Description
+> made basic urdf file to allow dynamic loading of different robots
+> created launch file that makes a basic rsp node
 
 ## 04-21-2025 - 2.75 hrs
 #### 2:15 PM - 3:30 PM: Setup Ros2 Environment

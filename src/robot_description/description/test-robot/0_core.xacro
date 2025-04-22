@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro"  name="robot">
+
+    <link name="test_link">
+        <visual name="">
+            <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+            <geometry>
+                <box size="1.0 1.0 1.0"/>
+            </geometry>
+            <material name="white"/>
+        </visual>
+    </link>
+
+    <joint name="test_joint" type="fixed">
+        <parent link="base_link"/>
+        <child link="test_link"/>
+        <origin xyz="-1.0 0.0 0.0"/>
+    </joint>
+
+</robot>
