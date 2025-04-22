@@ -1,0 +1,120 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="robot">
+
+    <!-- Reusable properties -->
+    <xacro:property name="footprint_offset" value="0 0 -0.15875"/>
+
+    <xacro:property name="c_x"              value="0.9144"/>
+    <xacro:property name="c_y"              value="0.6096"/>
+    <xacro:property name="c_z"              value="0.1524"/>
+    <xacro:property name="chassis_size"     value="${c_x} ${c_y} ${c_z}"/>
+    <xacro:property name="chassis_mass"     value="13.6"/>
+    <xacro:property name="chassis_offset"   value="-0.2794 0 0.13688"/>
+      
+    <xacro:property name="wheel_radius"     value="0.15875"/>
+    <xacro:property name="wheel_length"     value="0.06985"/>
+    <xacro:property name="wheel_mass"       value="1.0"/>
+    <xacro:property name="wheel_distance"   value="0.349725"/>
+    
+    <xacro:property name="caster_radius"    value="0.15875"/>
+    <xacro:property name="caster_mass"      value="2.0"/>
+    <xacro:property name="caster_offset"    value="-0.57275349 0 0"/>
+
+
+    <joint name="footprint_joint" type="fixed">
+        <parent link="base_link"/>
+        <child link="base_footprint"/>
+        <origin xyz="${footprint_offset}"/>
+    </joint>
+
+
+    <!-- CHASSIS -->
+    <joint name="chassis_joint" type="fixed">
+        <parent link="base_link"/>
+        <child link="chassis_link"/>
+        <origin xyz="${chassis_offset}"/>
+    </joint>
+
+    <link name="chassis_link">
+        <xacro:inertial_box mass="${chassis_mass}" x="${c_x}" y="${c_y}" z="${c_z}">
+            <origin xyz="0 0 0" rpy="0 0 0" />
+        </xacro:inertial_box>
+
+        <visual>
+            <geometry>
+                <box size="${chassis_size}"/>
+            </geometry>
+            <material name="white"/>
+        </visual> 
+
+        <collision>
+            <geometry>
+                <box size="${chassis_size}"/>
+            </geometry>
+        </collision> 
+    </link>
+
+
+    <!-- DRIVE WHEELS -->
+    <xacro:wheel 
+    name="left_wheel" 
+    parent_link="base_link" 
+    wheel_distance="${wheel_distance}" 
+    wheel_radius="${wheel_radius}" 
+    wheel_length="${wheel_length}" 
+    wheel_mass="${wheel_mass}"/>
+
+    <xacro:wheel 
+    name="right_wheel" 
+    parent_link="base_link" 
+    wheel_distance="-${wheel_distance}" 
+    wheel_radius="${wheel_radius}" 
+    wheel_length="${wheel_length}" 
+    wheel_mass="${wheel_mass}"/>
+
+    <!-- CASTER WHEEL -->
+    <joint name="caster_joint" type="fixed">
+        <parent link="base_link"/>
+        <child link="caster_link"/>
+        <origin xyz="${caster_offset}"/>
+    </joint>
+
+    <link name="caster_link">
+        <xacro:inertial_sphere mass="${caster_mass}" radius="${caster_radius}">
+            <origin xyz="0 0 0" rpy="0 0 0" />
+        </xacro:inertial_sphere>
+
+        <visual>
+            <geometry>
+                <sphere radius="${caster_radius}"/>
+            </geometry>
+            <material name="blue" />
+        </visual>
+
+        <collision>
+            <geometry>
+                <sphere radius="${caster_radius}"/>
+            </geometry>
+        </collision>
+    </link>
+
+    <!-- Simulation References -->
+    <gazebo reference="chassis_link">
+        <material>Gazebo/White</material>
+    </gazebo>
+
+    <gazebo reference="left_wheel">
+        <material>Gazebo/Blue</material>
+    </gazebo>
+
+    <gazebo reference="right_wheel">
+        <material>Gazebo/Blue</material>
+    </gazebo>
+
+    <gazebo reference="caster_link">
+        <material>Gazebo/Blue</material>
+        <mu1 value="0.001"/>
+        <mu2 value="0.001"/>
+    </gazebo>
+
+</robot>

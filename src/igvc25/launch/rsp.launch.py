@@ -17,9 +17,9 @@ def generate_launch_description():
     target_robot = LaunchConfiguration('robot');
     use_sim_time = LaunchConfiguration('use_sim_time');
     
-    this_package = 'robot_description';
+    package_name = 'igvc25';
 
-    pkg_path = os.path.join(get_package_share_directory(this_package));
+    pkg_path = os.path.join(get_package_share_directory(package_name));
     xacro_file = os.path.join(pkg_path,'description','0_robot.urdf.xacro');
 
     robot_description_config = Command(
@@ -27,7 +27,7 @@ def generate_launch_description():
             'xacro ', xacro_file, 
             ' target_robot:=', target_robot
             ]
-        )
+        );
 
     # create a robot_state_publisher node
 
@@ -41,7 +41,7 @@ def generate_launch_description():
         executable="robot_state_publisher",
         output="screen",
         parameters=[params],
-    )
+    );
 
     # Launch the nodes!
     return LaunchDescription([
@@ -56,4 +56,4 @@ def generate_launch_description():
 
         node_robot_state_publisher
 
-    ])
+    ]);

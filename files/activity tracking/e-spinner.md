@@ -1,8 +1,14 @@
 
 ## 422-2025 - 
-#### 10:45 PM - 1:00 PM: Setup Robot_Description
+#### 10:45 AM - 1:00 PM: Setup robot_description
 > made basic urdf file to allow dynamic loading of different robots
+>
 > created launch file that makes a basic rsp node
+
+#### 2:30 PM - 4:00PM: basic robot 1
+> made simple adjustable 2-wheel + caster robot urdf
+>
+> want to make whole project one package called igvc25
 
 ## 04-21-2025 - 2.75 hrs
 #### 2:15 PM - 3:30 PM: Setup Ros2 Environment
