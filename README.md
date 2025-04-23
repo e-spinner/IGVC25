@@ -38,5 +38,14 @@ ros2 launch robot_visualization robot.launch.py
 ## Dependencies
 
 ```bash
-    sudo apt install  ros-dev-tools ros-jazzy-desktop ros-jazzy-xacro gz-harmonic ros-jazzy-ros-gz  ros-jazzy-gz-ros2-control ros-jazzy-twist-mux ros-jazzy-twist-stamper ros-jazzy-ros2-control ros-jazzy-ros2-controllers xterm
+    sudo apt install ros-dev-tools ros-jazzy-desktop ros-jazzy-xacro gz-harmonic ros-jazzy-ros-gz ros-jazzy-gz-ros2-control ros-jazzy-twist-mux ros-jazzy-twist-stamper ros-jazzy-ros2-control ros-jazzy-ros2-controllers xterm ros-jazzy-velodyne
 ```
+
+## Bugs
+
+- sim.launch.py only works in ubuntu terminal, not vscode terminal
+
+## Links
+
+[velodyne package](https://github.com/ros-drivers/velodyne/tree/2.5.1)
+[possibly helpful for sensors](https://docs.clearpathrobotics.com/docs/ros/config/yaml/sensors/lidar3d/)

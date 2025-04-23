@@ -1,5 +1,5 @@
 
-## 422-2025 - 
+## 422-2025 - 7.5 hrs
 #### 10:45 AM - 1:00 PM: Setup robot_description
 > made basic urdf file to allow dynamic loading of different robots
 >
@@ -16,8 +16,10 @@
 >
 > Started working on sim.launch.py, and porting igvc23 code, and fixing it
 
-#### 9:00 PM -
-> 
+> *sim.launch.py only works in ubbuntu terminal, not vscode terminal*
+
+#### 9:00 PM - 10:45 PM: Simulation of Lidar
+> got tf portion of vlp16 lidar set up, need to add simlated laser to gazebo harmonic
 
 ## 04-21-2025 - 2.75 hrs
 #### 2:15 PM - 3:30 PM: Setup Ros2 Environment

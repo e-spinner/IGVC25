@@ -95,6 +95,6 @@ def generate_launch_description():
         gazebo,
         spawn_entity,
         
-        control,
+        # control,
         twist_mux
     ]);

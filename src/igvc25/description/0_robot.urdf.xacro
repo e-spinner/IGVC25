@@ -5,7 +5,7 @@
      It uses XACRO to break the single xml file into smaller more editable chunks -->
 
 
-<robot xmlns:xacro="http://www.ros.org/wiki/xacro"  name="robot">
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro"  name="sarah">
 
     <!-- commandline args to determine how to build robot -->
     <xacro:arg name="target_robot" default="test" />
@@ -23,10 +23,13 @@
     <!-- macros to generate common sections -->
     <xacro:include filename="macros/inertial_macros.xacro"/>
     <xacro:include filename="macros/componet_macros.xacro"/>
+    <xacro:include filename="macros/vlp16.xacro"/>
 
     <!-- include selected robot description -->
     <xacro:include filename="$(arg target_robot).robot.xacro"/>
 
-
+     <xacro:VLP-16 parent="base_link">
+          <origin xyz="0 0 1" rpy="0 0 0" />
+     </xacro:VLP-16>
 
 </robot>
