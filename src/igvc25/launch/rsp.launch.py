@@ -3,6 +3,7 @@ import os
 from ament_index_python.packages import get_package_share_directory
 
 from launch import LaunchDescription
+from launch_ros.parameter_descriptions import ParameterValue
 from launch.substitutions import LaunchConfiguration, Command
 from launch.actions import DeclareLaunchArgument
 from launch_ros.actions import Node
@@ -15,8 +16,8 @@ from launch_ros.actions import Node
 def generate_launch_description():
     
     target_robot = LaunchConfiguration('robot');
-    use_sim_time = LaunchConfiguration('use_sim_time');
-    
+    simulation = LaunchConfiguration('simulation');
+
     package_name = 'igvc25';
 
     pkg_path = os.path.join(get_package_share_directory(package_name));
@@ -25,15 +26,16 @@ def generate_launch_description():
     robot_description_config = Command(
         [
             'xacro ', xacro_file, 
-            ' target_robot:=', target_robot
+            ' target_robot:=', target_robot,
+            ' simulation:=', simulation
             ]
         );
 
     # create a robot_state_publisher node
 
     params = {
-        'robot_description': robot_description_config, 
-        'use_sim_time': use_sim_time
+        'robot_description': ParameterValue(robot_description_config, value_type=str), 
+        'use_sim_time': simulation
         }
     
     node_robot_state_publisher = Node(
@@ -45,12 +47,13 @@ def generate_launch_description():
 
     # Launch the nodes!
     return LaunchDescription([
+        
         DeclareLaunchArgument(
-            'use_sim_time',
-            default_value='false',
-            description='Use sim time if true'),
+            'simulation',
+            default_value='true',
+            description='treated as a simulation if true'),
         DeclareLaunchArgument(
-            'robot_description',
+            'robot',
             default_value='test',
             description='pick which robot to publish'),
 

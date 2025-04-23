@@ -10,6 +10,15 @@
 >
 > want to make whole project one package called igvc25
 
+#### 4:00 PM - 7:00 PM: setting up gazebo
+> Working on getting the simulation set up,
+> installed gazebo [Harmonic](https://gazebosim.org/docs/harmonic/install_ubuntu/)
+>
+> Started working on sim.launch.py, and porting igvc23 code, and fixing it
+
+#### 9:00 PM -
+> 
+
 ## 04-21-2025 - 2.75 hrs
 #### 2:15 PM - 3:30 PM: Setup Ros2 Environment
 > followed this tutorial to install ros2 [Jazzy Jalisco](https://docs.ros.org/en/jazzy/Installation.html).
