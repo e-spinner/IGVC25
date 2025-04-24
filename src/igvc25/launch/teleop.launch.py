@@ -34,7 +34,7 @@ def generate_launch_description():
     );
     
 
-    joy_params = os.path.join(get_package_share_directory(package_name),'config','joystick.yaml')
+    joy_params = os.path.join(get_package_share_directory(package_name),'config','joy_params.yaml')
     
     joy_node = Node(
         package='joy',

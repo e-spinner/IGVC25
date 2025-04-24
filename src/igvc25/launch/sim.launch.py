@@ -118,6 +118,14 @@ def generate_launch_description():
         name="right_image_bridge_node",
     );
     
+    # MARK: nav2
+    navigation = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource([os.path.join(
+            get_package_share_directory(package_name),'launch','navigation.launch.py'
+        )])
+    );
+    
+    
     # MARK: Launch!
     return LaunchDescription([
         # args
@@ -139,5 +147,8 @@ def generate_launch_description():
         ros_gz_bridge,
         right_ros_gz_image_bridge,
         left_ros_gz_image_bridge,
+        
+        # nav2
+        navigation,
     
     ]);

@@ -14,7 +14,7 @@
 # MARK: Sensors
 
 # gz topic published by sensors plugin (gpu_lidar)
-- ros_topic_name: "velodyne_points"
+- ros_topic_name: "cloud_in"
   gz_topic_name:  "velodyne_points/points"
   ros_type_name:  "sensor_msgs/msg/PointCloud2"
   gz_type_name:   "gz.msgs.PointCloudPacked"
@@ -35,14 +35,14 @@
   direction:      "GZ_TO_ROS"
 
 # gz topic published by sensors plugin (Camera)
-- ros_topic_name: "left_camera/image_raw/camera_info"
+- ros_topic_name: "left_camera/camera_info"
   gz_topic_name: "left_camera/camera_info"
   ros_type_name: "sensor_msgs/msg/CameraInfo"
   gz_type_name: "gz.msgs.CameraInfo"
   direction: GZ_TO_ROS
 
 # gz topic published by sensors plugin (Camera)
-- ros_topic_name: "right_camera/image_raw/camera_info"
+- ros_topic_name: "right_camera/camera_info"
   gz_topic_name: "right_camera/camera_info"
   ros_type_name: "sensor_msgs/msg/CameraInfo"
   gz_type_name: "gz.msgs.CameraInfo"

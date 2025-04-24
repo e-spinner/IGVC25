@@ -8,6 +8,11 @@
 > starting to look into using nav2
 >
 > setup imu, gps, and two cameras
+>
+> right camera is not properly aligned:
+> ![alt text](files/assets/04-24-25-camera_alignment.png)
+#### 3:15PM -
+> gonna try to get nav2 set up
 
 ## 04-23-2025 - 4.75 hrs
 #### 02:45 PM - 04:00: setting up ros-gz bridge
