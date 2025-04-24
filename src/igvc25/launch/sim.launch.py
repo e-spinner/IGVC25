@@ -31,21 +31,11 @@ def generate_launch_description():
             }.items()
     );
     
-    control = IncludeLaunchDescription(
+    # MARK: Twist
+    teleop = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([os.path.join(
             get_package_share_directory(package_name),'launch','teleop.launch.py'
         )])
-    );
-    
-    # MARK: twist
-    twist_mux_params = os.path.join(
-        get_package_share_directory(package_name),'config','twist_mux.yaml'
-    );
-    twist_mux = Node(
-        package='twist_mux',
-        executable='twist_mux',
-        parameters=[twist_mux_params, {'use_sim_time': True}],
-        remappings=[('/cmd_vel_out','/control/cmd_vel')]
     );
     
     #MARK: Gazebo
@@ -86,15 +76,52 @@ def generate_launch_description():
     );
     
     
-    # MARK: Launch
+    # MARK: Control
+    diff_drive_spawner = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["diff_drive_controller"],
+    )
+
+    joint_broad_spawner = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["joint_state_broadcaster"],
+    )
+    
+    # MARK: Bridge
+    bridge_params = os.path.join(
+        get_package_share_directory(package_name),'config','gz_bridge.yaml'
+    );
+    
+    ros_gz_bridge = Node(
+        package='ros_gz_bridge',
+        executable='parameter_bridge',
+        arguments=[
+            '--ros-args',
+            '-p',
+            f'config_file:={bridge_params}',
+        ],
+    );
+    
+    # MARK: Launch!
     return LaunchDescription([
+        # args
         robot_arg,
         world_arg,
         
         rsp,
+        teleop,
+        
+        # sim
         gazebo,
         spawn_entity,
         
-        # control,
-        twist_mux
+        # Control
+        diff_drive_spawner,
+        joint_broad_spawner,
+        
+        # bridge
+        ros_gz_bridge,
+    
     ]);

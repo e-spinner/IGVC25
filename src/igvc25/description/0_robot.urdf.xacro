@@ -8,8 +8,11 @@
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro"  name="sarah">
 
     <!-- commandline args to determine how to build robot -->
-    <xacro:arg name="target_robot" default="test" />
-    <xacro:arg name="simulation"   default="true" />
+    <xacro:arg name="target_robot" default="test"/>
+    <xacro:arg name="simulation"   default="true"/>
+
+    <!-- properties -->
+    <xacro:property name="mesh_folder" value="/home/es/Documents/GitHub/IGVC25/src/igvc25/description/meshes"/>
 
     <!-- Origin of the robot in space - should be at pivot point
          basically a xyz origin reference with no shape or size -->
@@ -23,13 +26,12 @@
     <!-- macros to generate common sections -->
     <xacro:include filename="macros/inertial_macros.xacro"/>
     <xacro:include filename="macros/componet_macros.xacro"/>
-    <xacro:include filename="macros/vlp16.xacro"/>
 
     <!-- include selected robot description -->
     <xacro:include filename="$(arg target_robot).robot.xacro"/>
 
      <xacro:VLP-16 parent="base_link">
-          <origin xyz="0 0 1" rpy="0 0 0" />
+          <origin xyz="0 0 0.3" rpy="0 0 0"/>
      </xacro:VLP-16>
 
 </robot>
