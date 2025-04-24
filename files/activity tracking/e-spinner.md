@@ -1,6 +1,13 @@
+
+
+
+
+
 ## 04-24-2025 -
-#### 10:00 AM -
+#### 10:00 AM - 2:45 PM: Simulate additional sensors
 > starting to look into using nav2
+>
+> setup imu, gps, and two cameras
 
 ## 04-23-2025 - 4.75 hrs
 #### 02:45 PM - 04:00: setting up ros-gz bridge
@@ -23,12 +30,10 @@
 > made basic urdf file to allow dynamic loading of different robots
 >
 > created launch file that makes a basic rsp node
-
 #### 02:30 PM - 04:00PM: basic robot 1
 > made simple adjustable 2-wheel + caster robot urdf
 >
 > want to make whole project one package called igvc25
-
 #### 04:00 PM - 07:00 PM: setting up gazebo
 > Working on getting the simulation set up,
 > installed gazebo [Harmonic](https://gazebosim.org/docs/harmonic/install_ubuntu/)
@@ -36,7 +41,6 @@
 > Started working on sim.launch.py, and porting igvc23 code, and fixing it
 
 > *sim.launch.py only works in ubbuntu terminal, not vscode terminal*
-
 #### 09:00 PM - 10:45 PM: Simulation of Lidar
 > got tf portion of vlp16 lidar set up, need to add simlated laser to gazebo harmonic
 
@@ -49,9 +53,7 @@
 > ran the basic testing talker / listener example in above link
 > 
 > Found and installed node visualization software: [ros2_graph](https://github.com/kiwicampus/ros2_graph)
-
 #### 03:30 PM - 04:00 PM: Made this repo
-
 #### 05:30 PM - 06:05 PM: Setup Repo + Ported from old team code
 > Wrote basic readme that explains how to build a ros2 application
 >
@@ -59,7 +61,6 @@
 > ![alt text](/files/assets/04-21-25-failed_build.png)
 >
 > Old code currently gitignored
-
 #### 06:05 PM - 06:30 PM: Expieramented with URDF files
 > found [vscode extension](https://github.com/MorningFrog/urdf-visualizer) that can display .urdf / .xacro files
 > 

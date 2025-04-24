@@ -104,6 +104,20 @@ def generate_launch_description():
         ],
     );
     
+    left_ros_gz_image_bridge = Node(
+        package="ros_gz_image",
+        executable="image_bridge",
+        arguments=["/left_camera/image_raw"],
+        name="left_image_bridge_node",
+    );
+    
+    right_ros_gz_image_bridge = Node(
+        package="ros_gz_image",
+        executable="image_bridge",
+        arguments=["/right_camera/image_raw"],
+        name="right_image_bridge_node",
+    );
+    
     # MARK: Launch!
     return LaunchDescription([
         # args
@@ -123,5 +137,7 @@ def generate_launch_description():
         
         # bridge
         ros_gz_bridge,
+        right_ros_gz_image_bridge,
+        left_ros_gz_image_bridge,
     
     ]);

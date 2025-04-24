@@ -155,14 +155,14 @@
         MARK: imu
     -->
 
-    <!-- Based on: https://www.phidgets.com/productfiles/MOT0110/MOT0110_0/Documentation/MOT0110_0_Mechanical.pdf -->
+    <!-- https://www.phidgets.com/productfiles/MOT0110/MOT0110_0/Documentation/MOT0110_0_Mechanical.pdf -->
     <xacro:macro name="ph-imu" params="*origin parent">
 
 
         <joint name="imu_joint" type="fixed">
             <parent link="${parent}"/>
             <child link="imu"/>
-            <xacro:insert_block name="origin" /> 
+            <xacro:insert_block name="origin"/> 
         </joint>
 
         <link name="imu">
@@ -170,7 +170,7 @@
                 <geometry>
                     <box size="0.038989 0.037846 0.013380"/>
                 </geometry>
-                <material name="orange" />
+                <material name="orange"/>
             </visual>
         </link>
 
@@ -185,7 +185,9 @@
 
                 <gz_frame_id>imu</gz_frame_id>
 
-                <plugin filename="gz-sim-imu-system" name="gz::sim::systems::Imu">
+                <plugin 
+                    filename="gz-sim-imu-system" 
+                    name="gz::sim::systems::Imu">
                 </plugin>
             </sensor>
 
@@ -203,7 +205,7 @@
         <joint name="gps_joint" type="fixed">
             <parent link="${parent}"/>
             <child link="gps"/>
-            <xacro:insert_block name="origin" /> 
+            <xacro:insert_block name="origin"/> 
         </joint>
 
         <link name="gps">
@@ -211,7 +213,7 @@
                 <geometry>
                     <cylinder radius="0.0305" length="0.0195"/>
                 </geometry>
-                <material name="orange" />
+                <material name="orange"/>
             </visual>
         </link>
 
@@ -226,11 +228,69 @@
 
                 <gz_frame_id>gps</gz_frame_id>
 
-                <plugin filename="gz-sim-gps-system"
-                    name="gz::sim::systems::Gps">
+                <plugin 
+                    filename="gz-sim-navsat-system"
+                    name="gz::sim::systems::NavSat">
                 </plugin>
             </sensor>
 
+        </gazebo>
+
+    </xacro:macro>
+
+    <!-- 
+        MARK: Camera
+    -->
+
+    <!-- https://www.logitech.com/en-us/shop/p/c920s-pro-hd-webcam.960-001257 -->
+    <xacro:macro name="logi-cam" params="*origin name parent">
+
+        <joint name="${name}_joint" type="fixed">
+            <parent link="${parent}"/>
+            <child link="${name}_link"/>
+            <xacro:insert_block name="origin"/> 
+        </joint>
+
+        <link name="${name}_link">
+            <visual>
+                <geometry>
+                    <box size="0.07112 0.09398 0.04318"/>
+                </geometry>
+                <material name="red"/>
+            </visual>
+        </link>
+
+        <joint name="${name}_optical_joint" type="fixed">
+            <parent link="${name}_link"/>
+            <child link="${name}_link_optical"/>
+            <origin xyz="0.03556 0 0" rpy="${-pi/2} 0 ${-pi/2}"/>
+        </joint>
+
+        <link name="${name}_link_optical"></link>
+
+        <gazebo reference="${name}_link">
+            <sensor name="${name}_camera" type="camera">
+                <pose> 0 0 0 0 0 0 </pose>
+                <visualize>true</visualize>
+                <update_rate>30</update_rate>
+
+                <camera>
+                    <camera_info_topic>${name}/camera_info</camera_info_topic>
+                    <horizontal_fov>1.2290609</horizontal_fov>
+                    <image>
+                        <format>R8G8B8</format>
+                        <width>1920</width>
+                        <height>1080</height>
+                    </image>
+                    <clip>
+                        <near>0.05</near>
+                        <far>8.0</far>
+                    </clip>
+                </camera>
+
+                <topic>${name}/image_raw</topic>
+                <gz_frame_id>${name}_link_optical</gz_frame_id>
+            </sensor>
         </gazebo>
 
     </xacro:macro>

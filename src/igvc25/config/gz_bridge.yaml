@@ -2,6 +2,8 @@
 
 # https://github.com/gazebosim/ros_gz/blob/ros2/ros_gz_bridge/README.md
 
+# https://gazebosim.org/docs/latest/migrating_gazebo_classic_ros2_packages/#bridge-ros-topics
+
 # gz topic published by sim
 - ros_topic_name: "clock"
   gz_topic_name:  "clock"
@@ -25,8 +27,26 @@
   gz_type_name:   "gz.msgs.IMU"
   direction:      "GZ_TO_ROS"
 
+# gz topic published by sensors plugin (gps)
+- ros_topic_name: "gps"
+  gz_topic_name:  "gps"
+  ros_type_name:  "gps_msgs/msg/GPSFix"
+  gz_type_name:   "gz.msgs.NavSat"
+  direction:      "GZ_TO_ROS"
 
+# gz topic published by sensors plugin (Camera)
+- ros_topic_name: "left_camera/image_raw/camera_info"
+  gz_topic_name: "left_camera/camera_info"
+  ros_type_name: "sensor_msgs/msg/CameraInfo"
+  gz_type_name: "gz.msgs.CameraInfo"
+  direction: GZ_TO_ROS
 
+# gz topic published by sensors plugin (Camera)
+- ros_topic_name: "right_camera/image_raw/camera_info"
+  gz_topic_name: "right_camera/camera_info"
+  ros_type_name: "sensor_msgs/msg/CameraInfo"
+  gz_type_name: "gz.msgs.CameraInfo"
+  direction: GZ_TO_ROS
 
 
 

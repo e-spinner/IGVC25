@@ -106,19 +106,28 @@
     -->
 
     <!-- Lidar -->
-     <xacro:VLP-16 parent="base_link">
-          <origin xyz="-0.3 0 0.5" rpy="0 0 0"/>
-     </xacro:VLP-16>
+    <xacro:VLP-16 parent="base_link">
+        <origin xyz="-0.3 0 0.5" rpy="0 0 0"/>
+    </xacro:VLP-16>
 
     <!-- IMU -->
-     <xacro:ph-imu parent="velodyne">
-          <origin xyz="0 0 0.05" rpy="0 0 0"/>
-     </xacro:ph-imu>
+    <xacro:ph-imu parent="velodyne">
+        <origin xyz="0 0 0.05" rpy="0 0 0"/>
+    </xacro:ph-imu>
 
     <!-- GPS -->
-     <xacro:garmin-gps parent="imu">
-          <origin xyz="0 0 0.05" rpy="0 0 0"/>
-     </xacro:garmin-gps>
+    <xacro:garmin-gps parent="imu">
+        <origin xyz="0 0 0.05" rpy="0 0 0"/>
+    </xacro:garmin-gps>
+
+    <!-- Camera -->
+    <xacro:logi-cam parent="chassis_link" name="left_camera">
+        <origin xyz="0.5 ${wheel_distance} 0.05" rpy="0.0 0.0 0.523599"/>
+    </xacro:logi-cam>
+
+    <xacro:logi-cam parent="chassis_link" name="right_camera">
+        <origin xyz="0.5 -${wheel_distance} 0.05" rpy="0.0 0.0 -0.523599"/>
+    </xacro:logi-cam>
 
     <!-- 
         MARK: Control 
