@@ -23,14 +23,14 @@ source install/setup.bash
  After building and sourcing the workspace, the following command launches the sim.
 
 ```bash
-ros2 launch robot_visualization sim.launch.py 
-world:=./src/robot_visualization/worlds/nav_test.world
+ros2 launch igvc23 sim.launch.py 
+robot:=fwd
 ```
 
 ### Robot Launch File
 
 ```bash
-ros2 launch robot_visualization robot.launch.py
+ros2 launch igvc23 
 ```
 
 ---
@@ -38,14 +38,20 @@ ros2 launch robot_visualization robot.launch.py
 ## Dependencies
 
 ```bash
-    sudo apt install ros-dev-tools ros-jazzy-desktop ros-jazzy-xacro gz-harmonic ros-jazzy-ros-gz ros-jazzy-gz-ros2-control ros-jazzy-twist-mux ros-jazzy-twist-stamper ros-jazzy-ros2-control ros-jazzy-ros2-controllers xterm ros-jazzy-velodyne
+    sudo apt install ros-dev-tools ros-jazzy-desktop ros-jazzy-xacro gz-harmonic ros-jazzy-ros-gz ros-jazzy-gz-ros2-control ros-jazzy-twist-mux ros-jazzy-twist-stamper ros-jazzy-ros2-control ros-jazzy-ros2-controllers xterm ros-jazzy-velodyne ros-jazzy-imu-tools
 ```
 
 ## Bugs
 
 - sim.launch.py only works in ubuntu terminal, not vscode terminal
+- rviz2 and gz cannot 'find'? mesh files
 
 ## Links
 
 [velodyne package](https://github.com/ros-drivers/velodyne/tree/2.5.1)
 [possibly helpful for sensors](https://docs.clearpathrobotics.com/docs/ros/config/yaml/sensors/lidar3d/)
+[video for gazebo classic migration](https://youtu.be/fH4gkIFZ6W8?feature=shared)
+
+*Possible info for ramp traversal*: [nav2-issue](https://github.com/ros-navigation/navigation2/issues/1224)
+
+[imu](https://www.phidgets.com/?prodid=1205&srsltid=AfmBOopsWk3J6HLVH19Cp32uwF5x0yiZpEFWTLkfj78CUGBrVDpSwTwm)

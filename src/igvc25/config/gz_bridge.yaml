@@ -1,4 +1,6 @@
-# MARK: TO ROS
+# MARK: Clock
+
+# https://github.com/gazebosim/ros_gz/blob/ros2/ros_gz_bridge/README.md
 
 # gz topic published by sim
 - ros_topic_name: "clock"
@@ -7,12 +9,28 @@
   gz_type_name:   "gz.msgs.Clock"
   direction:      "GZ_TO_ROS"
 
+# MARK: Sensors
+
 # gz topic published by sensors plugin (gpu_lidar)
 - ros_topic_name: "velodyne_points"
   gz_topic_name:  "velodyne_points/points"
   ros_type_name:  "sensor_msgs/msg/PointCloud2"
   gz_type_name:   "gz.msgs.PointCloudPacked"
   direction:      "GZ_TO_ROS"
+
+# gz topic published by sensors plugin (imu)
+- ros_topic_name: "imu"
+  gz_topic_name:  "imu"
+  ros_type_name:  "sensor_msgs/msg/Imu"
+  gz_type_name:   "gz.msgs.IMU"
+  direction:      "GZ_TO_ROS"
+
+
+
+
+
+
+# MARK: GZ_Ctrl
 
 #   # gz topic published by DiffDrive plugin
 # - ros_topic_name: "odom"

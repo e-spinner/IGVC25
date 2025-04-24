@@ -1,4 +1,8 @@
-## 04-23-2025 - X.x hrs
+## 04-24-2025 -
+#### 10:00 AM -
+> starting to look into using nav2
+
+## 04-23-2025 - 4.75 hrs
 #### 02:45 PM - 04:00: setting up ros-gz bridge
 > ~~fixed lidar meshes, meshes should work from now on with gazebo + rviz2~~
 >
@@ -14,7 +18,7 @@
 >
 > ![alt text](/files/assets/ros_gz_bridge-finally-works.png)
 
-## 04-22-2025 - 7.5 hrs
+## 04-22-2025 - 8.5 hrs
 #### 10:45 AM - 01:00 PM: Setup robot_description
 > made basic urdf file to allow dynamic loading of different robots
 >

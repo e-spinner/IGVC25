@@ -30,8 +30,4 @@
     <!-- include selected robot description -->
     <xacro:include filename="$(arg target_robot).robot.xacro"/>
 
-     <xacro:VLP-16 parent="base_link">
-          <origin xyz="0 0 0.3" rpy="0 0 0"/>
-     </xacro:VLP-16>
-
 </robot>

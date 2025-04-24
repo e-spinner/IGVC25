@@ -102,6 +102,25 @@
     </link>
 
     <!-- 
+        MARK: Sensors 
+    -->
+
+    <!-- Lidar -->
+     <xacro:VLP-16 parent="base_link">
+          <origin xyz="-0.3 0 0.5" rpy="0 0 0"/>
+     </xacro:VLP-16>
+
+    <!-- IMU -->
+     <xacro:ph-imu parent="velodyne">
+          <origin xyz="0 0 0.05" rpy="0 0 0"/>
+     </xacro:ph-imu>
+
+    <!-- GPS -->
+     <xacro:garmin-gps parent="imu">
+          <origin xyz="0 0 0.05" rpy="0 0 0"/>
+     </xacro:garmin-gps>
+
+    <!-- 
         MARK: Control 
     -->
 

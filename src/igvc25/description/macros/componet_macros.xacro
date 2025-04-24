@@ -36,10 +36,12 @@
 
     <!-- 
         MARK: lidar
-        -->
+    -->
     <xacro:macro name="VLP-16" params="*origin parent">
 
         <!-- VLP-16 LiDAR -->
+
+        <!-- meshes seems to be broken, using simple geometry instead -->
 
         <joint name="velodyne_base_mount_joint" type="fixed">
             <xacro:insert_block name="origin" /> 
@@ -145,6 +147,90 @@
                     </noise>
                 </ray>
             </sensor>
+        </gazebo>
+
+    </xacro:macro>
+
+    <!-- 
+        MARK: imu
+    -->
+
+    <!-- Based on: https://www.phidgets.com/productfiles/MOT0110/MOT0110_0/Documentation/MOT0110_0_Mechanical.pdf -->
+    <xacro:macro name="ph-imu" params="*origin parent">
+
+
+        <joint name="imu_joint" type="fixed">
+            <parent link="${parent}"/>
+            <child link="imu"/>
+            <xacro:insert_block name="origin" /> 
+        </joint>
+
+        <link name="imu">
+            <visual>
+                <geometry>
+                    <box size="0.038989 0.037846 0.013380"/>
+                </geometry>
+                <material name="orange" />
+            </visual>
+        </link>
+
+        <gazebo reference="imu">
+
+            <sensor name="imu" type="imu">
+                <pose>0 0 0 0 0 0</pose>
+                <always_on>true</always_on>
+                <update_rate>1</update_rate>
+                <visualize>true</visualize>
+                <topic>imu</topic>
+
+                <gz_frame_id>imu</gz_frame_id>
+
+                <plugin filename="gz-sim-imu-system" name="gz::sim::systems::Imu">
+                </plugin>
+            </sensor>
+
+        </gazebo>
+
+    </xacro:macro>
+
+    <!-- 
+        MARK: GPS
+    -->
+
+    <!-- https://www.garmin.com/en-US/p/27594#overview -->
+    <xacro:macro name="garmin-gps" params="*origin parent">
+
+        <joint name="gps_joint" type="fixed">
+            <parent link="${parent}"/>
+            <child link="gps"/>
+            <xacro:insert_block name="origin" /> 
+        </joint>
+
+        <link name="gps">
+            <visual>
+                <geometry>
+                    <cylinder radius="0.0305" length="0.0195"/>
+                </geometry>
+                <material name="orange" />
+            </visual>
+        </link>
+
+        <gazebo reference="gps">
+
+            <sensor name="gps" type="navsat">
+                <pose>0 0 0 0 0 0</pose>
+                <always_on>true</always_on>
+                <update_rate>1</update_rate>
+                <visualize>true</visualize>
+                <topic>gps</topic>
+
+                <gz_frame_id>gps</gz_frame_id>
+
+                <plugin filename="gz-sim-gps-system"
+                    name="gz::sim::systems::Gps">
+                </plugin>
+            </sensor>
+
         </gazebo>
 
     </xacro:macro>
