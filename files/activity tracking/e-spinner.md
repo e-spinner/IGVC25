@@ -4,16 +4,28 @@
 
 
 ## 04-24-2025 -
-#### 10:00 AM - 2:45 PM: Simulate additional sensors
+#### 10:00 AM - 02:45 PM: Simulate additional sensors
 > starting to look into using nav2
 >
 > setup imu, gps, and two cameras
 >
 > right camera is not properly aligned:
 > ![alt text](files/assets/04-24-25-camera_alignment.png)
-#### 3:15PM -
+#### 03:15PM - 05:30: begin work on nav2 stack
 > gonna try to get nav2 set up
-
+>
+> slam is working, added links to various sources
+>
+> scan qos = bad, need to republish at reliable level to get amcl working
+#### 06:00 PM - 07:45 PM: nav2_bringup
+> made scripts package for custom py nodes, needed to make custom republisher for /scan
+>
+> nav2 bringup failing part way through, only gets some nodes
+#### 09:00 PM - 11:00 PM: costmap issues
+> nav2 bringup fixed, however costmap issues
+>
+> no hope 
+ 
 ## 04-23-2025 - 4.75 hrs
 #### 02:45 PM - 04:00: setting up ros-gz bridge
 > ~~fixed lidar meshes, meshes should work from now on with gazebo + rviz2~~

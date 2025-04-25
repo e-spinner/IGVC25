@@ -36,17 +36,17 @@
 
 # gz topic published by sensors plugin (Camera)
 - ros_topic_name: "left_camera/camera_info"
-  gz_topic_name: "left_camera/camera_info"
-  ros_type_name: "sensor_msgs/msg/CameraInfo"
-  gz_type_name: "gz.msgs.CameraInfo"
-  direction: GZ_TO_ROS
+  gz_topic_name:  "left_camera/camera_info"
+  ros_type_name:  "sensor_msgs/msg/CameraInfo"
+  gz_type_name:   "gz.msgs.CameraInfo"
+  direction:      "GZ_TO_ROS"
 
 # gz topic published by sensors plugin (Camera)
 - ros_topic_name: "right_camera/camera_info"
-  gz_topic_name: "right_camera/camera_info"
-  ros_type_name: "sensor_msgs/msg/CameraInfo"
-  gz_type_name: "gz.msgs.CameraInfo"
-  direction: GZ_TO_ROS
+  gz_topic_name:  "right_camera/camera_info"
+  ros_type_name:  "sensor_msgs/msg/CameraInfo"
+  gz_type_name:   "gz.msgs.CameraInfo"
+  direction:      "GZ_TO_ROS"
 
 
 

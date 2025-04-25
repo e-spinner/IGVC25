@@ -54,6 +54,7 @@ def generate_launch_description():
     );
     
     # Include the Gazebo launch file, provided by the ros_gz_sim package
+    # https://github.com/gazebosim/ros_gz/tree/ros2/ros_gz_sim
     gazebo = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([os.path.join(
             get_package_share_directory('ros_gz_sim'), 'launch', 'gz_sim.launch.py'
@@ -77,6 +78,7 @@ def generate_launch_description():
     
     
     # MARK: Control
+    # https://github.com/ros-controls/ros2_control
     diff_drive_spawner = Node(
         package="controller_manager",
         executable="spawner",
@@ -90,6 +92,7 @@ def generate_launch_description():
     )
     
     # MARK: Bridge
+    # https://github.com/gazebosim/ros_gz/blob/ros2/ros_gz_bridge/README.md
     bridge_params = os.path.join(
         get_package_share_directory(package_name),'config','gz_bridge.yaml'
     );
@@ -104,6 +107,7 @@ def generate_launch_description():
         ],
     );
     
+    # https://github.com/gazebosim/ros_gz/tree/ros2/ros_gz_image
     left_ros_gz_image_bridge = Node(
         package="ros_gz_image",
         executable="image_bridge",

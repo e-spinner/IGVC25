@@ -38,7 +38,7 @@ ros2 launch igvc23
 ## Dependencies
 
 ```bash
-    sudo apt install ros-dev-tools ros-jazzy-desktop ros-jazzy-xacro gz-harmonic ros-jazzy-ros-gz ros-jazzy-gz-ros2-control ros-jazzy-twist-mux ros-jazzy-twist-stamper ros-jazzy-ros2-control ros-jazzy-ros2-controllers xterm ros-jazzy-velodyne ros-jazzy-imu-tools ros-jazzy-pointcloud-to-laserscan
+    sudo apt install ros-dev-tools ros-jazzy-desktop ros-jazzy-xacro gz-harmonic ros-jazzy-ros-gz ros-jazzy-gz-ros2-control ros-jazzy-twist-mux ros-jazzy-twist-stamper ros-jazzy-ros2-control ros-jazzy-ros2-controllers xterm ros-jazzy-velodyne ros-jazzy-imu-tools ros-jazzy-pointcloud-to-laserscan ros-jazzy-slam-toolbox ros-jazzy-navigation2 ros-jazzy-nav2-bringup
 ```
 
 ## Bugs

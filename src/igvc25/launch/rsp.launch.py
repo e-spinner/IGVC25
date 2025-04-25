@@ -31,6 +31,7 @@ def generate_launch_description():
             ]
         );
 
+    # https://github.com/ros/robot_state_publisher
     # create a robot_state_publisher node
 
     params = {

@@ -23,6 +23,7 @@ def generate_launch_description():
     );
     
     # MARK: Nodes
+    # https://github.com/ros-teleop/teleop_twist_keyboard
     
     teleop_key = Node(
         package='teleop_twist_keyboard',
@@ -34,6 +35,7 @@ def generate_launch_description():
     );
     
 
+    # https://github.com/ros-teleop/teleop_twist_joy
     joy_params = os.path.join(get_package_share_directory(package_name),'config','joy_params.yaml')
     
     joy_node = Node(
@@ -50,6 +52,8 @@ def generate_launch_description():
         remappings=[('cmd_vel','cmd_vel_teleop_joy')]
     );
     
+    
+    # https://github.com/ros-teleop/twist_mux
     twist_mux_params = os.path.join(
         get_package_share_directory(package_name),'config','twist_mux.yaml'
     );
@@ -62,6 +66,7 @@ def generate_launch_description():
     );
     
     
+    # https://github.com/joshnewans/twist_stamper
     twist_stamper = Node(
         package='twist_stamper',
         executable='twist_stamper',
