@@ -47,7 +47,11 @@ def generate_launch_description():
             name='scan_qos_republisher',
     );
     
+    # MARK: Slam
+    # localize robot, and create static obstacle map
+    
     # https://github.com/SteveMacenski/slam_toolbox
+    
     slam_params_file = os.path.join(
         get_package_share_directory(package_name),
         'config',
@@ -68,27 +72,135 @@ def generate_launch_description():
     );
     
     # https://docs.nav2.org/index.html
-    if use_sim_time:
-        nav2_params = os.path.join(
-            get_package_share_directory(package_name),
-            'config',
-            'sim_nav2_params.yaml'
-        );
-    else:
-        nav2_params = None
     
-    navigation = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource([
-            os.path.join(
-                get_package_share_directory('nav2_bringup'),
-                'launch',
-                'navigation_launch.py'
-            )]),
-        launch_arguments={
-            'params_file': nav2_params
-        }.items()
+    # MARK: Lcyl Mngr
+    # https://github.com/ros-navigation/navigation2/tree/jazzy/nav2_lifecycle_manager
+    
+    nav_params = os.path.join(
+        get_package_share_directory(package_name),
+        'config',
+        'navigation_params.yaml'
+    )
+    
+    lifecycle_nodes = [
+        'controller_server',
+        'smoother_server',
+        'planner_server',
+        'behavior_server',
+        'velocity_smoother',
+        'collision_monitor',
+        'bt_navigator',
+        # 'waypoint_follower',
+        # 'docking_server',
+    ];
+    
+    lsm = Node(
+        package='nav2_lifecycle_manager',
+        executable='lifecycle_manager',
+        name='navigation_manager',
+        parameters=[
+            {'node_names': lifecycle_nodes},
+            {'autostart': True},
+            {'use_sim_time': use_sim_time}
+        ]
     );
     
+    # MARK: BT Nvgt
+    # https://github.com/ros-navigation/navigation2/tree/jazzy/nav2_bt_navigator
+    # https://docs.nav2.org/configuration/packages/configuring-bt-navigator.html
+    # responsible for determining what behaviors to do, and actually move robot
+    bt_navigator = Node(
+        package='nav2_bt_navigator',
+        executable='bt_navigator',
+        parameters=[
+            nav_params,
+            {'use_sim_time': use_sim_time}
+        ],
+    );
+    
+    # MARK: Ctrl Svr
+    # https://github.com/ros-navigation/navigation2/tree/jazzy/nav2_controller
+    # https://docs.nav2.org/configuration/packages/configuring-controller-server.html
+    # responsible for publishing command velocities for the robot
+    # generates path for robot to follow, and checks on robot progress
+    controller_server = Node(
+        package='nav2_controller',
+        executable='controller_server',
+        parameters=[
+            nav_params,
+            {'use_sim_time': use_sim_time}
+        ],
+        remappings=[
+            ('cmd_vel', 'cmd_vel_nav')
+        ]
+    );
+    
+    # MARK: Smtr Svr
+    # https://github.com/ros-navigation/navigation2/tree/jazzy/nav2_smoother
+    # https://docs.nav2.org/configuration/packages/configuring-smoother-server.html
+    # responsible for smoothing planned path from planner server for controller server
+    # Need to set up bt-navigator to get this to work
+    smoother_server = Node(
+        package='nav2_smoother',
+        executable='smoother_server',
+        parameters=[
+            nav_params,
+            {'use_sim_time': use_sim_time}
+        ],
+    );
+
+    # MARK: Plnr Svr
+    # https://github.com/ros-navigation/navigation2/tree/jazzy/nav2_planner
+    # https://docs.nav2.org/configuration/packages/configuring-planner-server.html
+    # responsible for generating a feasible path for the robot to go on
+    planner_server = Node(
+        package='nav2_planner',
+        executable='planner_server',
+        parameters=[
+            nav_params,
+            {'use_sim_time': use_sim_time}
+        ],
+    );
+    
+    # MARK: Bhvr Svr
+    # https://github.com/ros-navigation/navigation2/tree/jazzy/nav2_behaviors
+    # https://docs.nav2.org/configuration/packages/configuring-behavior-server.html
+    # responsivle for handling robot behaiviors specifies by bt-navigator
+    behavior_server = Node(
+        package='nav2_behaviors',
+        executable='behavior_server',
+        parameters=[
+            nav_params,
+            {'use_sim_time': use_sim_time}
+        ],
+    );
+    
+    # MARK: Clsn Mntr
+    # https://github.com/ros-navigation/navigation2/tree/jazzy/nav2_collision_monitor
+    # https://docs.nav2.org/configuration/packages/configuring-collision-monitor.html
+    # resposible for slowing and stoping robot before it hits something
+    collision_monitor = Node(
+        package='nav2_collision_monitor',
+        executable='collision_monitor',
+        parameters=[
+            nav_params,
+            {'use_sim_time': use_sim_time}
+        ],
+    );
+ 
+     # MARK: Vel Smtr
+    # https://github.com/ros-navigation/navigation2/tree/jazzy/nav2_smoother
+    smoother = Node(
+        package='nav2_velocity_smoother',
+        executable='velocity_smoother',
+        parameters=[
+            nav_params,
+            {'use_sim_time': use_sim_time}
+        ],
+        remappings=[
+            ('cmd_vel', 'cmd_vel_nav')
+        ]
+    );   
     
     # MARK: Launch!
     return LaunchDescription([
@@ -96,8 +208,21 @@ def generate_launch_description():
         sim_time_arg,
         
         # Nodes
-        cloud2scan,
-        scan_repub,
+        # cloud2scan,
+        # scan_repub,
         slam_toolbox,
-        navigation,
+        
+        # Nav2 servers
+        controller_server,
+        smoother_server,
+        planner_server,
+        behavior_server,
+        
+        # Nav2 addtional
+        collision_monitor,
+        smoother,
+        
+        # Nav2 bond
+        bt_navigator,
+        lsm,
     ]);

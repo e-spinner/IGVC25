@@ -106,12 +106,12 @@
     -->
 
     <!-- Lidar -->
-    <xacro:VLP-16 parent="base_link">
-        <origin xyz="-0.3 0 0.5" rpy="0 0 0"/>
-    </xacro:VLP-16>
+    <xacro:lidar parent="base_link">
+        <origin xyz="-0.3 0 0.3" rpy="0 0 0"/>
+    </xacro:lidar>
 
     <!-- IMU -->
-    <xacro:ph-imu parent="velodyne">
+    <xacro:ph-imu parent="lidar_frame">
         <origin xyz="0 0 0.05" rpy="0 0 0"/>
     </xacro:ph-imu>
 

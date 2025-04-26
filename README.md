@@ -38,13 +38,14 @@ ros2 launch igvc23
 ## Dependencies
 
 ```bash
-    sudo apt install ros-dev-tools ros-jazzy-desktop ros-jazzy-xacro gz-harmonic ros-jazzy-ros-gz ros-jazzy-gz-ros2-control ros-jazzy-twist-mux ros-jazzy-twist-stamper ros-jazzy-ros2-control ros-jazzy-ros2-controllers xterm ros-jazzy-velodyne ros-jazzy-imu-tools ros-jazzy-pointcloud-to-laserscan ros-jazzy-slam-toolbox ros-jazzy-navigation2 ros-jazzy-nav2-bringup
+    sudo apt install ros-dev-tools ros-jazzy-desktop ros-jazzy-xacro gz-harmonic ros-jazzy-ros-gz ros-jazzy-gz-ros2-control ros-jazzy-twist-mux ros-jazzy-twist-stamper ros-jazzy-ros2-control ros-jazzy-ros2-controllers xterm ros-jazzy-velodyne ros-jazzy-imu-tools ros-jazzy-pointcloud-to-laserscan ros-jazzy-slam-toolbox ros-jazzy-navigation2 ros-jazzy-nav2-bringup ros-jazzy-cartographer-ros
 ```
 
 ## Bugs
 
 - sim.launch.py only works in ubuntu terminal, not vscode terminal
 - rviz2 and gz cannot 'find'? mesh files
+- slam toolbox requires there to be walls around robot to give bigenough map for nav2
 
 ## Links
 
@@ -55,3 +56,5 @@ ros2 launch igvc23
 *Possible info for ramp traversal*: [nav2-issue](https://github.com/ros-navigation/navigation2/issues/1224)
 
 [imu](https://www.phidgets.com/?prodid=1205&srsltid=AfmBOopsWk3J6HLVH19Cp32uwF5x0yiZpEFWTLkfj78CUGBrVDpSwTwm)
+
+[core nav logic](https://docs.nav2.org/concepts/index.html#behavior-trees)

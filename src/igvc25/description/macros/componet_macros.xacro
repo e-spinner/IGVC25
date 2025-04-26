@@ -33,9 +33,54 @@
         
     </xacro:macro>
 
+    <!-- 
+        MARK: flat-lidar
+    -->
+
+    <xacro:macro name="lidar" params="*origin parent">
+
+        <joint name="lidar_joint" type="fixed">
+            <parent link="${parent}"/>
+            <child link="lidar_frame"/>
+            <xacro:insert_block name="origin"/>
+        </joint>
+
+        <link name="lidar_frame">
+            <visual>
+                <geometry>
+                    <cylinder radius="0.05" length="0.04"/>
+                </geometry>
+                <material name="black"/>
+            </visual>
+        </link>
+
+        <gazebo reference="lidar_frame">
+            <sensor name="laser" type="gpu_lidar">
+                <pose> 0 0 0 0 0 0 </pose>
+                <visualize>false</visualize>
+                <update_rate>10</update_rate>
+                <lidar>
+                    <scan>
+                        <horizontal>
+                            <samples>360</samples>
+                            <min_angle>-3.14</min_angle>
+                            <max_angle>3.14</max_angle>
+                        </horizontal>
+                    </scan>
+                    <range>
+                        <min>0.3</min>
+                        <max>12</max>
+                    </range>
+                </lidar>
+                <topic>scan</topic>
+                <gz_frame_id>lidar_frame</gz_frame_id>
+            </sensor>
+        </gazebo>
+
+    </xacro:macro>
 
     <!-- 
-        MARK: lidar
+        MARK: vlp16-lidar
     -->
     <xacro:macro name="VLP-16" params="*origin parent">
 
@@ -115,7 +160,7 @@
                 <pose>0 0 0 0 0 0</pose>
                 <update_rate>10</update_rate>
                 <visualize>true</visualize>
-                <topic>velodyne_points</topic>
+                <topic>scan</topic>
                 <always_on>true</always_on>
                 
                 <gz_frame_id>velodyne</gz_frame_id>

@@ -5,7 +5,7 @@ from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import LaunchConfiguration
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 
 from launch_ros.actions import Node
 
@@ -40,18 +40,24 @@ def generate_launch_description():
     
     #MARK: Gazebo
     default_world = os.path.join(
-         get_package_share_directory(package_name),
+        get_package_share_directory(package_name),
         'worlds',
-        'empty.world'
+        'empty.sdf'
     );
+
  
-    world = LaunchConfiguration('world');
+    world = PathJoinSubstitution([
+        get_package_share_directory(package_name),
+        'worlds',
+        LaunchConfiguration('world')
+    ]);
  
     world_arg = DeclareLaunchArgument(
         'world',
         default_value=default_world,
         description='World to load'
     );
+    
     
     # Include the Gazebo launch file, provided by the ros_gz_sim package
     # https://github.com/gazebosim/ros_gz/tree/ros2/ros_gz_sim
@@ -71,7 +77,7 @@ def generate_launch_description():
         arguments=[
             '-topic', 'robot_description',
             '-name', 'sarah',
-            '-z', '0.1'
+            '-z', '0.3'
         ],
         output='screen'
     );
@@ -126,7 +132,9 @@ def generate_launch_description():
     navigation = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([os.path.join(
             get_package_share_directory(package_name),'launch','navigation.launch.py'
-        )])
+        )]), launch_arguments={
+            'use_sim_time': 'true',
+        }.items()
     );
     
     

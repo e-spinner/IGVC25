@@ -1,9 +1,24 @@
 
 
 
+## 04-25-2025 -
+#### 08:00 AM - 12:00 AM: trying to get slam to work
+> going to look in depth into nav2 stack to figure out me problems
+>, [video](https://www.youtube.com/watch?v=idQb2pB-h2Q)
+>
+> Also got new worlds to simulate in
+>
+> Maybe cartographer-ros?
+#### 01:00 PM - 02:30 PM: slam works, get nav2 back running
+> The problem with slam is that the initial map it was creating was smaller than the registered footprint of the robt, eiter need to find a real way to intialize a biggere sized costmap, or have to start with things around robot so that map is big enough.
+>
+> Nav2 stack is launching properly now, adjusted robot velocities to match competition standards, but robot path planning seems to fail for no good reason.
+#### 09:00 PM - 02:30 AM: manually launch nav2
+> To debud nav2 issues, going to manualy launch nav stack, no bringup, to hopefully learn how all the bits actually work
+>
+> robot just randomly stops, also drives horribly slow
 
-
-## 04-24-2025 -
+## 04-24-2025 - 10.75 hrs
 #### 10:00 AM - 02:45 PM: Simulate additional sensors
 > starting to look into using nav2
 >
@@ -24,9 +39,9 @@
 #### 09:00 PM - 11:00 PM: costmap issues
 > nav2 bringup fixed, however costmap issues
 >
-> no hope 
+> no hope, costmaps and slam hates me
  
-## 04-23-2025 - 4.75 hrs
+## 04-23-2025 - 04.75 hrs
 #### 02:45 PM - 04:00: setting up ros-gz bridge
 > ~~fixed lidar meshes, meshes should work from now on with gazebo + rviz2~~
 >
@@ -42,7 +57,7 @@
 >
 > ![alt text](/files/assets/ros_gz_bridge-finally-works.png)
 
-## 04-22-2025 - 8.5 hrs
+## 04-22-2025 - 08.50 hrs
 #### 10:45 AM - 01:00 PM: Setup robot_description
 > made basic urdf file to allow dynamic loading of different robots
 >
@@ -63,7 +78,7 @@
 
 > Lidar meshes do not work
 
-## 04-21-2025 - 2.75 hrs
+## 04-21-2025 - 02.75 hrs
 #### 02:15 PM - 03:30 PM: Setup Ros2 Environment
 > followed this tutorial to install ros2 [Jazzy Jalisco](https://docs.ros.org/en/jazzy/Installation.html).
 > 
