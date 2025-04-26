@@ -432,3 +432,21 @@ velocity_smoother:
 
     enable_stamped_cmd_vel: False # use stamped cmd vel 
 
+
+# MARK: Wpnt Flwr
+# https://github.com/ros-navigation/navigation2/tree/jazzy/nav2_waypoint_follower
+# https://docs.nav2.org/configuration/packages/configuring-waypoint-follower.html
+waypoint_follower:
+  ros__parameters:
+    loop_rate: 20
+    stop_on_failure: false
+
+    # https://docs.nav2.org/plugins/index.html#waypoint-task-executors
+    waypoint_task_executor_plugin: "wait_at_waypoint"
+    service_introspection_mode: "disabled"
+
+    # https://github.com/ros-navigation/navigation2/blob/main/nav2_waypoint_follower/plugins/wait_at_waypoint.cpp
+    wait_at_waypoint:
+      plugin: "nav2_waypoint_follower::WaitAtWaypoint"
+      enabled: True
+      waypoint_pause_duration: 0

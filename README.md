@@ -43,9 +43,9 @@ ros2 launch igvc23
 
 ## Bugs
 
-- sim.launch.py only works in ubuntu terminal, not vscode terminal
-- rviz2 and gz cannot 'find'? mesh files
-- slam toolbox requires there to be walls around robot to give bigenough map for nav2
+- [#1] sim.launch.py only works in ubuntu terminal, not vscode terminal
+- [#2] rviz2 and gz cannot 'find'? mesh files
+- [#3] slam toolbox requires there to be walls around robot to give bigenough map for nav2
 
 ## Links
 

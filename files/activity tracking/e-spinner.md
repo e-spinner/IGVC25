@@ -1,8 +1,15 @@
 
+## 04-6-2025 -
+#### 02:00 PM - 05:00 PM
+> working on getting navigation actually working
+> , want to switch to sensor fusion localization, not just lidar localiztion based on walls from slam.
+>
+> might be able to give a starter empty map to slam to fix [#3]?
+>
+> 
 
-
-## 04-25-2025 -
-#### 08:00 AM - 12:00 AM: trying to get slam to work
+## 04-25-2025 - 11 hrs
+#### 08:00 AM - 12:00 PM: trying to get slam to work
 > going to look in depth into nav2 stack to figure out me problems
 >, [video](https://www.youtube.com/watch?v=idQb2pB-h2Q)
 >

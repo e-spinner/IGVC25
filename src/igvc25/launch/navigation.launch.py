@@ -48,7 +48,7 @@ def generate_launch_description():
     );
     
     # MARK: Slam
-    # localize robot, and create static obstacle map
+    # create static obstacle map
     
     # https://github.com/SteveMacenski/slam_toolbox
     
@@ -90,7 +90,7 @@ def generate_launch_description():
         'velocity_smoother',
         'collision_monitor',
         'bt_navigator',
-        # 'waypoint_follower',
+        'waypoint_follower',
         # 'docking_server',
     ];
     
@@ -188,8 +188,9 @@ def generate_launch_description():
         ],
     );
  
-     # MARK: Vel Smtr
+    # MARK: Vel Smtr
     # https://github.com/ros-navigation/navigation2/tree/jazzy/nav2_smoother
+    # needs setup in bt w/ bt=navigator to do anything at all
     smoother = Node(
         package='nav2_velocity_smoother',
         executable='velocity_smoother',
@@ -202,6 +203,21 @@ def generate_launch_description():
         ]
     );   
     
+    # MARK: Wpnt Flwr
+    # https://github.com/ros-navigation/navigation2/tree/jazzy/nav2_waypoint_follower
+    # https://docs.nav2.org/configuration/packages/configuring-waypoint-follower.html
+    
+    # tutorial: https://docs.nav2.org/tutorials/docs/navigation2_with_gps.html
+    # responsible for 
+    waypoint_follower = Node(
+        package='nav2_waypoint_follower',
+        executable='waypoint_follower',
+        parameters=[
+            nav_params,
+            {'use_sim_time': use_sim_time}
+        ],
+    )
+    
     # MARK: Launch!
     return LaunchDescription([
         # Args
@@ -212,17 +228,18 @@ def generate_launch_description():
         # scan_repub,
         slam_toolbox,
         
-        # Nav2 servers
+        # Nav2 communication servers
         controller_server,
         smoother_server,
         planner_server,
         behavior_server,
         
-        # Nav2 addtional
+        # Nav2 addtional bits
         collision_monitor,
         smoother,
+        waypoint_follower,
         
-        # Nav2 bond
+        # Nav2 navigator & bond
         bt_navigator,
         lsm,
     ]);
