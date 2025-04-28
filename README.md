@@ -21,8 +21,7 @@ source install/setup.bash
  After building and sourcing the workspace, the following command launches the sim.
 
 ```bash
-ros2 launch igvc23 sim.launch.py 
-robot:=fwd
+ros2 launch igvc23 sim.launch.py robot:=fwd world:=cubes.sdf
 ```
 
 ### Robot Launch File
@@ -43,7 +42,10 @@ ros2 launch igvc23
 
 - [#1] sim.launch.py only works in ubuntu terminal, not vscode terminal
 - [#2] rviz2 and gz cannot 'find'? mesh files
-- [#3] slam toolbox requires there to be walls around robot to give bigenough map for nav2
+- [#3] slam toolbox requires there to be walls around robot to give big enough map for nav2
+- [#4] ekf localization odoom and map trasform broken
+- [#5] nav2 randomly stops navigating
+- [#6] nav2 drives very slow
 
 ## Links
 

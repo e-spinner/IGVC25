@@ -23,54 +23,7 @@ def generate_launch_description():
         description='Use sim time if true'
     );
     
-    # MARK: pc 2 ls
-    # https://github.com/ros-perception/pointcloud_to_laserscan
-    cloud2scan = Node(
-        package="pointcloud_to_laserscan",
-        executable="pointcloud_to_laserscan_node",
-        parameters=[{
-            'target_frame': 'base_link',
-            'transform_tolerance': 0.01,
-            'min_height': 0.0,
-            'max_height': 1.0,
-        }],
-        remappings=[
-            ('/scan', '/scan_be'),
-            ('/cloud_in', '/cloud_in')
-        ]
-    
-    );
-    
-    scan_repub = Node(
-            package=f'{package_name}_scripts',
-            executable='republish_scan',
-            name='scan_qos_republisher',
-    );
-    
-    # MARK: Slam
-    # create static obstacle map
-    
-    # https://github.com/SteveMacenski/slam_toolbox
-    
-    slam_params_file = os.path.join(
-        get_package_share_directory(package_name),
-        'config',
-        'mapper_params_online_async.yaml'
-    );
-    
-    slam_toolbox = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            [os.path.join(
-                get_package_share_directory('slam_toolbox'),
-                'launch',
-                'online_async_launch.py'
-            )]),
-        launch_arguments={
-            'use_sim_time': use_sim_time,
-            'params file': slam_params_file
-        }.items()
-    );
-    
+   
     # https://docs.nav2.org/index.html
     
     # MARK: Lcyl Mngr
@@ -90,7 +43,7 @@ def generate_launch_description():
         'velocity_smoother',
         'collision_monitor',
         'bt_navigator',
-        'waypoint_follower',
+        # 'waypoint_follower',
         # 'docking_server',
     ];
     
@@ -223,11 +176,6 @@ def generate_launch_description():
         # Args
         sim_time_arg,
         
-        # Nodes
-        # cloud2scan,
-        # scan_repub,
-        slam_toolbox,
-        
         # Nav2 communication servers
         controller_server,
         smoother_server,
@@ -237,7 +185,7 @@ def generate_launch_description():
         # Nav2 addtional bits
         collision_monitor,
         smoother,
-        waypoint_follower,
+        # waypoint_follower,
         
         # Nav2 navigator & bond
         bt_navigator,

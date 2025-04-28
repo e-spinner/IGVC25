@@ -2,7 +2,9 @@
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="robot">
 
     <!-- Reusable properties -->
-    <xacro:property name="footprint_offset" value="0 0 -0.15875"/>
+
+    <!-- real offset = -0.15875, preted z0 = wheel height -->
+    <xacro:property name="footprint_offset" value="0 0 0"/> 
 
     <xacro:property name="c_x"              value="0.9144"/>
     <xacro:property name="c_y"              value="0.6096"/>

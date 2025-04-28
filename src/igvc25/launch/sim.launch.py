@@ -172,7 +172,7 @@ def generate_launch_description():
         # left_ros_gz_image_bridge,
         
         # nav2
-        # navigation,
+        navigation,
         
         # localization
         localization,

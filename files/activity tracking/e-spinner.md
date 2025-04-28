@@ -1,3 +1,8 @@
+## 04-28-2025 -
+#### 01:00 PM - 
+> Stepping back rom the issues for a bit, start over from [slam](https://www.youtube.com/watch?v=ZaiA3hWaRzE&list=PLunhqkrRNRhYAffV8JDiFOatQXuU-NnxT&index=17)
+>
+>
 
 ## 04-27-2025 - 3.5 hrs
 #### 06:00 PM - 09:30 PM: sadness

@@ -28,6 +28,53 @@ def generate_launch_description():
         'localization.yaml'
     );
     
+    # MARK: pc 2 ls
+    # https://github.com/ros-perception/pointcloud_to_laserscan
+    cloud2scan = Node(
+        package="pointcloud_to_laserscan",
+        executable="pointcloud_to_laserscan_node",
+        parameters=[{
+            'target_frame': 'base_link',
+            'transform_tolerance': 0.01,
+            'min_height': 0.0,
+            'max_height': 1.0,
+        }],
+        remappings=[
+            ('/scan', '/scan_be'),
+            ('/cloud_in', '/cloud_in')
+        ]
+    
+    );
+    
+    scan_repub = Node(
+            package=f'{package_name}_scripts',
+            executable='republish_scan',
+            name='scan_qos_republisher',
+    );
+    
+    # MARK: Slam
+    # simultaneous localization and mapping
+    # respinsivle for creating static obstacle map
+    
+    # https://github.com/SteveMacenski/slam_toolbox
+    
+    slam_toolbox = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            [os.path.join(
+                get_package_share_directory('slam_toolbox'),
+                'launch',
+                'online_async_launch.py'
+            )]),
+        launch_arguments={
+            'use_sim_time': use_sim_time,
+            'params file': localization_params
+        }.items()
+    );
+    
+    
+    
+    
+    
     # MARK: odom lztn
     odom_localiztion = Node(
         package="robot_localization",
@@ -65,14 +112,26 @@ def generate_launch_description():
     );
     
     
+    # Different options for Robot Localization:
+    #
+    # - [1] slam_toolbox will localize based on consistant walls in lidar scan data
+    # 
+    # - [2] can use ekf filters to localize based on gps, odom, and imu data
+    #
+    # - [3] can use amcl to localize based on a given map and scan data
+    
+    
     # MARK: Launch!
     return LaunchDescription([
         # Args
         sim_time_arg,
         
         # Nodes
-        odom_localiztion,
-        map_localiztion,
-        navsat_transform,
+        slam_toolbox,
+        
+        
+        # # odom_localiztion,
+        # map_localiztion,
+        # navsat_transform,
         
     ]);
