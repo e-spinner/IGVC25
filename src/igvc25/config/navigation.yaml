@@ -286,8 +286,8 @@ local_costmap:
 
       global_frame: odom
 
-      width: 3
-      height: 3
+      width: 10
+      height: 10
       rolling_window: true
       resolution: 0.05
       update_frequency: 5.0
@@ -311,9 +311,9 @@ local_costmap:
           clearing: True
           marking: True
           data_type: "LaserScan"
-          raytrace_max_range: 3.0
+          raytrace_max_range: 10.0
           raytrace_min_range: 0.0
-          obstacle_max_range: 2.5
+          obstacle_max_range: 8.0
           obstacle_min_range: 0.0
 
       # https://github.com/ros-navigation/navigation2/blob/jazzy/nav2_costmap_2d/plugins/inflation_layer.cpp
@@ -321,7 +321,7 @@ local_costmap:
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
         cost_scaling_factor: 10.0
-        inflation_radius: 0.55
+        inflation_radius: 0.75
 
       # static_layer:
       #   plugin: "nav2_costmap_2d::StaticLayer"
@@ -357,10 +357,10 @@ global_costmap:
 
       # https://github.com/ros-navigation/navigation2/blob/jazzy/nav2_costmap_2d/plugins/static_layer.cpp
       # https://docs.nav2.org/configuration/packages/costmap-plugins/static.html
-      # static_layer:
-      #   plugin: "nav2_costmap_2d::StaticLayer"
-      #   map_subscribe_transient_local: True
-      #   footprint_clearing_enabled: True
+      static_layer:
+        plugin: "nav2_costmap_2d::StaticLayer"
+        map_subscribe_transient_local: True
+        footprint_clearing_enabled: True
 
       # https://github.com/ros-navigation/navigation2/blob/jazzy/nav2_costmap_2d/plugins/obstacle_layer.cpp
       # https://docs.nav2.org/configuration/packages/costmap-plugins/obstacle.html
@@ -375,18 +375,18 @@ global_costmap:
           clearing: True
           marking: True
           data_type: "LaserScan"
-          raytrace_max_range: 3.0
+          raytrace_max_range: 30.0
           raytrace_min_range: 0.0
-          obstacle_max_range: 2.5
+          obstacle_max_range: 30.0
           obstacle_min_range: 0.0
-          inf_is_valid: true
+          inf_is_valid: true   # fixes [#3]!!! yay
 
       # https://github.com/ros-navigation/navigation2/blob/jazzy/nav2_costmap_2d/plugins/inflation_layer.cpp
       # https://docs.nav2.org/configuration/packages/costmap-plugins/inflation.html
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
         cost_scaling_factor: 10.0
-        inflation_radius: 0.55
+        inflation_radius: 0.75
 
 
 # MARK: Clsn Mntr
@@ -405,11 +405,11 @@ collision_monitor:
 
     enable_stamped_cmd_vel: False # False for Jazzy or older by default
 
-    polygons: ["PolygonStop", "PolygonSlow"]
+    polygons: ["PolygonSlow"]
 
     PolygonStop:
       type: "polygon"
-      points: "[[0.35, 0.45], [0.35, -0.45], [0.0, -0.45], [0.0, 0.45]]"
+      points: "[[0.35, 0.45], [0.35, -0.45], [-0.75, -0.3], [-0.75, 0.3]]"
       action_type: "stop"
       min_points: 4  # max_points: 3 for Humble
       visualize: True
@@ -417,7 +417,7 @@ collision_monitor:
     PolygonSlow:
     
       type: "polygon"
-      points: "[[0.65, 0.5], [0.65, -0.5], [0.0, -0.5], [0.0, 0.5]]"
+      points: "[[0.4, 0.45], [0.4, -0.45], [-0.8, -0.3], [-0.8, 0.3]]"
       action_type: "slowdown"
       min_points: 4  # max_points: 3 for Humble
       slowdown_ratio: 0.3

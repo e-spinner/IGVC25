@@ -1,6 +1,10 @@
 ## 04-28-2025 -
-#### 01:00 PM - 
+#### 01:00 PM - 04:30 PM: fix [#3] and [#5]!
 > Stepping back rom the issues for a bit, start over from [slam](https://www.youtube.com/watch?v=ZaiA3hWaRzE&list=PLunhqkrRNRhYAffV8JDiFOatQXuU-NnxT&index=17)
+>
+> Using slam_toolbox for only localization, and scan data for costmaps seems better, might still want to use slam for a static layer, but might not need it all if I ever figure out how to get ekf sensor fusion to do anything
+#### 04:30 PM -
+> time to investigate bt's w/ groot 2 to try to add path smoothing and waypoint following. Might be able to fix [#6].
 >
 >
 

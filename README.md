@@ -35,17 +35,28 @@ ros2 launch igvc23
 ## Dependencies
 
 ```bash
-    sudo apt install ros-dev-tools ros-jazzy-desktop ros-jazzy-xacro gz-harmonic ros-jazzy-ros-gz ros-jazzy-gz-ros2-control ros-jazzy-twist-mux ros-jazzy-twist-stamper ros-jazzy-ros2-control ros-jazzy-ros2-controllers xterm ros-jazzy-velodyne ros-jazzy-imu-tools ros-jazzy-pointcloud-to-laserscan ros-jazzy-slam-toolbox ros-jazzy-navigation2 ros-jazzy-nav2-bringup ros-jazzy-cartographer-ros
+sudo apt install ros-dev-tools ros-jazzy-desktop ros-jazzy-xacro gz-harmonic ros-jazzy-ros-gz ros-jazzy-gz-ros2-control ros-jazzy-twist-mux ros-jazzy-twist-stamper ros-jazzy-ros2-control ros-jazzy-ros2-controllers xterm ros-jazzy-velodyne ros-jazzy-imu-tools ros-jazzy-pointcloud-to-laserscan ros-jazzy-slam-toolbox ros-jazzy-navigation2 ros-jazzy-nav2-bringup 
 ```
 
 ## Bugs
 
 - [#1] sim.launch.py only works in ubuntu terminal, not vscode terminal
+    > Honestly who cares
+
 - [#2] rviz2 and gz cannot 'find'? mesh files
-- [#3] slam toolbox requires there to be walls around robot to give big enough map for nav2
+    > Only matters if want sim / vizualization to look cooler
+
+- [#3] ~~slam toolbox requires there to be walls around robot to give big enough map for nav2~~
+    > nav2 costmaps were the actual problem, allowing for inf reads in the scan data to be treated as a far away obstacle, and empty space until that obsticle fixes this issue
+
 - [#4] ekf localization odoom and map trasform broken
-- [#5] nav2 randomly stops navigating
+    > while not a solution, just using slam_toolbox for localization instead of sensor fusion for now.
+
+- [#5] ~~nav2 randomly stops navigating~~
+    > now that base_link and base_frame are on the same level, and everything is treating navigation and localization as a 2D problem, I have not noticed this issue, still need to make custom bt to allow for path smoothing, waypoint following, and hopefuly fix [#6]
+
 - [#6] nav2 drives very slow
+    > maybe an issue with bt-navigator?
 
 ## Links
 
