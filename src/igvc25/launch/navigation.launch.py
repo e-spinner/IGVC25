@@ -79,7 +79,7 @@ def generate_launch_description():
     nav_params = os.path.join(
         get_package_share_directory(package_name),
         'config',
-        'navigation_params.yaml'
+        'navigation.yaml'
     )
     
     lifecycle_nodes = [

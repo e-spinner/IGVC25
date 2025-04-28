@@ -137,6 +137,17 @@ def generate_launch_description():
         }.items()
     );
     
+    # MARK: localization
+    localization = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource([os.path.join(
+            get_package_share_directory(package_name),
+            'launch',
+            'localization.launch.py'
+        )]), launch_arguments={
+            'use_time_time': 'true'
+        }.items()
+    );
+    
     
     # MARK: Launch!
     return LaunchDescription([
@@ -157,10 +168,13 @@ def generate_launch_description():
         
         # bridge
         ros_gz_bridge,
-        right_ros_gz_image_bridge,
-        left_ros_gz_image_bridge,
+        # right_ros_gz_image_bridge,
+        # left_ros_gz_image_bridge,
         
         # nav2
-        navigation,
+        # navigation,
+        
+        # localization
+        localization,
     
     ]);

@@ -2,8 +2,6 @@
 ONU Capstone IGVC 2025-26
 
 
-[Repo breakdown](documentation/docs/breakdown.md)
-
 ## Building The Workspace
 
 >  This command builds the ws, you must cd into the top level of the ws to run it. if you have multiple packages it defaults to building upto 16 at once, and if your machine can't handle that add --executor-sequential to the end.
