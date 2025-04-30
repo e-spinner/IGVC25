@@ -40,8 +40,8 @@ def generate_launch_description():
         'smoother_server',
         'planner_server',
         'behavior_server',
-        'velocity_smoother',
-        'collision_monitor',
+        # 'velocity_smoother',
+        # 'collision_monitor',
         'bt_navigator',
         # 'waypoint_follower',
         # 'docking_server',
@@ -84,7 +84,7 @@ def generate_launch_description():
             {'use_sim_time': use_sim_time}
         ],
         remappings=[
-            ('cmd_vel', 'cmd_vel_nav')
+            ('cmd_vel', 'cmd_vel')
         ]
     );
     
@@ -144,7 +144,7 @@ def generate_launch_description():
     # MARK: Vel Smtr
     # https://github.com/ros-navigation/navigation2/tree/jazzy/nav2_smoother
     # needs setup in bt w/ bt=navigator to do anything at all
-    smoother = Node(
+    vel_smoother = Node(
         package='nav2_velocity_smoother',
         executable='velocity_smoother',
         parameters=[
@@ -183,8 +183,8 @@ def generate_launch_description():
         behavior_server,
         
         # Nav2 addtional bits
-        collision_monitor,
-        smoother,
+        # collision_monitor,
+        # vel_smoother,
         # waypoint_follower,
         
         # Nav2 navigator & bond

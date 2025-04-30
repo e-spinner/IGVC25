@@ -1,14 +1,19 @@
-## 04-28-2025 -
+
+## 04-30-2025 -
+#### 01:30 PM - 03:30 PM: simplified bt
+> also robot is going faster now that i switched the mppi controller for a dwb controller, not sure if this is a fix for [#6], or a transfer of the problem 
+
+## 04-28-2025 - 04.00 hrs
 #### 01:00 PM - 04:30 PM: fix [#3] and [#5]!
 > Stepping back rom the issues for a bit, start over from [slam](https://www.youtube.com/watch?v=ZaiA3hWaRzE&list=PLunhqkrRNRhYAffV8JDiFOatQXuU-NnxT&index=17)
 >
 > Using slam_toolbox for only localization, and scan data for costmaps seems better, might still want to use slam for a static layer, but might not need it all if I ever figure out how to get ekf sensor fusion to do anything
-#### 04:30 PM -
+#### 04:30 PM - 05:00 PM
 > time to investigate bt's w/ groot 2 to try to add path smoothing and waypoint following. Might be able to fix [#6].
 >
->
+> Made a basic start on custom bt
 
-## 04-27-2025 - 3.5 hrs
+## 04-27-2025 - 03.50 hrs
 #### 06:00 PM - 09:30 PM: sadness
 > what to learn how to use groot for bt-navigator
 >
@@ -18,14 +23,14 @@
 >
 > ah
 
-## 04-26-2025 - 3 hrs
+## 04-26-2025 - 03.00 hrs
 #### 02:00 PM - 05:00 PM
 > working on getting navigation actually working
 > , want to switch to sensor fusion localization, not just lidar localiztion based on walls from slam.
 >
 > might be able to give a starter empty map to slam to fix [#3]?
 
-## 04-25-2025 - 11 hrs
+## 04-25-2025 - 11.00 hrs
 #### 08:00 AM - 12:00 PM: trying to get slam to work
 > going to look in depth into nav2 stack to figure out me problems
 >, [video](https://www.youtube.com/watch?v=idQb2pB-h2Q)

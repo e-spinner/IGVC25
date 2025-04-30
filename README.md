@@ -69,3 +69,5 @@ sudo apt install ros-dev-tools ros-jazzy-desktop ros-jazzy-xacro gz-harmonic ros
 [imu](https://www.phidgets.com/?prodid=1205&srsltid=AfmBOopsWk3J6HLVH19Cp32uwF5x0yiZpEFWTLkfj78CUGBrVDpSwTwm)
 
 [core nav logic](https://docs.nav2.org/concepts/index.html#behavior-trees)
+
+[bt introduction](https://docs.nav2.org/behavior_trees/overview/detailed_behavior_tree_walkthrough.html)

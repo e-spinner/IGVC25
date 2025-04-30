@@ -148,12 +148,26 @@ def generate_launch_description():
         }.items()
     );
     
+    # MARK: visualization
+    rviz_config_file = os.path.join(
+        get_package_share_directory(package_name),'config','sim.rviz'
+    );
+    
+    visualization = Node(
+        package='rviz2',
+        executable='rviz2',
+        arguments=['-d', rviz_config_file],
+        parameters=[{'use_sim_time': True}],
+    )
+    
     
     # MARK: Launch!
     return LaunchDescription([
         # args
         robot_arg,
         world_arg,
+        
+        visualization,
         
         rsp,
         teleop,
