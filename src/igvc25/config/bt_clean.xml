@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root BTCPP_format="4">
+  <BehaviorTree ID="main">
+    <RecoveryNode name="try_naviagation"
+                  number_of_retries="15">
+      <ReactiveFallback name="if_new_goal_stop">
+        <GoalUpdated goal="{goal}"
+                    />
+        <PipelineSequence name="navigation">
+          <RateController hz="1">
+            <Sequence name="plan_and_smooth_path">
+              <ComputePathToPose goal="{goal}"
+                                 start="{start}"
+                                 planner_id="grid_based"
+                                
+                                
+                                 path="{path}"
+                                 error_code_id="{compute_path_error_code}"/>
+              <SmoothPath smoother_id="simple_smoother"
+                          unsmoothed_path="{path}"
+                          max_smoothing_duration="3.0"
+                          check_for_collisions="false"
+                          smoothed_path="{path_smooth}"
+                         
+                         />
+            </Sequence>
+          </RateController>
+          <FollowPath controller_id="dwb_controller"
+                      path="{path_smooth}"
+                      goal_checker_id="general_goal_checker"
+                      progress_checker_id="progress_checker"
+                     
+                     
+                      error_code_id="{follow_path_error_code}"/>
+        </PipelineSequence>
+      </ReactiveFallback>
+      <BackUp backup_dist="0.25"
+              backup_speed="0.5"
+             
+             
+             
+              error_code_id="{backup_error_code}"/>
+    </RecoveryNode>
+  </BehaviorTree>
+
+  <!-- Description of Node Models (used by Groot) -->
+  <TreeNodesModel>
+    <Action ID="BackUp">
+      <input_port name="backup_dist">Distance to backup</input_port>
+      <input_port name="backup_speed">Speed at which to backup</input_port>
+      <input_port name="time_allowance">Allowed time for reversing</input_port>
+      <input_port name="server_name">Server name</input_port>
+      <input_port name="server_timeout">Server timeout</input_port>
+      <output_port name="error_code_id">"Back up error code"</output_port>
+    </Action>
+    <Action ID="ComputePathToPose">
+      <input_port name="goal">Destination to plan to</input_port>
+      <input_port name="start">Start pose of the path if overriding current robot pose</input_port>
+      <input_port name="planner_id">Mapped name to the planner plugin type to use</input_port>
+      <input_port name="server_name">Server name</input_port>
+      <input_port name="server_timeout">Server timeout</input_port>
+      <output_port name="path">Path created by ComputePathToPose node</output_port>
+      <output_port name="error_code_id">"Compute path to pose error code"</output_port>
+    </Action>
+    <Action ID="FollowPath">
+      <input_port name="controller_id"
+                  default="FollowPath"/>
+      <input_port name="path">Path to follow</input_port>
+      <input_port name="goal_checker_id">Goal checker</input_port>
+      <input_port name="progress_checker_id">Progress checker</input_port>
+      <input_port name="service_name">Service name</input_port>
+      <input_port name="server_timeout">Server timeout</input_port>
+      <output_port name="error_code_id">Follow Path error code</output_port>
+    </Action>
+    <Condition ID="GoalUpdated">
+      <input_port name="goal">Vector of navigation goals</input_port>
+      <input_port name="goals">Navigation goal</input_port>
+    </Condition>
+    <Control ID="PipelineSequence"/>
+    <Decorator ID="RateController">
+      <input_port name="hz">Rate</input_port>
+    </Decorator>
+    <Control ID="RecoveryNode">
+      <input_port name="number_of_retries">Number of retries</input_port>
+    </Control>
+    <Action ID="SmoothPath">
+      <input_port name="smoother_id"
+                  default="SmoothPath"/>
+      <input_port name="unsmoothed_path">Path to be smoothed</input_port>
+      <input_port name="max_smoothing_duration">Maximum smoothing duration</input_port>
+      <input_port name="check_for_collisions">Bool if collision check should be performed</input_port>
+      <output_port name="smoothed_path">Smoothed path</output_port>
+      <output_port name="smoothing_duration">Smoothing duration</output_port>
+      <output_port name="was_completed">True if smoothing was not interrupted by time limit</output_port>
+    </Action>
+  </TreeNodesModel>
+
+</root>

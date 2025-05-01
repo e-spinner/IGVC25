@@ -55,8 +55,8 @@ sudo apt install ros-dev-tools ros-jazzy-desktop ros-jazzy-xacro gz-harmonic ros
 - [#5] ~~nav2 randomly stops navigating~~
     > now that base_link and base_frame are on the same level, and everything is treating navigation and localization as a 2D problem, I have not noticed this issue, still need to make custom bt to allow for path smoothing, waypoint following, and hopefuly fix [#6]
 
-- [#6] nav2 drives very slow
-    > maybe an issue with bt-navigator?
+- [#6] ~~nav2 drives very slow~~
+    > avoiding issue by switching from mppi to dwb controller.
 
 ## Links
 

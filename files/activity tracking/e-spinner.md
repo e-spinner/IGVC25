@@ -2,6 +2,10 @@
 ## 04-30-2025 -
 #### 01:30 PM - 03:30 PM: simplified bt
 > also robot is going faster now that i switched the mppi controller for a dwb controller, not sure if this is a fix for [#6], or a transfer of the problem 
+#### 06:00 PM - 08:30 PM
+> slowly building up bt logic, solid progress. dwb controller much easier to tune, [#6] is good.
+>
+>
 
 ## 04-28-2025 - 04.00 hrs
 #### 01:00 PM - 04:30 PM: fix [#3] and [#5]!

@@ -34,7 +34,7 @@ Panels:
 Visualization Manager:
   Class: ""
   Displays:
-    - Alpha: 0.5
+    - Alpha: 1
       Cell Size: 1
       Class: rviz_default_plugins/Grid
       Color: 160; 160; 164
@@ -47,15 +47,15 @@ Visualization Manager:
       Offset:
         X: 0
         Y: 0
-        Z: 0
+        Z: -0.10000000149011612
       Plane: XY
       Plane Cell Count: 10
       Reference Frame: <Fixed Frame>
       Value: true
-    - Alpha: 0.5
+    - Alpha: 1
       Cell Size: 1
       Class: rviz_default_plugins/Grid
-      Color: 53; 132; 228
+      Color: 224; 27; 36
       Enabled: true
       Line Style:
         Line Width: 0.029999999329447746
@@ -65,7 +65,7 @@ Visualization Manager:
       Offset:
         X: 0
         Y: 0
-        Z: 0
+        Z: 0.10000000149011612
       Plane: XY
       Plane Cell Count: 3
       Reference Frame: base_footprint
@@ -266,21 +266,21 @@ Visualization Manager:
         Value: /left_camera/image_raw
       Value: false
       Visibility:
-        Grid: true
         Imu: false
         RobotModel: false
         TF: false
         Value: true
         global_costmap: true
+        global_reference: true
         lidar_scan: true
         local_costmap: true
+        local_reference: true
         planned_path: true
         right_Camera: true
         robot_footprint: true
         slam_map: true
         slow_zone: true
         stop_zone: true
-        trajectory: true
       Zoom Factor: 1
     - Class: rviz_default_plugins/Camera
       Enabled: false
@@ -296,21 +296,21 @@ Visualization Manager:
         Value: /right_camera/image_raw
       Value: false
       Visibility:
-        Grid: true
         Imu: false
         RobotModel: false
         TF: false
         Value: true
         global_costmap: true
+        global_reference: true
         left_Camera: true
         lidar_scan: true
         local_costmap: true
+        local_reference: true
         planned_path: true
         robot_footprint: true
         slam_map: true
         slow_zone: true
         stop_zone: true
-        trajectory: true
       Zoom Factor: 1
     - Alpha: 1
       Autocompute Intensity Bounds: true
@@ -327,9 +327,9 @@ Visualization Manager:
       Enabled: true
       Invert Rainbow: false
       Max Color: 255; 255; 255
-      Max Intensity: -999999
+      Max Intensity: 0
       Min Color: 0; 0; 0
-      Min Intensity: 999999
+      Min Intensity: 0
       Name: lidar_scan
       Position Transformer: XYZ
       Selectable: true
@@ -346,12 +346,12 @@ Visualization Manager:
       Use Fixed Frame: true
       Use rainbow: true
       Value: true
-    - Alpha: 0.699999988079071
+    - Alpha: 1
       Binary representation: false
       Binary threshold: 100
       Class: rviz_default_plugins/Map
-      Color Scheme: raw
-      Draw Behind: false
+      Color Scheme: costmap
+      Draw Behind: true
       Enabled: false
       Name: slam_map
       Topic:
@@ -369,7 +369,7 @@ Visualization Manager:
         Value: /map_updates
       Use Timestamp: false
       Value: false
-    - Alpha: 0.5
+    - Alpha: 0.30000001192092896
       Binary representation: false
       Binary threshold: 100
       Class: rviz_default_plugins/Map
@@ -392,7 +392,7 @@ Visualization Manager:
         Value: /global_costmap/costmap_updates
       Use Timestamp: false
       Value: true
-    - Alpha: 0.5
+    - Alpha: 0.30000001192092896
       Binary representation: false
       Binary threshold: 100
       Class: rviz_default_plugins/Map
@@ -453,34 +453,6 @@ Visualization Manager:
         History Policy: Keep Last
         Reliability Policy: Reliable
         Value: /polygon_slowdown
-      Value: true
-    - Alpha: 1
-      Buffer Length: 1
-      Class: rviz_default_plugins/Path
-      Color: 0; 0; 0
-      Enabled: true
-      Head Diameter: 0.30000001192092896
-      Head Length: 0.20000000298023224
-      Length: 0.30000001192092896
-      Line Style: Billboards
-      Line Width: 0.029999999329447746
-      Name: trajectory
-      Offset:
-        X: 0
-        Y: 0
-        Z: 0
-      Pose Color: 255; 85; 255
-      Pose Style: None
-      Radius: 0.029999999329447746
-      Shaft Diameter: 0.10000000149011612
-      Shaft Length: 0.10000000149011612
-      Topic:
-        Depth: 5
-        Durability Policy: Volatile
-        Filter size: 10
-        History Policy: Keep Last
-        Reliability Policy: Reliable
-        Value: /optimal_trajectory
       Value: true
     - Alpha: 1
       Buffer Length: 1
@@ -555,21 +527,26 @@ Visualization Manager:
   Value: true
   Views:
     Current:
-      Angle: 4.294990539550781
-      Class: rviz_default_plugins/TopDownOrtho
+      Class: rviz_default_plugins/ThirdPersonFollower
+      Distance: 4.737504482269287
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
+      Focal Point:
+        X: -0.5398203134536743
+        Y: 0.145097017288208
+        Z: 1.3313552699401043e-05
+      Focal Shape Fixed Size: true
+      Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Scale: 57.660003662109375
+      Pitch: 0.829797625541687
       Target Frame: base_footprint
-      Value: TopDownOrtho (rviz_default_plugins)
-      X: -0.6768918633460999
-      Y: -0.06682834029197693
+      Value: ThirdPersonFollower (rviz_default_plugins)
+      Yaw: 2.9324588775634766
     Saved:
       - Class: rviz_default_plugins/Orbit
         Distance: 4.0757012367248535
