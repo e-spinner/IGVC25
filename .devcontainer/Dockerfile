@@ -18,9 +18,13 @@ RUN apt-get update && apt-get upgrade -y
 RUN apt-get install -y python3-pip python3.12-venv
 ENV SHELL /bin/bash
 
+# == phidgets == #
+RUN curl -fsSL https://www.phidgets.com/downloads/setup_linux | bash -
+RUN apt install -y libphidget22
+
 # == PYTHON == #
 RUN python3 -m venv /opt/venv
-RUN /opt/venv/bin/pip install numpy pyserial pynmea2 catkin_pkg colcon-common-extensions
+RUN /opt/venv/bin/pip install numpy pyserial pynmea2 lark catkin_pkg colcon-common-extensions Phidget22
 ENV PATH="/opt/venv/bin:$PATH"
 
 # == source == #

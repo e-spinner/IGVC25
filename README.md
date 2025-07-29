@@ -71,8 +71,16 @@ Inside of the devcontainer in vscode it is very easy to build and run these pack
 Open the Integrate Terminal (`Ctrl + shift + ~`), and run `build`, this is an alias for `colcon install --symlink-install`. This will hopefully work.
 
 ./.vscode/settings.json includes some pathing logic to help VS Code and python find ros and the packages, these should be correct.
+> If Pylance is having trouble finding packages after building run `Reload Window` in the command palette.
 
 To source the packages again either close and reopen the terminal, or run `source install/setup.bash`.
+
+
+#### Aditional Notes
+to install more python packages inside of the devcontainer use:
+```bash
+sudo /opt/venv/bin/pip install <package>
+```
 
 ### Using Your own installed Jazzy Environment
 This can be done later, who cares

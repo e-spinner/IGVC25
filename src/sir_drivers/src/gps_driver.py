@@ -4,13 +4,13 @@ from rclpy.node import Node
 import serial
 import pynmea2
 from builtin_interfaces.msg import Time
-from sir_msgs.msg import GPSData
+from sir_msgs.msg import GPSFeedback
 import time
 
 class GarminGPSNode(Node):
     def __init__(self):
         super().__init__('garmin_gps_node')
-        self.publisher_ = self.create_publisher(GPSData, 'gps/fix', 10)
+        self.publisher_ = self.create_publisher(GPSFeedback, 'gps/fix', 10)
         self.serial_port = serial.Serial('/dev/ttyUSB0', baudrate=4800, timeout=1)
         self.timer = self.create_timer(0.1, self.read_serial)
 
@@ -19,7 +19,7 @@ class GarminGPSNode(Node):
         try:
             msg = pynmea2.parse(line)
             if isinstance(msg, pynmea2.types.talker.GGA):
-                gps_msg = GPSData()
+                gps_msg = GPSFeedback()
                 gps_msg.latitude = msg.latitude
                 gps_msg.longitude = msg.longitude
 

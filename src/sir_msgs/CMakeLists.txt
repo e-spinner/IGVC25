@@ -13,7 +13,7 @@ find_package(builtin_interfaces REQUIRED)
 # generate msgs
 set(msg_files
   "msg/Position.msg"
-  "msg/GPSData.msg"
+  "msg/GPSFeedback.msg"
 )
 
 rosidl_generate_interfaces(${PROJECT_NAME}
