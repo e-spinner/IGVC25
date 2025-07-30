@@ -18,7 +18,8 @@
                 "ms-vscode.cmake-tools",
                 "donjayamanne.python-extension-pack",
                 "eamodio.gitlens",
-                "ranch-hand-robotics.rde-packs"
+                "ranch-hand-robotics.rde-packs",
+                "xaver.clang-format"
             ]
         }
     },
@@ -38,5 +39,5 @@
         "source=/tmp/.X11-unix,target=/tmp/.X11-unix,type=bind,consistency=cached",
         "source=/dev/dri,target=/dev/dri,type=bind,consistency=cached"
     ],
-    "postCreateCommand": "rosdep update && rosdep install --from-paths src --ignore-src -y && sudo chown -R $(whoami) /home/ws/"
+    "postCreateCommand": "rosdep update && rosdep install --from-paths src --ignore-src -y && sudo chown -R $(whoami) /home/ws/ && colcon build --symlink-install --cmake-args -DCMAKE_EXPORT_COMPILE_COMMANDS=ON"
 }

@@ -8,4 +8,6 @@
         "./install/sir_msgs/lib/python3.12/site-packages"
     ],
     "cmake.ignoreCMakeListsMissing": true,
+    "C_Cpp.errorSquiggles": "enabled",
+    "C_Cpp.intelliSenseEngine": "default"
 }

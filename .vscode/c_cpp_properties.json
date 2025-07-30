@@ -2,18 +2,20 @@
   "configurations": [
     {
       "browse": {
-        "databaseFilename": "${workspaceFolder}/.vscode/browse.vc.db",
-        "limitSymbolsToIncludedHeaders": false
+        "databaseFilename": "",
+        "limitSymbolsToIncludedHeaders": true
       },
       "includePath": [
         "/opt/ros/jazzy/include/**",
-        "/usr/include/**"
+        "/usr/include/**",
+        "${workspaceFolder}/**"
       ],
-      "name": "ros2",
+      "name": "ROS",
       "intelliSenseMode": "gcc-x64",
       "compilerPath": "/usr/bin/gcc",
       "cStandard": "gnu11",
-      "cppStandard": "c++17"
+      "cppStandard": "c++17",
+      "compileCommands": "${workspaceFolder}/build/compile_commands.json"
     }
   ],
   "version": 4
