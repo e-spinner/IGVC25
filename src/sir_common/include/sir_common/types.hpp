@@ -3,6 +3,8 @@
 
 namespace sir::common {
 
+// Topics
+// ------------------------------------------------------------------------
 const std::string IMU_TOPIC = "/imu";
 const std::string GPS_TOPIC = "/gps";
 const std::string POS_ESTIMATE_TOPIC = "/position_estimate";

@@ -5,7 +5,7 @@
 #include "sir_msgs/msg/imu_feedback.hpp"
 #include "sir_msgs/msg/position.hpp"
 
-#include "sir_localization/filter_engine.hpp"
+#include "sir_localization/filter_base.hpp"
 
 using std::placeholders::_1;
 
@@ -16,17 +16,20 @@ const int QOS = 10;
 
 class FusionNode : public rclcpp::Node {
 public:
-  FusionNode() : Node("fusion_node") {
+  FusionNode(FeedbackMask mask) : Node("fusion_node"), m_mask(mask) {
 
     // Create subscrtiptions
     // ------------------------------------------------------------------------
-    m_imu_sub = this->create_subscription<sir_msgs::msg::IMUFeedback>(
-        sir::common::IMU_TOPIC, QOS,
-        std::bind(&FusionNode::imu_callback, this, _1));
-
-    m_gps_sub = this->create_subscription<sir_msgs::msg::GPSFeedback>(
-        sir::common::GPS_TOPIC, QOS,
-        std::bind(&FusionNode::gps_callback, this, _1));
+    if (m_mask.test(static_cast<size_t>(FeedbackType::IMU))) {
+      m_imu_sub = this->create_subscription<sir_msgs::msg::IMUFeedback>(
+          sir::common::IMU_TOPIC, QOS,
+          std::bind(&FusionNode::imu_callback, this, _1));
+    }
+    if (m_mask.test(static_cast<size_t>(FeedbackType::GPS))) {
+      m_gps_sub = this->create_subscription<sir_msgs::msg::GPSFeedback>(
+          sir::common::GPS_TOPIC, QOS,
+          std::bind(&FusionNode::gps_callback, this, _1));
+    }
 
     // Create publisher
     // ------------------------------------------------------------------------
@@ -43,6 +46,8 @@ public:
   }
 
 private:
+  sir::localization::FeedbackMask m_mask;
+
   // Callback Functions
   // ------------------------------------------------------------------------
   rclcpp::Subscription<sir_msgs::msg::IMUFeedback>::SharedPtr m_imu_sub;
@@ -59,7 +64,7 @@ private:
   void pub_callback() { m_publisher->publish(_filter.get_estimate()); }
 
   rclcpp::TimerBase::SharedPtr _timer;
-  sir::localization::FilterEngine _filter;
+  sir::localization::FilterBase _filter = NULL;
 };
 
 } // namespace sir::localization
