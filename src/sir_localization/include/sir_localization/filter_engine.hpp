@@ -7,6 +7,8 @@
 namespace sir::localization {
 
 // https://www.ri.cmu.edu/pub_files/2016/5/awerries_written_qualifier.pdf
+// https://ahrs.readthedocs.io/en/latest/filters/ekf.html
+// https://pointonenav.com/news/loose-vs-tight-coupling-gnss/
 
 // need to take in GNSS / IMU / CMD_VEL / ODOM
 

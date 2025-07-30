@@ -66,6 +66,8 @@ cd SIR_software && code .
 At this point it will probably prompt you to reopen VS Code in container if not, open the palette (`ctrl + shift + P`) and search + run `reopen in container`. This will take a while, and will hopefully work. Once this is done VS Code's integrated terminal is setup to automatically source ros2, this workspace, and the python venv.
 
 #### Building Packages
+During the building of the container it will attempt to build the packages, so they should be ready if not:
+
 Inside of the devcontainer in vscode it is very easy to build and run these packages.
 
 Open the Integrate Terminal (`Ctrl + shift + ~`), and run `build`, this is an alias for `colcon install --symlink-install`. This will hopefully work.
