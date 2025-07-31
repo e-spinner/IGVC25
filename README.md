@@ -70,12 +70,14 @@ During the building of the container it will attempt to build the packages, so t
 
 Inside of the devcontainer in vscode it is very easy to build and run these packages.
 
-Open the Integrate Terminal (`Ctrl + shift + ~`), and run `build`, this is an alias for `colcon install --symlink-install`. This will hopefully work.
+Open the Integrate Terminal (`Ctrl + shift + ~`), and run `bld`, this is an alias for `colcon install --symlink-install`. This will hopefully work.
+
+> If you ever want to build / rebuild only certain packages you can run `bld-s <package [... ]>` an alias for colcon install --symlink-install --packages-select
 
 ./.vscode/settings.json includes some pathing logic to help VS Code and python find ros and the packages, these should be correct.
 > If Pylance is having trouble finding packages after building run `Reload Window` in the command palette.
 
-To source the packages again either close and reopen the terminal, or run `source install/setup.bash`.
+To source the packages again either close and reopen the terminal, or run `src`, an alias for `source /home/ws/install/setup.bash`.
 
 
 #### Aditional Notes

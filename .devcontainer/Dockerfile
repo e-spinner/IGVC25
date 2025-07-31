@@ -46,5 +46,11 @@ RUN echo '\
     fi\n\
     ' >> /home/sir/.bashrc
 
+RUN echo ' \
+    alias bld="colcon build --symlink-install"\n\
+    alias bld-s="bld --packages-select"\n\
+    alias src="source /home/ws/install/setup.bash"\
+    ' >> /home/sir/.bashrc
+
 USER $USERNAME
 CMD ["/bin/bash"]

@@ -8,3 +8,6 @@ float64 theta_vel 0
 
 float64 latitude
 float64 longitude
+
+# time of validity
+builtin_interfaces/Time tov

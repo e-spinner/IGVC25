@@ -5,6 +5,7 @@
 #include "sir_msgs/msg/imu_feedback.hpp"
 #include "sir_msgs/msg/position.hpp"
 
+#include "sir_localization/dummy_filter.hpp"
 #include "sir_localization/filter_base.hpp"
 
 using std::placeholders::_1;
@@ -16,19 +17,25 @@ const int QOS = 10;
 
 class FusionNode : public rclcpp::Node {
 public:
-  FusionNode(FeedbackMask mask) : Node("fusion_node"), m_mask(mask) {
+  FusionNode(std::unique_ptr<FilterBase> filter)
+      : Node(filter->name() + "_node"), _filter(std::move(filter)) {
 
-    // Create subscrtiptions
+    // Create subscrtiptions, if filter need it
     // ------------------------------------------------------------------------
-    if (m_mask.test(static_cast<size_t>(FeedbackType::IMU))) {
+    if (_filter->needs(FeedbackType::IMU)) {
       m_imu_sub = this->create_subscription<sir_msgs::msg::IMUFeedback>(
           sir::common::IMU_TOPIC, QOS,
-          std::bind(&FusionNode::imu_callback, this, _1));
+          [this](const sir_msgs::msg::IMUFeedback &m) {
+            _filter->process_imu(m);
+          });
     }
-    if (m_mask.test(static_cast<size_t>(FeedbackType::GPS))) {
+
+    if (_filter->needs(FeedbackType::GPS)) {
       m_gps_sub = this->create_subscription<sir_msgs::msg::GPSFeedback>(
           sir::common::GPS_TOPIC, QOS,
-          std::bind(&FusionNode::gps_callback, this, _1));
+          [this](const sir_msgs::msg::GPSFeedback &m) {
+            _filter->process_gps(m);
+          });
     }
 
     // Create publisher
@@ -36,44 +43,57 @@ public:
     m_publisher = this->create_publisher<sir_msgs::msg::Position>(
         sir::common::POS_ESTIMATE_TOPIC, QOS);
 
-    RCLCPP_INFO(this->get_logger(), "Fusion Node Intialized");
+    RCLCPP_INFO(this->get_logger(), "Fusion Node '%s' initialized",
+                _filter->name().c_str());
 
     // Publish position estimates
     // ------------------------------------------------------------------------
     _timer =
-        this->create_wall_timer(sir::common::FUSION_PUBLISH_RATE,
-                                std::bind(&FusionNode::pub_callback, this));
+        this->create_wall_timer(sir::common::FUSION_PUBLISH_RATE, [this]() {
+          m_publisher->publish(_filter->get_estimate());
+        });
   }
 
 private:
-  sir::localization::FeedbackMask m_mask;
-
   // Callback Functions
   // ------------------------------------------------------------------------
   rclcpp::Subscription<sir_msgs::msg::IMUFeedback>::SharedPtr m_imu_sub;
-  void imu_callback(const sir_msgs::msg::IMUFeedback &msg) {
-    _filter.process_imu(msg);
-  }
-
   rclcpp::Subscription<sir_msgs::msg::GPSFeedback>::SharedPtr m_gps_sub;
-  void gps_callback(const sir_msgs::msg::GPSFeedback &msg) {
-    _filter.process_gps(msg);
-  }
 
   rclcpp::Publisher<sir_msgs::msg::Position>::SharedPtr m_publisher;
-  void pub_callback() { m_publisher->publish(_filter.get_estimate()); }
 
   rclcpp::TimerBase::SharedPtr _timer;
-  sir::localization::FilterBase _filter = NULL;
+  std::unique_ptr<FilterBase> _filter;
 };
 
 } // namespace sir::localization
+
+// Filter Factory
+// ------------------------------------------------------------------------
+std::unique_ptr<sir::localization::FilterBase>
+create_filter(const std::string &type) {
+  using namespace sir::localization;
+
+  if (type == "dummy") {
+    return std::make_unique<DummyFilter>();
+  }
+
+  throw std::runtime_error("Unknown filter type: " + type);
+}
 
 // Spin up node
 // ------------------------------------------------------------------------
 int main(int argc, char **argv) {
   rclcpp::init(argc, argv);
-  rclcpp::spin(std::make_shared<sir::localization::FusionNode>());
+
+  std::string filter_type = "dummy"; // TODO: Get from param/env/arg
+
+  auto filter = create_filter(filter_type);
+  auto node =
+      std::make_shared<sir::localization::FusionNode>(std::move(filter));
+
+  rclcpp::spin(node);
+
   rclcpp::shutdown();
   return 0;
 }

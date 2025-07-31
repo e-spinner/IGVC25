@@ -29,15 +29,33 @@ using FeedbackMask = std::bitset<static_cast<size_t>(FeedbackType::M_COUNT)>;
 
 class FilterBase {
 public:
-  FilterBase() = default;
+  FilterBase(FeedbackMask mask, std::string name)
+      : m_mask(mask), m_name(name) {}
 
-  virtual void process_imu(const sir_msgs::msg::IMUFeedback &imu_msg) = 0;
-  virtual void process_gps(const sir_msgs::msg::GPSFeedback &gps_msg) = 0;
+  // Optional, implement which is needed for specific filter
+  // ------------------------------------------------------------------------
+  virtual void process_imu(const sir_msgs::msg::IMUFeedback &imu_msg) {
+    (void)imu_msg;
+  }
+  virtual void process_gps(const sir_msgs::msg::GPSFeedback &gps_msg) {
+    (void)gps_msg;
+  }
 
+  // Required, Filter must give position estimate
+  // ------------------------------------------------------------------------
   virtual sir_msgs::msg::Position_<std::allocator<void>> get_estimate() = 0;
 
-private:
+  bool needs(FeedbackType type) {
+    return m_mask.test(static_cast<size_t>(type));
+  }
+  std::string name() { return m_name; }
+
+protected:
   sir_msgs::msg::Position m_current_estimate;
+
+private:
+  FeedbackMask m_mask;
+  std::string m_name;
 };
 
 } // namespace sir::localization
