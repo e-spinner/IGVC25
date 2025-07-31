@@ -7,5 +7,5 @@ geometry_msgs/Vector3 angular_velocity
 # magnetometer
 geometry_msgs/Vector3 magnetic_field
 
-# time of validity
-builtin_interfaces/Time tov
+# seconds
+builtin_interfaces/Time time_of_validity

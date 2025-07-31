@@ -14,6 +14,8 @@ find_package(geometry_msgs REQUIRED)
 # generate msgs
 set(msg_files
   "msg/Position.msg"
+  "msg/Path.msg"
+  "msg/PVA.msg"
   "msg/GPSFeedback.msg"
   "msg/IMUFeedback.msg"
 )

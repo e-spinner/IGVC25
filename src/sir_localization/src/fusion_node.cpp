@@ -3,7 +3,7 @@
 #include "sir_common/types.hpp"
 #include "sir_msgs/msg/gps_feedback.hpp"
 #include "sir_msgs/msg/imu_feedback.hpp"
-#include "sir_msgs/msg/position.hpp"
+#include "sir_msgs/msg/pva.hpp"
 
 #include "sir_localization/dummy_filter.hpp"
 #include "sir_localization/filter_base.hpp"
@@ -40,7 +40,7 @@ public:
 
     // Create publisher
     // ------------------------------------------------------------------------
-    m_publisher = this->create_publisher<sir_msgs::msg::Position>(
+    m_publisher = this->create_publisher<sir_msgs::msg::PVA>(
         sir::common::POS_ESTIMATE_TOPIC, QOS);
 
     RCLCPP_INFO(this->get_logger(), "Fusion Node '%s' initialized",
@@ -60,7 +60,7 @@ private:
   rclcpp::Subscription<sir_msgs::msg::IMUFeedback>::SharedPtr m_imu_sub;
   rclcpp::Subscription<sir_msgs::msg::GPSFeedback>::SharedPtr m_gps_sub;
 
-  rclcpp::Publisher<sir_msgs::msg::Position>::SharedPtr m_publisher;
+  rclcpp::Publisher<sir_msgs::msg::PVA>::SharedPtr m_publisher;
 
   rclcpp::TimerBase::SharedPtr _timer;
   std::unique_ptr<FilterBase> _filter;

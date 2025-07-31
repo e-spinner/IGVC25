@@ -1,13 +1,9 @@
-float64 x 0
-float64 y 0
-float64 theta 0
+# The position relative to the origin,
+# and attitude about z
 
-float64 x_vel 0
-float64 y_vel 0
-float64 theta_vel 0
+# meters
+float64 x
+float64 y
 
-float64 latitude
-float64 longitude
-
-# time of validity
-builtin_interfaces/Time tov
+# radians
+float64 theta_z 0

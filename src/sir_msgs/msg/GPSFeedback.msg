@@ -8,5 +8,5 @@ float64 vdop
 int8 fix_quality
 int8 num_satellites
 
-# time of validity
-builtin_interfaces/Time tov
+# seconds
+builtin_interfaces/Time time_of_validity

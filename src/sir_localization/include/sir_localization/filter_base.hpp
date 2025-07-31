@@ -4,7 +4,7 @@
 
 #include "sir_msgs/msg/gps_feedback.hpp"
 #include "sir_msgs/msg/imu_feedback.hpp"
-#include "sir_msgs/msg/position.hpp"
+#include "sir_msgs/msg/pva.hpp"
 
 namespace sir::localization {
 
@@ -43,7 +43,7 @@ public:
 
   // Required, Filter must give position estimate
   // ------------------------------------------------------------------------
-  virtual sir_msgs::msg::Position_<std::allocator<void>> get_estimate() = 0;
+  virtual sir_msgs::msg::PVA_<std::allocator<void>> get_estimate() = 0;
 
   bool needs(FeedbackType type) {
     return m_mask.test(static_cast<size_t>(type));
@@ -51,7 +51,7 @@ public:
   std::string name() { return m_name; }
 
 protected:
-  sir_msgs::msg::Position m_current_estimate;
+  sir_msgs::msg::PVA m_current_estimate;
 
 private:
   FeedbackMask m_mask;
