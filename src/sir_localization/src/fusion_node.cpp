@@ -8,8 +8,6 @@
 #include "sir_localization/dummy_filter.hpp"
 #include "sir_localization/filter_base.hpp"
 
-using std::placeholders::_1;
-
 namespace sir::localization {
 
 // not sure what used for
@@ -74,9 +72,7 @@ std::unique_ptr<sir::localization::FilterBase>
 create_filter(const std::string &type) {
   using namespace sir::localization;
 
-  if (type == "dummy") {
-    return std::make_unique<DummyFilter>();
-  }
+  if (type == "dummy") { return std::make_unique<DummyFilter>(); }
 
   throw std::runtime_error("Unknown filter type: " + type);
 }

@@ -15,20 +15,22 @@ find_package(sir_common REQUIRED)
 ## C++ nodes
 ############
 
-# ament_target_dependencies(fusion_node
-#   rclcpp
-#   sir_msgs
-#   sir_common
-# )
+add_executable(pathing_node src/pathing_node.cpp)
 
-# # target_link_libraries(fusion_node sir_common)
+ament_target_dependencies(pathing_node
+  rclcpp
+  sir_msgs
+  sir_common
+)
 
-# include_directories(
-#   include
-# )
+# target_link_libraries(pathing_node sir_common)
 
-# install(TARGETS fusion_node
-#   DESTINATION lib/${PROJECT_NAME}
-# )
+include_directories(
+  include
+)
+
+install(TARGETS pathing_node
+  DESTINATION lib/${PROJECT_NAME}
+)
 
 ament_package()

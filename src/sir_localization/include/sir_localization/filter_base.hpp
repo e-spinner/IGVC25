@@ -25,7 +25,7 @@ enum class FeedbackType : u_int8_t {
 
 using FeedbackMask = std::bitset<static_cast<size_t>(FeedbackType::M_COUNT)>;
 
-// filters will implement FilterBase, selecting Sensos via FeedbackMask
+// filters will implement FilterBase, selecting Sensors via FeedbackMask
 
 class FilterBase {
 public:
@@ -48,6 +48,7 @@ public:
   bool needs(FeedbackType type) {
     return m_mask.test(static_cast<size_t>(type));
   }
+
   std::string name() { return m_name; }
 
 protected:
