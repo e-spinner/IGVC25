@@ -15,11 +15,10 @@ find_package(geometry_msgs REQUIRED)
 set(msg_files
   "msg/Position.msg"
   "msg/Path.msg"
+  "msg/Map.msg"
   "msg/PVA.msg"
   "msg/GPSFeedback.msg"
   "msg/IMUFeedback.msg"
-  "msg/CellUpdate.msg"
-  "msg/GridUpdate.msg"
 )
 
 rosidl_generate_interfaces(${PROJECT_NAME}

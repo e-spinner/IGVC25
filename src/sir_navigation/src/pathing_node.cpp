@@ -1,11 +1,12 @@
 #include <rclcpp/rclcpp.hpp>
 
 #include "sir_common/types.hpp"
-#include "sir_msgs/msg/grid_update.hpp"
+#include "sir_msgs/msg/map.hpp"
 #include "sir_msgs/msg/path.hpp"
-#include "sir_msgs/msg/position.hpp"
 
-#include "sir_navigation/PatherBase.hpp"
+#include "sir_navigation/dummy_pather.hpp"
+#include "sir_navigation/occupancy_map.hpp"
+#include "sir_navigation/pather_base.hpp"
 
 namespace sir::navigation {
 
@@ -14,27 +15,31 @@ const int QOS = 10;
 
 class PathingNode : public rclcpp::Node {
 public:
-  PathingNode() : Node("Pathing_Node") {
+  PathingNode(std::unique_ptr<PatherBase> pather)
+      : Node(pather->name() + "_node"), _pather(std::move(pather)) {
 
     // Create Subscriptions
     // ------------------------------------------------------------------------
-    m_grid_sub = this->create_subscription<sir_msgs::msg::GridUpdate>(
-        sir::common::OBSTACLE_TOPIC, QOS,
-        [this](const sir_msgs::msg::GridUpdate &m) {
-          _pather->process_update(m);
-        });
-
     m_goal_sub = this->create_subscription<sir_msgs::msg::Position>(
-        sir::common::GOAL_TOPIC, QOS, [this](const sir_msgs::msg::Position &m) {
-          _pather->set_goal(m);
-
+        sir::common::GOAL_TOPIC, QOS,
+        [this](const sir_msgs::msg::Position &goal) {
+          _goal = goal;
           // publish new path when goal updated
-          m_publisher->publish(_pather->get_path());
+          m_publisher->publish(
+              _pather->compute(_position_estimate, _goal, _map));
         });
 
     m_pos_sub = this->create_subscription<sir_msgs::msg::Position>(
         sir::common::POS_ESTIMATE_TOPIC, QOS,
-        [this](const sir_msgs::msg::Position &m) { _pather->set_pos(m); });
+        [this](const sir_msgs::msg::Position &m) { _position_estimate = m; });
+
+    m_map_sub = this->create_subscription<sir_msgs::msg::Map>(
+        sir::common::MAP_TOPIC, QOS, [this](const sir_msgs::msg::Map &map) {
+          _map.update_map(map);
+          // publish new path when map updated
+          m_publisher->publish(
+              _pather->compute(_position_estimate, _goal, _map));
+        });
 
     // Create Publisher
     // ------------------------------------------------------------------------
@@ -43,13 +48,43 @@ public:
   }
 
 private:
-  rclcpp::Subscription<sir_msgs::msg::GridUpdate>::SharedPtr m_grid_sub;
   rclcpp::Subscription<sir_msgs::msg::Position>::SharedPtr m_goal_sub;
   rclcpp::Subscription<sir_msgs::msg::Position>::SharedPtr m_pos_sub;
+  rclcpp::Subscription<sir_msgs::msg::Map>::SharedPtr m_map_sub;
 
   rclcpp::Publisher<sir_msgs::msg::Path>::SharedPtr m_publisher;
 
+  sir_msgs::msg::Position _position_estimate;
+  sir_msgs::msg::Position _goal;
+  OccupancyMap _map;
   std::unique_ptr<PatherBase> _pather;
 };
 
 } // namespace sir::navigation
+
+// Pather Factory
+// ------------------------------------------------------------------------
+std::unique_ptr<sir::navigation::PatherBase>
+create_pather(const std::string &type) {
+  using namespace sir::navigation;
+
+  if (type == "dummy") { return std::make_unique<DummyPather>(); }
+
+  throw std::runtime_error("Unknown pather type: " + type);
+}
+
+// Spin up Node
+// ------------------------------------------------------------------------
+int main(int argc, char **argv) {
+  rclcpp::init(argc, argv);
+
+  std::string pather_type = "dummy"; // TODO: Get from param/env/arg
+
+  auto pather = create_pather(pather_type);
+  auto node = std::make_shared<sir::navigation::PathingNode>(std::move(pather));
+
+  rclcpp::spin(node);
+
+  rclcpp::shutdown();
+  return 0;
+}
