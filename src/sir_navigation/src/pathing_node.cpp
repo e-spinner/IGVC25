@@ -21,7 +21,7 @@ public:
     // Create Subscriptions
     // ------------------------------------------------------------------------
     m_goal_sub = this->create_subscription<sir::msg::Position>(
-        sir::common::GOAL_TOPIC, QOS, [this](const sir::msg::Position &goal) {
+        sir::cfg::GOAL_TOPIC, QOS, [this](const sir::msg::Position &goal) {
           _goal = goal;
           // publish new path when goal updated
           m_publisher->publish(
@@ -29,11 +29,11 @@ public:
         });
 
     m_pos_sub = this->create_subscription<sir::msg::Position>(
-        sir::common::POS_ESTIMATE_TOPIC, QOS,
+        sir::cfg::POS_ESTIMATE_TOPIC, QOS,
         [this](const sir::msg::Position &m) { _position_estimate = m; });
 
     m_map_sub = this->create_subscription<sir::msg::Map>(
-        sir::common::MAP_TOPIC, QOS, [this](const sir::msg::Map &map) {
+        sir::cfg::MAP_TOPIC, QOS, [this](const sir::msg::Map &map) {
           _map.update_map(map);
           // publish new path when map updated
           m_publisher->publish(
@@ -43,7 +43,7 @@ public:
     // Create Publisher
     // ------------------------------------------------------------------------
     m_publisher =
-        this->create_publisher<sir::msg::Path>(sir::common::PATH_TOPIC, QOS);
+        this->create_publisher<sir::msg::Path>(sir::cfg::PATH_TOPIC, QOS);
   }
 
 private:

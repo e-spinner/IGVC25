@@ -9,7 +9,6 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(sir REQUIRED)
-find_package(sir_common REQUIRED)
 
 ############
 ## C++ nodes
@@ -20,7 +19,6 @@ add_executable(fusion_node src/fusion_node.cpp)
 ament_target_dependencies(fusion_node
   rclcpp
   sir
-  sir_common
 )
 
 # target_link_libraries(fusion_node sir_common)

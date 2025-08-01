@@ -3,7 +3,7 @@
 #include <chrono>
 #include <string>
 
-namespace sir::common {
+namespace sir::cfg {
 
 // Topics
 // ------------------------------------------------------------------------
@@ -22,4 +22,4 @@ constexpr std::chrono::milliseconds FUSION_PUBLISH_RATE(100); // 10 hz
 const float MAP_WIDTH     = 10;
 const float MAP_HEIGHT    = 10;
 const float MAP_PRECISION = 0.25;
-} // namespace sir::common
+} // namespace sir::cfg

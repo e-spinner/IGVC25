@@ -22,30 +22,29 @@ public:
     // ------------------------------------------------------------------------
     if (_filter->needs(FeedbackType::IMU)) {
       m_imu_sub = this->create_subscription<sir::msg::IMUFeedback>(
-          sir::common::IMU_TOPIC, QOS,
+          sir::cfg::IMU_TOPIC, QOS,
           [this](const sir::msg::IMUFeedback &m) { _filter->process_imu(m); });
     }
 
     if (_filter->needs(FeedbackType::GPS)) {
       m_gps_sub = this->create_subscription<sir::msg::GPSFeedback>(
-          sir::common::GPS_TOPIC, QOS,
+          sir::cfg::GPS_TOPIC, QOS,
           [this](const sir::msg::GPSFeedback &m) { _filter->process_gps(m); });
     }
 
     // Create publisher
     // ------------------------------------------------------------------------
     m_publisher = this->create_publisher<sir::msg::PVA>(
-        sir::common::POS_ESTIMATE_TOPIC, QOS);
+        sir::cfg::POS_ESTIMATE_TOPIC, QOS);
 
     RCLCPP_INFO(this->get_logger(), "Fusion Node '%s' initialized",
                 _filter->name().c_str());
 
     // Publish position estimates
     // ------------------------------------------------------------------------
-    _timer =
-        this->create_wall_timer(sir::common::FUSION_PUBLISH_RATE, [this]() {
-          m_publisher->publish(_filter->get_estimate());
-        });
+    _timer = this->create_wall_timer(sir::cfg::FUSION_PUBLISH_RATE, [this]() {
+      m_publisher->publish(_filter->get_estimate());
+    });
   }
 
 private:
