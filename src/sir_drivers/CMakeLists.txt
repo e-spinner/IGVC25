@@ -10,7 +10,7 @@ find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclpy REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
-find_package(sir_msgs REQUIRED)
+find_package(sir REQUIRED)
 
 ###############
 ## Python nodes

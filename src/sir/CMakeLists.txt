@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.8)
-project(sir_msgs)
+project(sir)
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
@@ -26,5 +26,29 @@ rosidl_generate_interfaces(${PROJECT_NAME}
     DEPENDENCIES builtin_interfaces geometry_msgs
 )
 
+# Create a header-only interface library
+add_library(sir_common  INTERFACE)
+
+# Tell ROS and users where your headers are
+target_include_directories(sir_common  INTERFACE
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>
+)
+
+# Install the header directory
+install(
+  DIRECTORY include/
+  DESTINATION include/
+)
+
+# Install the interface library
+install(
+  TARGETS sir_common
+  EXPORT export_sir_common
+)
+
+ament_export_targets(export_sir_common HAS_LIBRARY_TARGET)
+ament_export_include_directories(include)
 ament_export_dependencies(rosidl_default_runtime)
+
 ament_package()

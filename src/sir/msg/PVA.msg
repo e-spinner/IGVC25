@@ -1,5 +1,5 @@
 
-sir_msgs/Position position
+sir/Position position
 
 # meters/second
 float64 x_linear_vel 0

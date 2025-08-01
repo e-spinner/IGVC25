@@ -1,5 +1,5 @@
 # Map's lower-left corner (world frame)
-sir_msgs/Position origin
+sir/Position origin
 
 # Flattened row-major occupancy grid
 # (FREE = 0, OCCUPIED = 1, UNKNOWN = -1)

@@ -105,7 +105,7 @@ All of the software is split up 'logically' inside of ./src/.
 ```bash
 src
 ├── sir_drivers    # hardware driver nodes for physical sensors and motors
-└── sir_msgs       # custom message types for cross node communication
+└── sir       # custom message types for cross node communication
 ```
 
 ### sir_drivers

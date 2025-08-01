@@ -11,11 +11,11 @@ class DummyFilter final : public FilterBase {
 public:
   DummyFilter() : FilterBase(DUMMY_MASK, "dummy_filter") {}
 
-  sir_msgs::msg::PVA get_estimate() override {
-    auto msg = sir_msgs::msg::PVA();
+  sir::msg::PVA get_estimate() override {
+    auto msg = sir::msg::PVA();
 
-    msg.position.x = 0;
-    msg.position.y = 0;
+    msg.position.x       = 0;
+    msg.position.y       = 0;
     msg.time_of_validity = rclcpp::Clock().now();
 
     return msg;

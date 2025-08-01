@@ -10,12 +10,12 @@ class DummyPather final : public PatherBase {
 public:
   DummyPather() : PatherBase("dummy_pather") {}
 
-  sir_msgs::msg::Path_<std::allocator<void>>
-  compute(sir_msgs::msg::Position start, sir_msgs::msg::Position goal,
-          OccupancyMap map) override {
-    auto msg = sir_msgs::msg::Path();
+  sir::msg::Path_<std::allocator<void>> compute(sir::msg::Position start,
+                                                sir::msg::Position goal,
+                                                OccupancyMap map) override {
+    auto msg = sir::msg::Path();
     for (int i = 0; i < 5; ++i) {
-      auto pos = sir_msgs::msg::Position();
+      auto pos = sir::msg::Position();
       pos.x    = i;
       msg.positions.emplace_back(pos);
     }

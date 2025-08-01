@@ -5,8 +5,8 @@
 #include <stdexcept>
 #include <vector>
 
+#include "sir/msg/map.hpp"
 #include "sir_common/types.hpp"
-#include "sir_msgs/msg/map.hpp"
 
 namespace sir::navigation {
 
@@ -16,7 +16,7 @@ public:
 
   OccupancyMap() = default;
 
-  void update_map(const sir_msgs::msg::Map &map) {
+  void update_map(const sir::msg::Map &map) {
     if (map.data.size() != sir::common::MAP_HEIGHT * sir::common::MAP_WIDTH)
       throw std::runtime_error("Map data size mismatch.");
 
@@ -50,7 +50,7 @@ public:
   size_t height() const { return sir::common::MAP_HEIGHT; }
 
 private:
-  sir_msgs::msg::Position m_origin;
+  sir::msg::Position m_origin;
   std::vector<int8_t> m_data;
 };
 

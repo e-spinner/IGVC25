@@ -4,7 +4,7 @@ from rclpy.node import Node
 import serial
 import pynmea2
 from builtin_interfaces.msg import Time
-from sir_msgs.msg import GPSFeedback
+from sir.msg import GPSFeedback
 import time
 
 class GarminGPSNode(Node):

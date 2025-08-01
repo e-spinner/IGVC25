@@ -8,7 +8,7 @@ endif()
 # find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
-find_package(sir_msgs REQUIRED)
+find_package(sir REQUIRED)
 find_package(sir_common REQUIRED)
 
 ############
@@ -19,7 +19,7 @@ add_executable(pathing_node src/pathing_node.cpp)
 
 ament_target_dependencies(pathing_node
   rclcpp
-  sir_msgs
+  sir
   sir_common
 )
 

@@ -1,9 +1,9 @@
 #include <rclcpp/rclcpp.hpp>
 
+#include "sir/msg/gps_feedback.hpp"
+#include "sir/msg/imu_feedback.hpp"
+#include "sir/msg/pva.hpp"
 #include "sir_common/types.hpp"
-#include "sir_msgs/msg/gps_feedback.hpp"
-#include "sir_msgs/msg/imu_feedback.hpp"
-#include "sir_msgs/msg/pva.hpp"
 
 #include "sir_localization/dummy_filter.hpp"
 #include "sir_localization/filter_base.hpp"
@@ -21,24 +21,20 @@ public:
     // Create subscrtiptions, if filter need it
     // ------------------------------------------------------------------------
     if (_filter->needs(FeedbackType::IMU)) {
-      m_imu_sub = this->create_subscription<sir_msgs::msg::IMUFeedback>(
+      m_imu_sub = this->create_subscription<sir::msg::IMUFeedback>(
           sir::common::IMU_TOPIC, QOS,
-          [this](const sir_msgs::msg::IMUFeedback &m) {
-            _filter->process_imu(m);
-          });
+          [this](const sir::msg::IMUFeedback &m) { _filter->process_imu(m); });
     }
 
     if (_filter->needs(FeedbackType::GPS)) {
-      m_gps_sub = this->create_subscription<sir_msgs::msg::GPSFeedback>(
+      m_gps_sub = this->create_subscription<sir::msg::GPSFeedback>(
           sir::common::GPS_TOPIC, QOS,
-          [this](const sir_msgs::msg::GPSFeedback &m) {
-            _filter->process_gps(m);
-          });
+          [this](const sir::msg::GPSFeedback &m) { _filter->process_gps(m); });
     }
 
     // Create publisher
     // ------------------------------------------------------------------------
-    m_publisher = this->create_publisher<sir_msgs::msg::PVA>(
+    m_publisher = this->create_publisher<sir::msg::PVA>(
         sir::common::POS_ESTIMATE_TOPIC, QOS);
 
     RCLCPP_INFO(this->get_logger(), "Fusion Node '%s' initialized",
@@ -55,10 +51,10 @@ public:
 private:
   // Callback Functions
   // ------------------------------------------------------------------------
-  rclcpp::Subscription<sir_msgs::msg::IMUFeedback>::SharedPtr m_imu_sub;
-  rclcpp::Subscription<sir_msgs::msg::GPSFeedback>::SharedPtr m_gps_sub;
+  rclcpp::Subscription<sir::msg::IMUFeedback>::SharedPtr m_imu_sub;
+  rclcpp::Subscription<sir::msg::GPSFeedback>::SharedPtr m_gps_sub;
 
-  rclcpp::Publisher<sir_msgs::msg::PVA>::SharedPtr m_publisher;
+  rclcpp::Publisher<sir::msg::PVA>::SharedPtr m_publisher;
 
   rclcpp::TimerBase::SharedPtr _timer;
   std::unique_ptr<FilterBase> _filter;

@@ -1,8 +1,8 @@
 #include <rclcpp/rclcpp.hpp>
 
+#include "sir/msg/map.hpp"
+#include "sir/msg/path.hpp"
 #include "sir_common/types.hpp"
-#include "sir_msgs/msg/map.hpp"
-#include "sir_msgs/msg/path.hpp"
 
 #include "sir_navigation/dummy_pather.hpp"
 #include "sir_navigation/occupancy_map.hpp"
@@ -20,21 +20,20 @@ public:
 
     // Create Subscriptions
     // ------------------------------------------------------------------------
-    m_goal_sub = this->create_subscription<sir_msgs::msg::Position>(
-        sir::common::GOAL_TOPIC, QOS,
-        [this](const sir_msgs::msg::Position &goal) {
+    m_goal_sub = this->create_subscription<sir::msg::Position>(
+        sir::common::GOAL_TOPIC, QOS, [this](const sir::msg::Position &goal) {
           _goal = goal;
           // publish new path when goal updated
           m_publisher->publish(
               _pather->compute(_position_estimate, _goal, _map));
         });
 
-    m_pos_sub = this->create_subscription<sir_msgs::msg::Position>(
+    m_pos_sub = this->create_subscription<sir::msg::Position>(
         sir::common::POS_ESTIMATE_TOPIC, QOS,
-        [this](const sir_msgs::msg::Position &m) { _position_estimate = m; });
+        [this](const sir::msg::Position &m) { _position_estimate = m; });
 
-    m_map_sub = this->create_subscription<sir_msgs::msg::Map>(
-        sir::common::MAP_TOPIC, QOS, [this](const sir_msgs::msg::Map &map) {
+    m_map_sub = this->create_subscription<sir::msg::Map>(
+        sir::common::MAP_TOPIC, QOS, [this](const sir::msg::Map &map) {
           _map.update_map(map);
           // publish new path when map updated
           m_publisher->publish(
@@ -43,19 +42,19 @@ public:
 
     // Create Publisher
     // ------------------------------------------------------------------------
-    m_publisher = this->create_publisher<sir_msgs::msg::Path>(
-        sir::common::PATH_TOPIC, QOS);
+    m_publisher =
+        this->create_publisher<sir::msg::Path>(sir::common::PATH_TOPIC, QOS);
   }
 
 private:
-  rclcpp::Subscription<sir_msgs::msg::Position>::SharedPtr m_goal_sub;
-  rclcpp::Subscription<sir_msgs::msg::Position>::SharedPtr m_pos_sub;
-  rclcpp::Subscription<sir_msgs::msg::Map>::SharedPtr m_map_sub;
+  rclcpp::Subscription<sir::msg::Position>::SharedPtr m_goal_sub;
+  rclcpp::Subscription<sir::msg::Position>::SharedPtr m_pos_sub;
+  rclcpp::Subscription<sir::msg::Map>::SharedPtr m_map_sub;
 
-  rclcpp::Publisher<sir_msgs::msg::Path>::SharedPtr m_publisher;
+  rclcpp::Publisher<sir::msg::Path>::SharedPtr m_publisher;
 
-  sir_msgs::msg::Position _position_estimate;
-  sir_msgs::msg::Position _goal;
+  sir::msg::Position _position_estimate;
+  sir::msg::Position _goal;
   OccupancyMap _map;
   std::unique_ptr<PatherBase> _pather;
 };
