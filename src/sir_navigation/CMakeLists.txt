@@ -15,8 +15,14 @@ find_package(sir REQUIRED)
 ############
 
 add_executable(pathing_node src/pathing_node.cpp)
+add_executable(map_tester src/map_tester.cpp)
 
 ament_target_dependencies(pathing_node
+  rclcpp
+  sir
+)
+
+ament_target_dependencies(map_tester
   rclcpp
   sir
 )
@@ -28,6 +34,10 @@ include_directories(
 )
 
 install(TARGETS pathing_node
+  DESTINATION lib/${PROJECT_NAME}
+)
+
+install(TARGETS map_tester
   DESTINATION lib/${PROJECT_NAME}
 )
 

@@ -10,9 +10,14 @@ class DummyPather final : public PatherBase {
 public:
   DummyPather() : PatherBase("dummy_pather") {}
 
-  sir::msg::Path_<std::allocator<void>> compute(sir::msg::Position start,
-                                                sir::msg::Position goal,
-                                                OccupancyMap map) override {
+  sir::msg::Path_<std::allocator<void>>
+  chart(sir::cfg::Map &map, sir::msg::Position &_start,
+        sir::msg::Position &_goal) override {
+    // make clang happy
+    (void)_start;
+    (void)_goal;
+    (void)map;
+
     auto msg = sir::msg::Path();
     for (int i = 0; i < 5; ++i) {
       auto pos = sir::msg::Position();
