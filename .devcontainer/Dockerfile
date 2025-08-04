@@ -15,42 +15,26 @@ RUN groupadd --gid $USER_GID $USERNAME \
     && echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME \
     && chmod 0440 /etc/sudoers.d/$USERNAME
 RUN apt-get update && apt-get upgrade -y
-RUN apt-get install -y python3-pip python3.12-venv clang-format ros-jazzy-rqt-graph
-ENV SHELL /bin/bash
+RUN apt-get install -y python3-pip python3.12-venv clang-format ros-jazzy-rqt-graph curl zsh
 
 # == phidgets == #
 RUN curl -fsSL https://www.phidgets.com/downloads/setup_linux | bash -
 RUN apt install -y libphidget22
 
-# == PYTHON == #
+# == PYTHON == #`
 RUN python3 -m venv /opt/venv
 RUN /opt/venv/bin/pip install numpy pyserial pynmea2 lark catkin_pkg colcon-common-extensions Phidget22
 ENV PATH="/opt/venv/bin:$PATH"
 
-# == source == #
-# Append sourcing logic to .bashrc
-RUN echo '\
-    # Source ROS 2\n\
-    if [ -f "/opt/ros/jazzy/setup.bash" ]; then\n\
-    source /opt/ros/jazzy/setup.bash\n\
-    fi\n\
-    \n\
-    # Source your virtual environment\n\
-    if [ -f "/home/sir/venv/bin/activate" ]; then\n\
-    source /home/sir/venv/bin/activate\n\
-    fi\n\
-    \n\
-    # Source your built ROS workspace (if exists)\n\
-    if [ -f "/home/ws/install/setup.bash" ]; then\n\
-    source /home/ws/install/setup.bash\n\
-    fi\n\
-    ' >> /home/sir/.bashrc
-
-RUN echo ' \
-    alias bld="colcon build --symlink-install"\n\
-    alias bld-s="bld --packages-select"\n\
-    alias src="source /home/ws/install/setup.bash"\
-    ' >> /home/sir/.bashrc
-
 USER $USERNAME
-CMD ["/bin/bash"]
+ENV HOME /home/$USERNAME
+WORKDIR /home/$USERNAME
+
+# == ZSH == #
+RUN sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended \
+    && git clone --depth=1 https://github.com/romkatv/powerlevel10k.git $HOME/.oh-my-zsh/custom/themes/powerlevel10k
+COPY zshrc /home/$USERNAME/.zshrc
+COPY p10k.zsh /home/$USERNAME/.p10k.zsh
+ENV SHELL /bin/zsh
+
+CMD ["/bin/zsh"]
