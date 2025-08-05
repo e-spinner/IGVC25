@@ -10,9 +10,6 @@
 
 namespace sir::navigation {
 
-const float SIDE     = sir::cfg::MAP_PRECISION;
-const float DIAGONAL = std::sqrt(2 * SIDE);
-
 // https://github.com/JDSherbert/A-Star-Pathfinding/blob/main/Pathfinder.cpp
 // https://en.wikipedia.org/wiki/A*_search_algorithm#Pseudocode
 class AStarPather final : public PatherBase {
@@ -23,16 +20,21 @@ public:
   chart(sir::cfg::Map &map, sir::msg::Position &_start,
         sir::msg::Position &_goal) override {
 
-    Node start{_start.x, _start.y};
-    Node goal{_goal.x, _goal.y};
+    const float SIDE     = map.MAP_PRECISION;
+    const float DIAGONAL = std::sqrt(2 * SIDE);
+
+    int8_t tmp_x, tmp_y;
+    map.w_to_g(_start.x, _start.y, tmp_x, tmp_y);
+    Node start{tmp_x, tmp_y};
+    map.w_to_g(_goal.x, _goal.y, tmp_x, tmp_y);
+    Node goal{tmp_x, tmp_y};
 
     std::priority_queue<Node, std::vector<Node>, compare> open_set;
     // stores g score of each visited, -1 = not visited
     sir::cfg::Map closed_set(-1);
     // stores parent of each Node
-    std::array<std::array<std::pair<int8_t, int8_t>, sir::cfg::MAP_SIZE>,
-               sir::cfg::MAP_SIZE>
-        came_from;
+    std::vector<std::vector<std::pair<int8_t, int8_t>>> came_from(
+        map.NUM_CELLS, std::vector<std::pair<int8_t, int8_t>>(map.NUM_CELLS));
 
     closed_set.set(_start.x, start.y, 0);
     open_set.push(start);
@@ -56,7 +58,8 @@ public:
           // if neighbor is occupied or already closed
           if (map.at(x, y) != 1) {
 
-            float tentative_g = current.g + distance(dx, dy);
+            float tentative_g =
+                current.g + dx == 0 || dy == 0 ? SIDE : DIAGONAL;
 
             // check if neighbor has been visited, or if it has, if this is
             // better
@@ -64,7 +67,7 @@ public:
                 tentative_g < closed_set.at(x, y)) {
               Node neighbor(x, y);
               neighbor.g      = tentative_g;
-              neighbor.h      = heuristic(neighbor, goal);
+              neighbor.h      = heuristic(neighbor, goal, SIDE, DIAGONAL);
               came_from[x][y] = {current.x, current.y};
               open_set.push(neighbor);
               closed_set.set(x, y, tentative_g);
@@ -77,6 +80,10 @@ public:
     // reconstruct path
     auto path             = sir::msg::Path();
     path.time_of_validity = rclcpp::Clock().now();
+    auto origin           = sir::msg::Position();
+    origin.x              = map.origin_x;
+    origin.y              = map.origin_y;
+    path.origin           = origin;
 
     if (path_found) {
       RCLCPP_INFO(rclcpp::get_logger("astar_pather"), "Found path");
@@ -117,13 +124,6 @@ private:
   const std::vector<std::pair<int8_t, int8_t>> KDirections{
       {0, 1}, {0, -1}, {1, 0}, {-1, 0}, {1, 1}, {1, -1}, {-1, -1}, {-1, 1}};
 
-  inline float distance(int8_t dx, int8_t dy) {
-    if (dx == 0 || dy == 0)
-      return SIDE;
-    else
-      return DIAGONAL;
-  }
-
   struct Node final {
     int8_t x, y;
 
@@ -142,11 +142,11 @@ private:
     }
   };
 
-  inline float heuristic(Node current, Node goal) {
+  inline float heuristic(Node current, Node goal, float side, float diagonal) {
     float dx = std::abs(current.x - goal.x);
     float dy = std::abs(current.y - goal.y);
 
-    return SIDE * (dx + dy) + (DIAGONAL - 2 * SIDE) * std::min(dx, dy);
+    return side * (dx + dy) + (diagonal - 2 * side) * std::min(dx, dy);
   }
 };
 

@@ -1,3 +1,6 @@
+# where map realtive [0,0] is in world frame
+sir/Position origin
+
 # array of positions, forming a path through space
 # relative to the origin
 Position[] positions

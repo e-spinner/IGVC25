@@ -35,6 +35,7 @@ public:
     m_map_sub = this->create_subscription<sir::msg::Map>(
         sir::cfg::MAP_TOPIC, QOS, [this](const sir::msg::Map &map) {
           _map.data = map.data;
+          _map.origin(map.origin.x, map.origin.y);
           // publish new path when map updated
           m_publisher->publish(_pather->chart(_map, _position_estimate, _goal));
         });
