@@ -23,7 +23,7 @@ RUN apt install -y libphidget22
 
 # == PYTHON == #`
 RUN python3 -m venv /opt/venv
-RUN /opt/venv/bin/pip install numpy pyserial pynmea2 lark catkin_pkg colcon-common-extensions Phidget22
+RUN /opt/venv/bin/pip install numpy pyserial pynmea2 lark catkin_pkg colcon-common-extensions Phidget22 flask flask-socketio
 ENV PATH="/opt/venv/bin:$PATH"
 
 USER $USERNAME
