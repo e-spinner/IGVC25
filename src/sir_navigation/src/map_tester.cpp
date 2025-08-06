@@ -53,12 +53,13 @@ public:
 
     m_publisher =
         this->create_publisher<sir::msg::Map>(sir::cfg::MAP_TOPIC, QOS);
-    auto map    = sir::msg::Map();
-    auto origin = sir::msg::Position();
-    origin.x    = 0;
-    origin.y    = 0;
-    map.origin  = origin;
-    map.data    = MAP;
+    auto map             = sir::msg::Map();
+    auto origin          = sir::msg::Position();
+    origin.x             = 0;
+    origin.y             = 0;
+    map.origin           = origin;
+    map.data             = MAP;
+    map.time_of_validity = rclcpp::Clock().now();
     m_publisher->publish(map);
   }
 

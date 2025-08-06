@@ -2,33 +2,39 @@
 <html lang="en">
 
 <head>
+  <meta charset="UTF-8" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"
     integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA=="
     crossorigin="anonymous"></script>
+
+  <link rel="stylesheet" href="/static/style.css">
 </head>
 
 <body>
-  <h1>Hello!</h1>
+  <div id="container">
+    <div class="header">
+      <h1>SIR Dashboard</h1>
+      <div class="connection-status">
+        <div id="connection-indicator" class="status-indicator status-connecting"></div>
+        <span id="connection-text">Connecting...</span>
+      </div>
 
-  <script>
-    const socket = io()
+    </div>
 
-    socket.on('connect', function () {
-      console.log('Connected to Server')
-    })
+    <div class="dashboard-grid">
 
-    socket.on('disconnect', function () {
-      console.log('Disconnected from Server')
-    })
+      <!-- Map Display -->
+      <div id="map-display" class="card">
+        <h2>Map Display</h2>
+        <div id="map-data">Waiting for Data...</div>
+        <div id="map-tov" class="tov">Last Update: Never</div>
+      </div>
 
-    socket.on('map_update', function (data) {
-      console.log('Map Update Received: ', data)
-    })
+    </div>
+  </div>
 
-    socket.on('map_error', function (data) {
-      console.error('Map error:', data);
-    })
-  </script>
+
+  <script src="/static/script.js"></script>
 </body>
 
 </html>

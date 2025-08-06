@@ -17,7 +17,6 @@ class Dashboard(Node):
 
     # Create Subscriptions
     # ----------------------------------------------------------------
-    self.map_update_count = 0
     self.map_sub = self.create_subscription(
       Map,
       '/map',
@@ -58,12 +57,15 @@ class Dashboard(Node):
   # ----------------------------------------------------------------
   def map_callback(self, msg: Map) -> None:
     try:
-      self.map_update_count += 1
 
-      print(msg.data)
+      map_data = {
+        'data': msg.data.tolist(),
+        'tov_s': msg.time_of_validity.sec,
+        'tov_n': msg.time_of_validity.nanosec,
+      }
 
-      self.socketio.emit('map_update', '')
-      self.get_logger().info(f"Broadcasting map update #{self.map_update_count} to all clients")
+      self.socketio.emit('map_update', map_data)
+      self.get_logger().info(f"Broadcasting map update to all clients")
 
     except Exception as e:
       self.get_logger().error(f"Error processing map data: {e}")
@@ -93,12 +95,12 @@ class Dashboard(Node):
 
     @self.socketio.on('connect')
     def connect() -> None:
-      print('client connected')
+      self.get_logger().info('client connected')
       emit('status', {'msg': 'Connected to Dashboard'})
 
     self.socketio.on('diconnect')
     def disconnect() -> None:
-      print('client disconnected')
+      self.get_logger().info('client disconnected')
 
 def main(args=None) -> None:
   rclpy.init(args=args)
