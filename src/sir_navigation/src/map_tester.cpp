@@ -35,8 +35,8 @@ public:
           print_map_with_path(MAP, 10, 10, path.positions, start, goal);
         });
 
-    m_pos_pub =
-        this->create_publisher<sir::msg::Position>(sir::cfg::GOAL_TOPIC, QOS);
+    m_pos_pub = this->create_publisher<sir::msg::Position>(
+        sir::cfg::POS_ESTIMATE_TOPIC, QOS);
 
     auto pos = sir::msg::Position();
     pos.x    = 0;

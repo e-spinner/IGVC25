@@ -8,7 +8,7 @@ from threading import Thread
 import os
 import time
 
-from sir.msg import Map
+from sir.msg import Map, Position, Path
 
 class Dashboard(Node):
 
@@ -21,6 +21,27 @@ class Dashboard(Node):
       Map,
       '/map',
       self.map_callback,
+      10
+    )
+
+    self.goal_sub = self.create_subscription(
+      Position,
+      '/goal',
+      self.goal_callback,
+      10
+    )
+
+    self.pos_sub = self.create_subscription(
+      Position,
+      '/pos_estimate',
+      self.pos_callback,
+      10
+    )
+
+    self.path_sub = self.create_subscription(
+      Path,
+      '/path',
+      self.path_callback,
       10
     )
 
@@ -55,6 +76,14 @@ class Dashboard(Node):
 
   # Subscription Callbacks
   # ----------------------------------------------------------------
+  def handle_error(self, e: Exception) -> None:
+    self.get_logger().error(f'Error processing data: {e}')
+    error_data = {
+      'tov': time.time(),
+      'msg': str(e)
+    }
+    self.socketio.emit('error', error_data)
+
   def map_callback(self, msg: Map) -> None:
     try:
 
@@ -68,15 +97,48 @@ class Dashboard(Node):
       self.get_logger().info(f"Broadcasting map update to all clients")
 
     except Exception as e:
-      self.get_logger().error(f"Error processing map data: {e}")
-      # Send error to clients
-      error_data = {
-          'timestamp': time.time(),
-          'status': 'error',
-          'error_message': str(e)
-      }
-      self.socketio.emit('map_error', error_data)
+      self.handle_error(e)
 
+  def goal_callback(self, msg: Position) -> None:
+    try:
+
+      goal_data = {
+        'x': msg.x,
+        'y': msg.y
+      }
+
+      self.socketio.emit('goal_update', goal_data)
+      self.get_logger().info('Broadcasting goal update to all clients')
+
+    except Exception as e:
+      self.handle_error(e)
+
+  def pos_callback(self, msg: Position) -> None:
+    try:
+
+      pos_data = {
+        'x': msg.x,
+        'y': msg.y
+      }
+
+      self.socketio.emit('pos_update', pos_data)
+      self.get_logger().info('Broadcasting pos update to all clients')
+
+    except Exception as e:
+      self.handle_error(e)
+
+  def path_callback(self, msg: Path) -> None:
+    try:
+
+      path_data = {
+        'data': msg.positions
+      }
+
+      self.socketio.emit('path_update', path_data)
+      self.get_logger().info('Broadcasting path update to all clients')
+
+    except Exception as e:
+      self.handle_error(e)
 
   # Create Flask Routes
   # ----------------------------------------------------------------
