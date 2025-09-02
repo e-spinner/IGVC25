@@ -1,8 +1,8 @@
-#
->
+# IGVC25 Capstone Software
+> subtitle!
 ---
 
-This reposititory contains all of software, and can create the necessary ros2 jazzy environment to run the software for you.
+This reposititory contains all of the IGVC25 capstone software, and can create the necessary ros2 jazzy environment to run the software for you.
 
 ## Installation
 This guide assumes you are using some linux distro, but this should work on windows with docker or WSL, and on Mac with docker.
@@ -57,7 +57,7 @@ now to actually build the environment you can run the following commands:
 
 ```bash
 # clone this repo
-git clone git@github.com:e-spinner/igvc_software.git
+git clone git@github.com:e-spinner/IGVC25.git
 
 # open vs code
 cd igvc_software && code .
@@ -77,7 +77,7 @@ Open the Integrate Terminal (`Ctrl + shift + ~`), and run `bld`, this is an alia
 ./.vscode/settings.json includes some pathing logic to help VS Code and python find ros and the packages, these should be correct.
 > If Pylance is having trouble finding packages after building run `Reload Window` in the command palette.
 
-To source the packages again either close and reopen the terminal, or run `src`, an alias for `source /home/ws/install/setup.bash`.
+To source the packages again, either close and reopen the terminal, or run `src`, an alias for `source /home/ws/install/setup.bash`.
 
 
 #### Aditional Notes
@@ -87,18 +87,14 @@ sudo /opt/venv/bin/pip install <package>
 ```
 
 ### Using Your own installed Jazzy Environment
-This can be done later, who cares
-
-#### Requirements
 
 assuming you installed jazzy the [standard way](https://docs.ros.org/en/jazzy/Installation.html)
-ensure you have the following installed to build this project:
 
-```bash
-
-```
+...
 
 ## Usage
+
+**TODO:** Fill out this Section
 
 All of the software is split up 'logically' inside of ./src/.
 
@@ -115,6 +111,6 @@ igvc_drivers/src/
 └── gps_driver.py  # parses /tty0 usb input using pynmea amd publishes to -t topic
 ```
 
-the driver nodes can be launched via cli `ros2 run igvc_drivers <node> [ARGUMENTS]`
+Nodes can be launched via cli `ros2 run <package> <node> [ARGUMENTS]` or `ros2 launch <package> <launch file> [ARGUMENTS]`
 
 
