@@ -1,11 +1,11 @@
 {
     "name": "ROS 2 Development Container",
     "privileged": true,
-    "remoteUser": "sir",
+    "remoteUser": "igvc",
     "build": {
         "dockerfile": "Dockerfile",
         "args": {
-            "USERNAME": "sir"
+            "USERNAME": "igvc"
         }
     },
     "workspaceFolder": "/home/ws",

@@ -57,10 +57,10 @@ now to actually build the environment you can run the following commands:
 
 ```bash
 # clone this repo
-git clone git@github.com:e-spinner/SIR_software.git
+git clone git@github.com:e-spinner/igvc_software.git
 
 # open vs code
-cd SIR_software && code .
+cd igvc_software && code .
 ```
 
 At this point it will probably prompt you to reopen VS Code in container if not, open the palette (`ctrl + shift + P`) and search + run `reopen in container`. This will take a while, and will hopefully work. Once this is done VS Code's integrated terminal is setup to automatically source ros2, this workspace, and the python venv.
@@ -104,17 +104,17 @@ All of the software is split up 'logically' inside of ./src/.
 
 ```bash
 src
-├── sir_drivers    # hardware driver nodes for physical sensors and motors
-└── sir       # custom message types for cross node communication
+├── igvc_drivers    # hardware driver nodes for physical sensors and motors
+└── igvc       # custom message types for cross node communication
 ```
 
-### sir_drivers
+### igvc_drivers
 
 ```bash
-sir_drivers/src/
+igvc_drivers/src/
 └── gps_driver.py  # parses /tty0 usb input using pynmea amd publishes to -t topic
 ```
 
-the driver nodes can be launched via cli `ros2 run sir_drivers <node> [ARGUMENTS]`
+the driver nodes can be launched via cli `ros2 run igvc_drivers <node> [ARGUMENTS]`
 
 

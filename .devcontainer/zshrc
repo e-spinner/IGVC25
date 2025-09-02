@@ -27,5 +27,5 @@ alias bld-s="bld --packages-select"
 alias src="source /home/ws/install/setup.zsh"
 
 # == ENV == #
-export SIR_CONFIG_PATH="/home/ws/settings.cfg"
+export igvc_CONFIG_PATH="/home/ws/settings.cfg"
 

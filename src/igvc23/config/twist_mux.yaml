@@ -1,0 +1,20 @@
+twist_mux:
+  ros__parameters:
+    use_stamped: false
+    topics:
+      navigation:
+        topic: cmd_vel
+        timeout: 0.5
+        priority: 10
+      teleop_key:
+        topic: cmd_vel_teleop_key
+        timeout: 0.5
+        priority: 60
+      teleop_joy:
+        topic: cmd_vel_teleop_joy
+        timeout: 0.5
+        priority: 70
+      estop:
+        topic: cmd_vel_estop
+        timeout: 0.5
+        priority: 100  

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"
+    integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA=="
+    crossorigin="anonymous"></script>
+
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+  <div id="container">
+    <div class="header">
+      <h1>igvc Dashboard</h1>
+      <div class="connection-status">
+        <div id="connection-indicator" class="status-indicator status-connecting"></div>
+        <span id="connection-text">Connecting...</span>
+      </div>
+
+    </div>
+
+    <div class="dashboard-grid">
+
+      <!-- Map Display -->
+      <div id="map-display" class="card">
+        <h2>Map Display</h2>
+        <canvas id="map-canvas" width="400" height="400"></canvas>
+        <div id="map-tov" class="tov">Last Update: Never</div>
+      </div>
+
+    </div>
+  </div>
+
+
+  <script src="/static/script.js"></script>
+</body>
+
+</html>

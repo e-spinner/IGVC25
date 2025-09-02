@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+
+<!-- This is the core URDF (Universal Robot Description Format) file that defines the robot
+     for Ros2, Rviz2, and Gazebo-Classic
+     It uses XACRO to break the single xml file into smaller more editable chunks -->
+
+
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro"  name="sarah">
+
+    <!-- commandline args to determine how to build robot -->
+    <xacro:arg name="target_robot" default="test"/>
+    <xacro:arg name="simulation"   default="true"/>
+
+    <!-- properties -->
+    <xacro:property name="mesh_folder" value="/home/es/Documents/GitHub/IGVC23/src/igvc23/description/meshes"/>
+
+    <!-- Origin of the robot in space - should be at pivot point
+         basically a xyz origin reference with no shape or size -->
+    <link name="base_link"></link>
+
+    <!-- Projection of base_link onto ground -->
+    <link name="base_footprint"></link>
+
+    <!-- rviz2 materials -->
+    <xacro:include filename="macros/materials.xacro"/>
+    <!-- macros to generate common sections -->
+    <xacro:include filename="macros/inertial_macros.xacro"/>
+    <xacro:include filename="macros/componet_macros.xacro"/>
+
+    <!-- include selected robot description -->
+    <xacro:include filename="$(arg target_robot).robot.xacro"/>
+
+</robot>
