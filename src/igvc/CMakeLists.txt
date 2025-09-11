@@ -47,6 +47,12 @@ install(
   EXPORT export_igvc_common
 )
 
+# install needed folders
+install(
+  DIRECTORY launch
+  DESTINATION share/${PROJECT_NAME}
+)
+
 ament_export_targets(export_igvc_common HAS_LIBRARY_TARGET)
 ament_export_include_directories(include)
 ament_export_dependencies(rosidl_default_runtime)

@@ -3,7 +3,7 @@
 <package format="3">
   <name>igvc23</name>
   <version>0.0.4</version>
-  <description>Software Suite for ONU IGVC23 Capstone</description>
+  <description>Software Suite for ONU IGVC23 Club</description>
   <maintainer email="e-spinner@onu.edu">Elijah Spinner</maintainer>
   <license>Apache-2.0</license>
 
