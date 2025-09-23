@@ -2,9 +2,6 @@
 
 #include <bitset>
 
-#include "igvc/msg/gps_feedback.hpp"
-#include "igvc/msg/imu_feedback.hpp"
-#include "igvc/msg/pva.hpp"
 
 namespace igvc::localization {
 
