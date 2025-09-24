@@ -2,115 +2,41 @@
 > subtitle!
 ---
 
-This reposititory contains all of the IGVC25 capstone software, and can create the necessary ros2 jazzy environment to run the software for you.
+To use this software you first need an ubuntu 22 environment:
 
-## Installation
-This guide assumes you are using some linux distro, but this should work on windows with docker or WSL, and on Mac with docker.
+1.  Ubuntu computer
+2.  [WSL](https://learn.microsoft.com/en-us/windows/wsl/install)
+3.  [VM](https://www.virtualbox.org)
 
-You will need a ros2 jazzy environment to build and run this software in. There are several options:
+Once you are in, I reccomend setting up [ssh with git.](https://docs.github.com/en/authentication/connecting-to-github-with-ssh) This will make pushing and pulling eaiser.
 
-1. You can use the provided devcontainer dockerfile which creates it's own self contained installation of jazzy and python, It should include all of the need dependencies in installation.
-
-2. You can also use your own jazzy and python environment
-
-### Using VS Code + Docker
-
-#### VS Code
-You will of course need an installation of VS Code, this needs to be the (official version)[https://code.visualstudio.com/download], and not OSS or Codium or etc. If you use a package manager ensure you install the correct version.
-
-This is needed to have access to the microsoft extension pack [Remote Development](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.vscode-remote-extensionpack), Install this extension in vscode (`ctrl + shift +x`), search and install:
-
-```
-ms-vscode-remote.vscode-remote-extensionpack
-```
-
-#### Docker
-You will also need to install and setup [docker](https://docs.docker.com/get-started/get-docker/). If you are on windows, good luck.
-
-You can use docker-desktop, which is the graphical ui, or just docker cli + daemon. An important note however is that you need `docker-buildx` for the devcontainer to work.
-
-Following are the steps to install docker on Arch for this project, it could be similar on other platforms:
-```bash
-sudo pacman -S docker docker-buildx
-sudo systemctl enable --now docker.socket
-sudo usermod -aG docker ${USER}
-newgrp docker
-```
-
-Here is Ubuntu as well (not tested):
-```bash
-sudo apt update && sudo apt install docker.io docker-buildx-plugin -y
-sudo systemctl enable --now docker.service
-sudo usermod -aG docker ${USER}
-newgrp docker
-```
-
-you can test if your docker cli is working with:
-```bash
-sudo docker run hello-world
-```
-
-#### Building Environment
-now to actually build the environment you can run the following commands:
-
-> if you have not setup git ssh either clone with https or [look here](https://docs.github.com/en/authentication/connecting-to-github-with-ssh)
+Either way, clone this repo, and navigate to it via terminal:
 
 ```bash
-# clone this repo
-git clone git@github.com:e-spinner/IGVC25.git
-
-# open vs code
-cd igvc_software && code .
+git clone git@github.com:e-spinner/IGVC25.git && cd IGVC25
 ```
 
-At this point it will probably prompt you to reopen VS Code in container if not, open the palette (`ctrl + shift + P`) and search + run `reopen in container`. This will take a while, and will hopefully work. Once this is done VS Code's integrated terminal is setup to automatically source ros2, this workspace, and the python venv.
+### Installing Ros
 
-#### Building Packages
-During the building of the container it will attempt to build the packages, so they should be ready if not:
-
-Inside of the devcontainer in vscode it is very easy to build and run these packages.
-
-Open the Integrate Terminal (`Ctrl + shift + ~`), and run `bld`, this is an alias for `colcon install --symlink-install`. This will hopefully work.
-
-> If you ever want to build / rebuild only certain packages you can run `bld-s <package [... ]>` an alias for colcon install --symlink-install --packages-select
-
-./.vscode/settings.json includes some pathing logic to help VS Code and python find ros and the packages, these should be correct.
-> If Pylance is having trouble finding packages after building run `Reload Window` in the command palette.
-
-To source the packages again, either close and reopen the terminal, or run `src`, an alias for `source /home/ws/install/setup.bash`.
-
-
-#### Aditional Notes
-to install more python packages inside of the devcontainer use:
-```bash
-sudo /opt/venv/bin/pip install <package>
-```
-
-### Using Your own installed Jazzy Environment
-
-assuming you installed jazzy the [standard way](https://docs.ros.org/en/jazzy/Installation.html)
-
-...
-
-## Usage
-
-**TODO:** Fill out this Section
-
-All of the software is split up 'logically' inside of ./src/.
+The following script will install ros-humble and the required packages for this repo + build the software:
 
 ```bash
-src
-├── igvc_drivers    # hardware driver nodes for physical sensors and motors
-└── igvc       # custom message types for cross node communication
+./setup.sh
 ```
 
-### igvc_drivers
+> If this raises a permision denied error. run `chmod +x ./setup.sh` and try again.
+
+### Setting up Sensors
+
+If you need to use the Sensors, run the following command to setup udev rules that the software relies on to identify which usb port devices are in:
 
 ```bash
-igvc_drivers/src/
-└── gps_driver.py  # parses /tty0 usb input using pynmea amd publishes to -t topic
+sudo cp 99-usb-sensors.rules /etc/udev/rules.d/99-usb-sensors.rules
 ```
 
-Nodes can be launched via cli `ros2 run <package> <node> [ARGUMENTS]` or `ros2 launch <package> <launch file> [ARGUMENTS]`
+now reload the udev rules:
 
-
+```bash
+sudo udevadm control --reload-rules
+sudo udevadm trigger
+```

@@ -29,7 +29,8 @@ sudo apt install -y \
     ros-humble-ros-base \
     ros-dev-tools \
     ros-humble-rviz2 \
-    ros-humble-rqt-graph
+    ros-humble-rqt-graph \
+    ros-humble-imu-tools
 
 sudo apt install -y \
     ros-humble-nmea-navsat-driver \
