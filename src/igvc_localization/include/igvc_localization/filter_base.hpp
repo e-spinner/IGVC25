@@ -2,6 +2,9 @@
 
 #include <bitset>
 
+#include <nav_msgs/msg/odometry.hpp>
+#include <sensor_msgs/msg/imu.hpp>
+#include <sensor_msgs/msg/nav_sat_fix.hpp>
 
 namespace igvc::localization {
 
@@ -17,10 +20,10 @@ enum class FeedbackType : u_int8_t {
   // ODOM,
   // CMD_VEL,
 
-  M_COUNT
+  m_COUNT
 };
 
-using FeedbackMask = std::bitset<static_cast<size_t>(FeedbackType::M_COUNT)>;
+using FeedbackMask = std::bitset<static_cast<size_t>(FeedbackType::m_COUNT)>;
 
 // filters will implement FilterBase, selecting Sensors via FeedbackMask
 
@@ -31,16 +34,16 @@ public:
 
   // Optional, implement which is needed for specific filter
   // ------------------------------------------------------------------------
-  virtual void process_imu(const igvc::msg::IMUFeedback &imu_msg) {
+  virtual void process_imu(const sensor_msgs::msg::Imu &imu_msg) {
     (void)imu_msg;
   }
-  virtual void process_gps(const igvc::msg::GPSFeedback &gps_msg) {
+  virtual void process_gps(const sensor_msgs::msg::NavSatFix &gps_msg) {
     (void)gps_msg;
   }
 
   // Required, Filter must give position estimate
   // ------------------------------------------------------------------------
-  virtual igvc::msg::PVA_<std::allocator<void>> get_estimate() = 0;
+  virtual nav_msgs::msg::Odometry_<std::allocator<void>> get_estimate() = 0;
 
   bool needs(FeedbackType type) {
     return m_mask.test(static_cast<size_t>(type));
@@ -48,8 +51,8 @@ public:
 
   std::string name() { return m_name; }
 
-protected:
-  igvc::msg::PVA m_current_estimate;
+  // protected:
+  nav_msgs::msg::Odometry m_current_estimate;
 
 private:
   FeedbackMask m_mask;

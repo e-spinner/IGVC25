@@ -1,14 +1,21 @@
+#include <nav_msgs/msg/detail/odometry__struct.hpp>
 #include <rclcpp/rclcpp.hpp>
 
-#include "igvc_common/types.hpp"
+#include <nav_msgs/msg/odometry.hpp>
+#include <sensor_msgs/msg/detail/nav_sat_fix__struct.hpp>
+#include <sensor_msgs/msg/imu.hpp>
+#include <sensor_msgs/msg/nav_sat_fix.hpp>
 
 #include "igvc_localization/dummy_filter.hpp"
 #include "igvc_localization/filter_base.hpp"
 
 namespace igvc::localization {
 
-// not sure what used for
-const int QOS = 10;
+const int QOS                  = 10;
+const std::string IMU_TOPIC    = "/vision/imu/data_raw";
+const std::string GPS_TOPIC    = "/vision/fix";
+const std::string FUSION_TOPIC = "/odom/estimate";
+constexpr std::chrono::milliseconds FUSION_PUBLISH_RATE(100); // 10 hz
 
 class FusionNode : public rclcpp::Node {
 public:
@@ -18,28 +25,30 @@ public:
     // Create subscrtiptions, if filter need it
     // ------------------------------------------------------------------------
     if (_filter->needs(FeedbackType::IMU)) {
-      m_imu_sub = this->create_subscription<igvc::msg::IMUFeedback>(
-          igvc::cfg::IMU_TOPIC, QOS,
-          [this](const igvc::msg::IMUFeedback &m) { _filter->process_imu(m); });
+      m_imu_sub = this->create_subscription<sensor_msgs::msg::Imu>(
+          IMU_TOPIC, QOS, [this](const sensor_msgs::msg::Imu::SharedPtr msg) {
+            _filter->process_imu(*msg);
+          });
     }
 
     if (_filter->needs(FeedbackType::GPS)) {
-      m_gps_sub = this->create_subscription<igvc::msg::GPSFeedback>(
-          igvc::cfg::GPS_TOPIC, QOS,
-          [this](const igvc::msg::GPSFeedback &m) { _filter->process_gps(m); });
+      m_gps_sub = this->create_subscription<sensor_msgs::msg::NavSatFix>(
+          GPS_TOPIC, QOS, [this](const sensor_msgs::msg::NavSatFix &msg) {
+            _filter->process_gps(msg);
+          });
     }
 
     // Create publisher
     // ------------------------------------------------------------------------
-    m_publisher = this->create_publisher<igvc::msg::PVA>(
-        igvc::cfg::POS_ESTIMATE_TOPIC, QOS);
+    m_publisher =
+        this->create_publisher<nav_msgs::msg::Odometry>(FUSION_TOPIC, QOS);
 
     RCLCPP_INFO(this->get_logger(), "Fusion Node '%s' initialized",
                 _filter->name().c_str());
 
     // Publish position estimates
     // ------------------------------------------------------------------------
-    _timer = this->create_wall_timer(igvc::cfg::FUSION_PUBLISH_RATE, [this]() {
+    _timer = this->create_wall_timer(FUSION_PUBLISH_RATE, [this]() {
       m_publisher->publish(_filter->get_estimate());
     });
   }
@@ -47,10 +56,10 @@ public:
 private:
   // Callback Functions
   // ------------------------------------------------------------------------
-  rclcpp::Subscription<igvc::msg::IMUFeedback>::SharedPtr m_imu_sub;
-  rclcpp::Subscription<igvc::msg::GPSFeedback>::SharedPtr m_gps_sub;
+  rclcpp::Subscription<sensor_msgs::msg::Imu>::SharedPtr m_imu_sub;
+  rclcpp::Subscription<sensor_msgs::msg::NavSatFix>::SharedPtr m_gps_sub;
 
-  rclcpp::Publisher<igvc::msg::PVA>::SharedPtr m_publisher;
+  rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr m_publisher;
 
   rclcpp::TimerBase::SharedPtr _timer;
   std::unique_ptr<FilterBase> _filter;

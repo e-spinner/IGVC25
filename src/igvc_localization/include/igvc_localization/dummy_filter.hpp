@@ -2,21 +2,42 @@
 
 #include <rclcpp/rclcpp.hpp>
 
+#include <nav_msgs/msg/odometry.hpp>
+
 #include "filter_base.hpp"
 
 namespace igvc::localization {
 
-FeedbackMask DUMMY_MASK = FeedbackMask(0);
+const FeedbackMask DUMMY_MASK = FeedbackMask(0);
 class DummyFilter final : public FilterBase {
 public:
   DummyFilter() : FilterBase(DUMMY_MASK, "dummy_filter") {}
 
-  igvc::msg::PVA get_estimate() override {
-    auto msg = igvc::msg::PVA();
+  nav_msgs::msg::Odometry get_estimate() override {
+    nav_msgs::msg::Odometry msg;
 
-    msg.position.x       = 0;
-    msg.position.y       = 0;
-    msg.time_of_validity = rclcpp::Clock().now();
+    // Fill header (stamp + frame_id)
+    msg.header.stamp    = rclcpp::Clock().now();
+    msg.header.frame_id = "odom"; // or "map"
+
+    // Position
+    msg.pose.pose.position.x = 0.0;
+    msg.pose.pose.position.y = 0.0;
+    msg.pose.pose.position.z = 0.0;
+
+    // Orientation (identity quaternion)
+    msg.pose.pose.orientation.x = 0.0;
+    msg.pose.pose.orientation.y = 0.0;
+    msg.pose.pose.orientation.z = 0.0;
+    msg.pose.pose.orientation.w = 1.0;
+
+    // Twist (velocities) — zero for dummy
+    msg.twist.twist.linear.x  = 0.0;
+    msg.twist.twist.linear.y  = 0.0;
+    msg.twist.twist.linear.z  = 0.0;
+    msg.twist.twist.angular.x = 0.0;
+    msg.twist.twist.angular.y = 0.0;
+    msg.twist.twist.angular.z = 0.0;
 
     return msg;
   }

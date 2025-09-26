@@ -8,25 +8,32 @@ endif()
 # find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
+find_package(sensor_msgs REQUIRED)
+find_package(nav_msgs REQUIRED)
 
 ############
 ## C++ nodes
 ############
 
-# add_executable(fusion_node src/fusion_node.cpp)
+add_executable(fusion_node src/fusion_node.cpp)
 
-# ament_target_dependencies(
-#   fusion_node
-#   rclcpp
-# )
+ament_target_dependencies(
+  fusion_node
+  rclcpp
+  sensor_msgs
+  nav_msgs
+)
 
-
-# include_directories(
-#   include
-# )
+include_directories(
+  include
+)
 
 install(
-  # TARGETS fusion_node
+  TARGETS fusion_node
+  DESTINATION lib/${PROJECT_NAME}
+)
+
+install(
   DIRECTORY launch
   DESTINATION share/${PROJECT_NAME}
 )
