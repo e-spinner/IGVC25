@@ -15,8 +15,8 @@ find_package(nav_msgs REQUIRED)
 ## C++ nodes
 ############
 
+# Fusion Node
 add_executable(fusion_node src/fusion_node.cpp)
-
 ament_target_dependencies(
   fusion_node
   rclcpp
@@ -24,15 +24,25 @@ ament_target_dependencies(
   nav_msgs
 )
 
+# Truth Gen
+add_executable(truth_gen src/ground_truth_generator.cpp)
+ament_target_dependencies(
+  truth_gen
+  rclcpp
+  nav_msgs
+)
+# Headers
 include_directories(
   include
 )
 
+# Install Nodes
 install(
-  TARGETS fusion_node
+  TARGETS fusion_node truth_gen
   DESTINATION lib/${PROJECT_NAME}
 )
 
+# Install Launch files
 install(
   DIRECTORY launch
   DESTINATION share/${PROJECT_NAME}
