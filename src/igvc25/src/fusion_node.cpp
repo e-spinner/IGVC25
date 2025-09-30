@@ -6,8 +6,8 @@
 #include <sensor_msgs/msg/imu.hpp>
 #include <sensor_msgs/msg/nav_sat_fix.hpp>
 
-#include "igvc_localization/dummy_filter.hpp"
-#include "igvc_localization/filter_base.hpp"
+#include "igvc25/dummy_filter.hpp"
+#include "igvc25/filter_base.hpp"
 
 namespace igvc::localization {
 

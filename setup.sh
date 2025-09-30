@@ -42,8 +42,8 @@ rosdep update
 rosdep install --from-paths src --ignore-src -r -y
 
 # === Build === #
-colcon build --symlink-install
-echo "Done. Source install to Run:"
+colcon build --symlink-install --cmake-args -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+echo "Done. Ignore cmake compile stderr. Source install to Run:"
 echo ""
 echo "      source ./install/setup.bash"
 echo "   or source ./install/setup.zsh"
