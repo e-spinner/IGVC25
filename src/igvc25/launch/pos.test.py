@@ -8,11 +8,14 @@ from launch.actions import (
   DeclareLaunchArgument,
   GroupAction,
 )
+from launch_ros.parameter_descriptions import ParameterValue
+
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import (
   LaunchConfiguration,
   PathJoinSubstitution,
   PythonExpression,
+  Command,
 )
 from launch.conditions import IfCondition
 
@@ -29,7 +32,29 @@ def generate_launch_description():
     "temp", default_value="temp", description="temp"
   )
 
-  # MARK
+  # MARK: RSP
+  robot_state_publisher = Node(
+    package="robot_state_publisher",
+    executable="robot_state_publisher",
+    output="screen",
+    parameters=[
+      {
+        "robot_description": ParameterValue(
+          Command(
+            [
+              "xacro ",
+              os.path.join(
+                get_package_share_directory(package_name),
+                "description",
+                "imu_test.urdf",
+              ),
+            ]
+          ),
+          value_type=str,
+        )
+      }
+    ],
+  )
 
   # MARK: Launch!
   return LaunchDescription(
@@ -37,5 +62,6 @@ def generate_launch_description():
       # Args
       temp_arg,
       # Nodes
+      robot_state_publisher,
     ]
   )

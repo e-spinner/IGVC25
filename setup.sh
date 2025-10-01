@@ -30,7 +30,8 @@ sudo apt install -y \
     ros-dev-tools \
     ros-humble-rviz2 \
     ros-humble-rqt-graph \
-    ros-humble-imu-tools
+    ros-humble-imu-tools \
+    ros-humble-xacro
 
 sudo apt install -y \
     ros-humble-nmea-navsat-driver \
