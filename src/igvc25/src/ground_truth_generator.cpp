@@ -8,6 +8,13 @@
 
 #include "igvc25/msg/root_instruction.hpp"
 
+// this node listens for a RootInstruction msg from root_controller.py and
+// generates a truth odometry for use with testing different pos-estimation algs
+// later the goal is to collect data by straping the sensors to a root rt1 and
+// control it with the same exact instruction as this recieves, and put this
+// output + collect sensor data into a rosbag to use as a test case with our
+// specific sensors and computer
+
 const int QOS                = 10;
 const std::string ROOT_TOPIC = "/root_instr";
 
