@@ -7,11 +7,24 @@
   <maintainer email="e-spinner@onu.edu">Elijah Spinner</maintainer>
   <license>MIT</license>
 
+  <!-- Build tool -->
   <buildtool_depend>ament_cmake</buildtool_depend>
+  <buildtool_depend>ament_cmake_python</buildtool_depend>
 
+
+  <!-- Dependencies -->
   <depend>rclcpp</depend>
+  <depend>python3</depend>
+  <depend>rclpy</depend>
   <depend>sensor_msgs</depend>
   <depend>nav_msgs</depend>
+
+  <!-- For message generation -->
+  <build_depend>rosidl_default_generators</build_depend>
+  <exec_depend>rosidl_default_runtime</exec_depend>
+
+  <!-- This line is required for custom msg -->
+  <member_of_group>rosidl_interface_packages</member_of_group>
 
   <export>
     <build_type>ament_cmake</build_type>
