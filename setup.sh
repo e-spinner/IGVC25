@@ -37,6 +37,12 @@ sudo apt install -y \
     ros-humble-nmea-navsat-driver \
     ros-humble-phidgets-drivers
 
+sudo apt install -y \
+    python3-pip
+
+pip install --user \
+    irobot_edu_sdk
+
 # === Rosdep === #
 sudo rosdep init 2>/dev/null || true
 rosdep update

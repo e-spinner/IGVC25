@@ -1,11 +1,11 @@
 {
   "python.analysis.extraPaths": [
     "/opt/ros/humble/lib/python3.12/site-packages",
-    "/home/ros/Git/IGVC25/install/igvc25/local/lib/python3.10/dist-packages"
+    "/home/dev/Git/IGVC25/install/igvc25/local/lib/python3.10/dist-packages"
   ],
   "python.autoComplete.extraPaths": [
     "/opt/ros/humble/lib/python3.12/site-packages",
-    "/home/ros/Git/IGVC25/install/igvc25/local/lib/python3.10/dist-packages"
+    "/home/dev/Git/IGVC25/install/igvc25/local/lib/python3.10/dist-packages"
   ],
   "cmake.ignoreCMakeListsMissing": true,
   "C_Cpp.errorSquiggles": "enabled",
