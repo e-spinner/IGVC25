@@ -42,8 +42,11 @@ sudo rosdep init 2>/dev/null || true
 rosdep update
 rosdep install --from-paths src --ignore-src -r -y
 
+source /opt/ros/humble/setup.bash
+
 # === Build === #
 colcon build --symlink-install --cmake-args -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+echo ""
 echo "Done. Ignore cmake compile stderr. Source install to Run:"
 echo ""
 echo "      source ./install/setup.bash"
