@@ -38,7 +38,8 @@ sudo apt install -y \
     ros-humble-phidgets-drivers
 
 sudo apt install -y \
-    python3-pip
+    python3-pip \
+    clang-format
 
 pip install --user \
     irobot_edu_sdk

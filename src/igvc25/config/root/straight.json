@@ -1,0 +1,14 @@
+{
+  "commands": [
+    {
+      "left_speed": 10.0,
+      "right_speed": 10.0,
+      "duration": 5.0
+    },
+    {
+      "left_speed": 0.0,
+      "right_speed": 0.0,
+      "duration": 1.0
+    }
+  ]
+}

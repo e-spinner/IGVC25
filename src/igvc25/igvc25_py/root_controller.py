@@ -23,43 +23,84 @@ class RootController(Node):
 
     self.robot = robot
     self.loop = loop
-    self.robot_ready = False
 
-    self.timer = self.create_timer(1, self.timer_callback)
+    self.declare_parameter("commands_file", "commands.json")
+
+    commands_file = (
+      self.get_parameter("commands_file").get_parameter_value().string_value
+    )
+
+    self.commands = self.load_commands(commands_file)
+    self.command_index = 0
+
+    self.timer = None
     self.count = 0
 
     self.get_logger().info("Root Controller Node initialized")
 
-  def timer_callback(self):
-    if self.robot_ready:
-      # publish intruction
-      msg = RootInstruction()
-      msg.left_speed = 10.0
-      msg.right_speed = 10.0
-      msg.duration = 1.0
+  def load_commands(self, filepath: str):
+    try:
+      with open(filepath, "r") as f:
+        data = json.load(f)
+        commands = data.get("commands", [])
+        self.get_logger().info(
+          f"Loaded {len(commands)} commands from {filepath}"
+        )
+        return commands
+    except FileNotFoundError:
+      self.get_logger().error(f"Command file not found: {filepath}")
+      return []
+    except json.JSONDecodeError as e:
+      self.get_logger().error(f"Error parsing JSON file: {e}")
+      return []
 
-      self.publisher.publish(msg)
-      self.get_logger().info(
-        f"Published command #{self.count}: L={msg.left_speed}, R={msg.right_speed}, D={msg.duration}"
-      )
+  def start_execution(self):
+    if len(self.commands) == 0:
+      self.get_logger().warn("No commands to execute")
+      return
 
-      # Send the same command to the Root robot
-      # Schedule the robot command as a task
-      asyncio.run_coroutine_threadsafe(
-        self.send_robot_command(msg.left_speed, msg.right_speed, msg.duration),
-        self.loop,
-      )
+    self.get_logger().info("Starting command execution...")
+    self.execute_next_command()
 
-      self.count += 1
+  def execute_next_command(self):
+    if self.command_index >= len(self.commands):
+      self.get_logger().info("All commands completed!")
+      return
 
-    else:
-      self.get_logger().warn("Robot not ready yet, skipping robot command")
+    cmd = self.commands[self.command_index]
+
+    # Create and publish ROS message
+    msg = RootInstruction()
+    msg.left_speed = float(cmd.get("left_speed", 0.0))
+    msg.right_speed = float(cmd.get("right_speed", 0.0))
+    msg.duration = float(cmd.get("duration", 1.0))
+
+    self.publisher.publish(msg)
+    self.get_logger().info(
+      f"Command {self.command_index + 1}/{len(self.commands)}: "
+      f"L={msg.left_speed}, R={msg.right_speed}, D={msg.duration}"
+    )
+
+    # Send command to robot
+    asyncio.run_coroutine_threadsafe(
+      self.send_robot_command(msg.left_speed, msg.right_speed, msg.duration),
+      self.loop,
+    )
+
+    self.command_index += 1
+
+    # Schedule next command after duration
+    if self.timer:
+      self.timer.cancel()
+    self.timer = self.create_timer(msg.duration, self.execute_next_command)
 
   async def send_robot_command(self, left_speed, right_speed, duration):
     try:
       await self.robot.set_wheel_speeds(left_speed, right_speed)
 
       await asyncio.sleep(duration)
+
+      await self.robot.set_wheel_speeds(0, 0)
 
     except Exception as e:
       self.get_logger().error(f"Error sending command to robot: {e}")
@@ -73,9 +114,10 @@ def ros_spin_thread(node, executor: SingleThreadedExecutor):
 
 
 def main(args=None):
-  rclpy.init()
+  rclpy.init(args=args)
 
   robot = Root(Bluetooth("wesbo"))
+
   loop = asyncio.get_event_loop()
 
   node = RootController(robot, loop)
@@ -92,7 +134,7 @@ def main(args=None):
   async def play(robot):
     await robot.set_lights_on_rgb(128, 0, 255)
     await robot.play_note(Note.A5, 0.5)
-    node.robot_ready = True
+    node.start_execution()
     node.get_logger().info("Robot started!")
 
   try:

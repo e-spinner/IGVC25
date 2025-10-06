@@ -1,0 +1,52 @@
+<?xml version="1.0"?>
+
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="wesbo">
+
+  <!-- Origin ot wesbo in space-->
+  <link name="base_link"></link>
+
+  <!-- Projection of base_link onto ground plane-->
+  <link name="base_footprint"></link>
+
+  <xacro:include filename="macros/materials.xacro" />
+  <xacro:include filename="macros/inertials.xacro" />
+  <xacro:include filename="macros/components.xacro" />
+
+  <joint name="footprint_joint" type="fixed">
+    <origin xyz="0.0 0.0 -0.0159" />
+    <parent link="base_link" />
+    <child link="base_footprint" />
+  </joint>
+
+  <joint name="chassis_joint" type="fixed">
+    <origin xyz="0.0 0.0 0.0076" />
+    <parent link="base_link" />
+    <child link="chassis_link" />
+  </joint>
+
+  <link name="chassis_link">
+    <visual>
+      <geometry>
+        <cylinder radius="0.0745" length="0.043" />
+      </geometry>
+      <material name="white" />
+    </visual>
+  </link>
+
+  <xacro:wheel
+    name="left_wheel"
+    parent_link="base_link"
+    wheel_distance="0.051"
+    wheel_radius="0.0159"
+    wheel_length="0.0127"
+    wheel_mass="1" />
+
+  <xacro:wheel
+    name="right_wheel"
+    parent_link="base_link"
+    wheel_distance="-0.051"
+    wheel_radius="0.0159"
+    wheel_length="0.0127"
+    wheel_mass="1" />
+
+</robot>

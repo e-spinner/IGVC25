@@ -10,6 +10,7 @@ find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(nav_msgs REQUIRED)
+find_package(tf2_ros REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
 
 # --------------------
@@ -38,7 +39,9 @@ add_executable(truth_gen src/ground_truth_generator.cpp)
 ament_target_dependencies(
   truth_gen
   rclcpp
+  sensor_msgs
   nav_msgs
+  tf2_ros
 )
 
 # Make executables depend on generated interfaces
@@ -63,10 +66,10 @@ install(
 )
 
 # --------------------
-# Install Launch + Description
+# Install Extra Folders
 # --------------------
 install(
-  DIRECTORY launch description
+  DIRECTORY launch description config
   DESTINATION share/${PROJECT_NAME}
 )
 

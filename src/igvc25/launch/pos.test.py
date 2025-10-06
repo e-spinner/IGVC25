@@ -26,10 +26,15 @@ def generate_launch_description():
   package_name = "igvc25"
 
   # MARK: Args
-  temp = LaunchConfiguration("temp")
-
-  temp_arg = DeclareLaunchArgument(
-    "temp", default_value="temp", description="temp"
+  commands_file_arg = DeclareLaunchArgument(
+    "commands_file",
+    default_value=os.path.join(
+      get_package_share_directory("igvc25"),
+      "config",
+      "root",
+      "straight.json",
+    ),
+    description="Path to the commands JSON file",
   )
 
   # MARK: RSP
@@ -46,7 +51,7 @@ def generate_launch_description():
               os.path.join(
                 get_package_share_directory(package_name),
                 "description",
-                "imu_test.urdf",
+                "root.urdf",
               ),
             ]
           ),
@@ -56,12 +61,29 @@ def generate_launch_description():
     ],
   )
 
+  # MARK: GTG
+  truth_gen = Node(
+    package="igvc25",
+    executable="truth_gen",
+    output="screen",
+  )
+
+  # MARK: ROOT
+  root_controller = Node(
+    package="igvc25",
+    executable="root_controller.py",
+    output="screen",
+    parameters=[{"commands_file": LaunchConfiguration("commands_file")}],
+  )
+
   # MARK: Launch!
   return LaunchDescription(
     [
       # Args
-      temp_arg,
+      commands_file_arg,
       # Nodes
       robot_state_publisher,
+      truth_gen,
+      root_controller,
     ]
   )
