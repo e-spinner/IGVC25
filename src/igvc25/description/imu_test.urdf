@@ -2,25 +2,25 @@
 
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="imu_test">
 
-<link name="origin"></link>
+  <link name="origin"></link>
 
-<link name="imu_link_ned">
-  <visual>
-    <geometry>
-      <box size="0.038989 0.037846 0.013380"/>
-    </geometry>
-    <material name="orange">
-      <color rgba="1 0.3 0.1 1" />
-    </material>
-  </visual>
-</link>
+  <link name="imu_link_ned">
+    <visual>
+      <geometry>
+        <box size="0.038989 0.037846 0.013380" />
+      </geometry>
+      <material name="orange">
+        <color rgba="1 0.3 0.1 1" />
+      </material>
+    </visual>
+  </link>
 
-<joint name="joint_name" type="fixed">
-  <parent link="origin"/>
-  <child link="imu_link_ned"/>
-  <!-- Rotate to transform from NED to ENU as per REP-103 -->
-  <origin xyz="0 0 0.5" rpy="3.14159 0 -1.5708"/>
-</joint>
+  <joint name="joint_name" type="fixed">
+    <parent link="origin" />
+    <child link="imu_link_ned" />
+    <!-- Rotate to transform from NED to ENU as per REP-103 -->
+    <origin xyz="0 0 0.5" rpy="3.14159 0 -1.5708" />
+  </joint>
 
 
 </robot>

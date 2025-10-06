@@ -49,4 +49,12 @@
     wheel_length="0.0127"
     wheel_mass="1" />
 
+  <xacro:ph-imu parent="chassis_link" name="imu_link_ned">
+    <origin xyz="0.0 -0.055577 0.02819" rpy="3.14159 0 -1.5708" />
+  </xacro:ph-imu>
+
+  <xacro:garmin-gps parent="chassis_link">
+    <origin xyz="0.0 0.044 0.03125" />
+  </xacro:garmin-gps>
+
 </robot>

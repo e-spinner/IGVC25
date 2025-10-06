@@ -133,7 +133,7 @@ def main(args=None):
   @event(robot.when_play)
   async def play(robot):
     await robot.set_lights_on_rgb(128, 0, 255)
-    await robot.play_note(Note.A5, 0.5)
+    # await robot.play_note(Note.A5, 0.5)
     node.start_execution()
     node.get_logger().info("Robot started!")
 

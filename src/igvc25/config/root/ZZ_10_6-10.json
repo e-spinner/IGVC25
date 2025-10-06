@@ -1,0 +1,34 @@
+{
+  "commands": [
+    {
+      "left_speed": 10.0,
+      "right_speed": 8.0,
+      "duration": 10.0
+    },
+    {
+      "left_speed": 8.0,
+      "right_speed": 10.0,
+      "duration": 10.0
+    },
+    {
+      "left_speed": 10.0,
+      "right_speed": 8.0,
+      "duration": 10.0
+    },
+    {
+      "left_speed": 8.0,
+      "right_speed": 10.0,
+      "duration": 10.0
+    },
+    {
+      "left_speed": 10.0,
+      "right_speed": 8.0,
+      "duration": 10.0
+    },
+    {
+      "left_speed": 8.0,
+      "right_speed": 10.0,
+      "duration": 10.0
+    }
+  ]
+}

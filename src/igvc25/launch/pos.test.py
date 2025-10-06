@@ -6,7 +6,7 @@ from launch import LaunchDescription
 from launch.actions import (
   IncludeLaunchDescription,
   DeclareLaunchArgument,
-  GroupAction,
+  ExecuteProcess,
 )
 from launch_ros.parameter_descriptions import ParameterValue
 
@@ -28,13 +28,21 @@ def generate_launch_description():
   # MARK: Args
   commands_file_arg = DeclareLaunchArgument(
     "commands_file",
-    default_value=os.path.join(
-      get_package_share_directory("igvc25"),
-      "config",
-      "root",
-      "straight.json",
-    ),
-    description="Path to the commands JSON file",
+    default_value="S_10_60.json",  # default filename
+    description="Name of the commands JSON file in config/root",
+  )
+
+  # MARK: Sensors
+  vision = IncludeLaunchDescription(
+    PythonLaunchDescriptionSource(
+      [
+        os.path.join(
+          get_package_share_directory(package_name),
+          "launch",
+          "vision.launch.py",
+        )
+      ]
+    )
   )
 
   # MARK: RSP
@@ -73,7 +81,40 @@ def generate_launch_description():
     package="igvc25",
     executable="root_controller.py",
     output="screen",
-    parameters=[{"commands_file": LaunchConfiguration("commands_file")}],
+    parameters=[
+      {
+        "commands_file": PathJoinSubstitution(
+          [
+            get_package_share_directory("igvc25"),
+            "config",
+            "root",
+            LaunchConfiguration("commands_file"),
+          ]
+        )
+      }
+    ],
+  )
+
+  bag_name = PythonExpression(
+    ["'", LaunchConfiguration("commands_file"), "'.replace('.json', '')"]
+  )
+
+  record_bag = ExecuteProcess(
+    cmd=[
+      "ros2",
+      "bag",
+      "record",
+      "-o",
+      PathJoinSubstitution(
+        [get_package_share_directory("igvc25"), "bags", bag_name]
+      ),
+      "/tf",
+      "/tf_static",
+      "/joint_states",
+      "/vison/imu/data_raw",
+      "/vision/fix",
+    ],
+    output="screen",
   )
 
   # MARK: Launch!
@@ -82,6 +123,8 @@ def generate_launch_description():
       # Args
       commands_file_arg,
       # Nodes
+      record_bag,
+      vision,
       robot_state_publisher,
       truth_gen,
       root_controller,
