@@ -60,39 +60,33 @@ class RootController(Node):
       return
 
     self.get_logger().info("Starting command execution...")
-    self.execute_next_command()
+    asyncio.run_coroutine_threadsafe(self.execute_commands(), self.loop)
 
-  def execute_next_command(self):
-    if self.command_index >= len(self.commands):
-      self.get_logger().info("All commands completed!")
-      return
+  async def execute_commands(self):
+    for i, cmd in enumerate(self.commands):
+      left = float(cmd.get("left_speed", 0.0))
+      right = float(cmd.get("right_speed", 0.0))
+      dur = float(cmd.get("duration", 1.0))
 
-    cmd = self.commands[self.command_index]
+      msg = RootInstruction()
+      msg.left_speed = left
+      msg.right_speed = right
+      msg.duration = dur
+      self.publisher.publish(msg)
 
-    # Create and publish ROS message
-    msg = RootInstruction()
-    msg.left_speed = float(cmd.get("left_speed", 0.0))
-    msg.right_speed = float(cmd.get("right_speed", 0.0))
-    msg.duration = float(cmd.get("duration", 1.0))
+      self.get_logger().info(
+        f"Command {i + 1}/{len(self.commands)}: L={left}, R={right}, D={dur}"
+      )
 
-    self.publisher.publish(msg)
-    self.get_logger().info(
-      f"Command {self.command_index + 1}/{len(self.commands)}: "
-      f"L={msg.left_speed}, R={msg.right_speed}, D={msg.duration}"
-    )
+      # Execute the movement
+      await self.send_robot_command(left, right, dur)
 
-    # Send command to robot
-    asyncio.run_coroutine_threadsafe(
-      self.send_robot_command(msg.left_speed, msg.right_speed, msg.duration),
-      self.loop,
-    )
+      # Optional: pause briefly between commands
+      await asyncio.sleep(0.3)
 
-    self.command_index += 1
-
-    # Schedule next command after duration
-    if self.timer:
-      self.timer.cancel()
-    self.timer = self.create_timer(msg.duration, self.execute_next_command)
+    self.get_logger().info("All commands completed!")
+    await self.robot.set_lights_off()
+    await self.robot.play_note(Note.A3, 0.5)
 
   async def send_robot_command(self, left_speed, right_speed, duration):
     try:
@@ -133,7 +127,7 @@ def main(args=None):
   @event(robot.when_play)
   async def play(robot):
     await robot.set_lights_on_rgb(128, 0, 255)
-    # await robot.play_note(Note.A5, 0.5)
+    await robot.play_note(Note.A5, 0.5)
     node.start_execution()
     node.get_logger().info("Robot started!")
 

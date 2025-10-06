@@ -108,11 +108,7 @@ def generate_launch_description():
       PathJoinSubstitution(
         [get_package_share_directory("igvc25"), "bags", bag_name]
       ),
-      "/tf",
-      "/tf_static",
-      "/joint_states",
-      "/vison/imu/data_raw",
-      "/vision/fix",
+      "--all",
     ],
     output="screen",
   )
