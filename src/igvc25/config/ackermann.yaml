@@ -2,23 +2,27 @@
   ros__parameters:
 
     # === CHASSIS === #
-    chassis_length: 3.0 # [m]
-    chassis_width: 2.0  # [m]
-    chassis_height: 1.0 # [m]
-    chassis_mass: 25.0  # [kg]
-    chassis_offset: "-1.25 0.0 0.5" # "[m m m]"
+    chassis_length: 0.9144 # [m] 3 ft
+    chassis_width: 0.6096  # [m] 2 ft
+    chassis_height: 0.1524 # [m] 6 in
+    chassis_mass: 24.95    # [kg] 55 lbs
+    chassis_offset: "-0.4572 0.0 0.0762" # "[m m m]" 1.5 ft 0 3 in
 
     # === WHEELS === #
-    wheel_length: 0.25  # [m]
-    wheel_radius: 0.5   # [m]
-    wheel_mass: 1.0     # [kg]
-    track_width: 2.25   # [m]
-    wheel_base: 2.5     # [m]
+    wheel_length: 0.0508  # [m]
+    wheel_radius: 0.1524  # [m]
+    wheel_mass: 1.0       # [kg]
+
+    track_width: 0.9144  # [m]
+    wheel_base: 0.7  # [m]
 
     # === KINEMATICS & DYNAMICS === #
-    max_steering_angle: 0.60            # [rad]
+    max_inside_steering_angle: 1.199    # [rad]
+    max_outside_steering_angle: 0.75    # [rad]
+
     max_steering_angular_velocity: 1.57 # [rad/s]
     max_steering_effort: 1.0            # [Nm]
+
     max_velocity: 1.0                   # [m/s]
     max_effort: 10.0                    # [Nm]
 
