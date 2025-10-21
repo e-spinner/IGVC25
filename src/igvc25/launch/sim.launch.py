@@ -9,7 +9,9 @@ from launch.actions import (
   IncludeLaunchDescription,
   DeclareLaunchArgument,
   GroupAction,
+  RegisterEventHandler,
 )
+from launch.event_handlers import OnProcessExit
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import (
   LaunchConfiguration,
@@ -46,7 +48,7 @@ def generate_launch_description():
       )
     ),
     launch_arguments={
-      "gz_args": f"-r -v 4 {world} -z 0.5",
+      "gz_args": f"-r -v 4 {world}",
       "on_exit_shutdown": "true",
     }.items(),
   )
@@ -60,7 +62,18 @@ def generate_launch_description():
     package="ros_gz_sim",
     executable="create",
     output="screen",
-    arguments=["-name", "robot", "-string", robot_description],
+    arguments=[
+      "-name",
+      "robot",
+      "-string",
+      robot_description,
+      "-x",
+      "0",
+      "-y",
+      "0",
+      "-z",
+      "0.5",
+    ],
   )
 
   robot_state_publisher = Node(
@@ -72,6 +85,26 @@ def generate_launch_description():
         "robot_description": robot_description,
         "use_sim_time": True,
       }
+    ],
+  )
+
+  joint_state_broadcaster_spawner = Node(
+    package="controller_manager",
+    executable="spawner",
+    arguments=["joint_state_broadcaster"],
+  )
+
+  controller_params = os.path.join(
+    package_path, "config", "gz_ros2_control.yaml"
+  )
+
+  ackermann_steering_controller_spawner = Node(
+    package="controller_manager",
+    executable="spawner",
+    arguments=[
+      "ackermann_steering_controller",
+      "-p",
+      controller_params,
     ],
   )
 
@@ -94,9 +127,21 @@ def generate_launch_description():
   return LaunchDescription(
     [
       # Nodes
-      # gazebo_launch,
-      # spawn_robot,
+      gazebo_launch,
+      RegisterEventHandler(
+        event_handler=OnProcessExit(
+          target_action=spawn_robot,
+          on_exit=[joint_state_broadcaster_spawner],
+        )
+      ),
+      RegisterEventHandler(
+        event_handler=OnProcessExit(
+          target_action=joint_state_broadcaster_spawner,
+          on_exit=[ackermann_steering_controller_spawner],
+        )
+      ),
+      spawn_robot,
       robot_state_publisher,
-      # gz_bridge,
+      gz_bridge,
     ]
   )
