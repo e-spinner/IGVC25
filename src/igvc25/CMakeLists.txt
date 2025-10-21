@@ -69,7 +69,7 @@ install(
 # Install Extra Folders
 # --------------------
 install(
-  DIRECTORY launch description config
+  DIRECTORY launch description config worlds
   DESTINATION share/${PROJECT_NAME}
 )
 

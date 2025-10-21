@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
-# === Install ros === 2 #
+# === Install ros2 humble === #
 
 locale
 
@@ -43,6 +43,21 @@ sudo apt install -y \
 
 pip install --user \
     irobot_edu_sdk
+
+# === Install Gazebo Ignition Fortress === #
+sudo apt-get install lsb-release gnupg
+sudo curl https://packages.osrfoundation.org/gazebo.gpg --output /usr/share/keyrings/pkgs-osrf-archive-keyring.gpg
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/pkgs-osrf-archive-keyring.gpg] https://packages.osrfoundation.org/gazebo/ubuntu-stable $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/gazebo-stable.list > /dev/null
+sudo apt-get update
+sudo apt-get install ignition-fortress
+
+sudo apt install -y \
+    ros-humble-ros2-controllers \
+    ros-humble-gz-ros2-control \
+    ros-humble-ros-gz \
+    ros-humble-ros-gz-bridge \
+    ros-humble-joint-state-publisher \
+    ros-humble-robot-state-publisher
 
 # === Rosdep === #
 sudo rosdep init 2>/dev/null || true

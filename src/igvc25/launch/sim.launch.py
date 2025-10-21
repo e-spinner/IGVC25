@@ -37,9 +37,30 @@ def generate_launch_description():
   package_name = "igvc25"
   package_path = get_package_share_directory(package_name)
 
+  world = os.path.join(package_path, "worlds", "plane.sdf")
+
+  gazebo_launch = IncludeLaunchDescription(
+    PythonLaunchDescriptionSource(
+      os.path.join(
+        get_package_share_directory("ros_gz_sim"), "launch", "gz_sim.launch.py"
+      )
+    ),
+    launch_arguments={
+      "gz_args": f"-r -v 4 {world} -z 0.5",
+      "on_exit_shutdown": "true",
+    }.items(),
+  )
+
   robot_description = load_robot_description(
     os.path.join(package_path, "description", "ackermann.urdf"),
     os.path.join(package_path, "config", "ackermann.yaml"),
+  )
+
+  spawn_robot = Node(
+    package="ros_gz_sim",
+    executable="create",
+    output="screen",
+    arguments=["-name", "robot", "-string", robot_description],
   )
 
   robot_state_publisher = Node(
@@ -54,12 +75,28 @@ def generate_launch_description():
     ],
   )
 
+  bridge_params = os.path.join(package_path, "config", "ros_gz_bridge.yaml")
+
+  gz_bridge = Node(
+    package="ros_gz_bridge",
+    executable="parameter_bridge",
+    output="screen",
+    arguments=[
+      "--ros-args",
+      "-p",
+      f"config_file:={bridge_params}",
+    ],
+  )
+
   # MARK
 
   # MARK: Launch!
   return LaunchDescription(
     [
       # Nodes
+      # gazebo_launch,
+      # spawn_robot,
       robot_state_publisher,
+      # gz_bridge,
     ]
   )
