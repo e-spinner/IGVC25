@@ -4,16 +4,18 @@
         MARK: wheel
     -->
   <xacro:macro name="wheel"
-    params="name parent_link wheel_distance wheel_radius wheel_length wheel_mass">
+    params="name parent_link wheel_distance wheel_radius wheel_length wheel_mass wheel_orientation max_effort max_vel">
 
     <joint name="${name}_joint" type="continuous">
       <parent link="${parent_link}" />
-      <child link="${name}" />
-      <origin xyz="0 ${wheel_distance} 0" rpy="-${pi/2} 0 0" />
+      <child link="${name}_link" />
+      <origin xyz="0 ${wheel_distance} 0" rpy="${wheel_orientation} 0 0" />
       <axis xyz="0 0 1" />
+      <limit effort="${max_effort}" velocity="${max_vel}"/>
+      <dynamics damping="0.1" friction="0.1"/>
     </joint>
 
-    <link name="${name}">
+    <link name="${name}_link">
       <xacro:inertial_cylinder mass="${wheel_mass}" radius="${wheel_radius}"
         length="${wheel_length}">
         <origin xyz="0 0 0" rpy="0 0 0" />
