@@ -84,6 +84,7 @@ ament_python_install_package(igvc25_py)
 # Install Python executables
 install(PROGRAMS
   igvc25_py/root_controller.py
+  igvc25_py/odom_to_tf.py
   DESTINATION lib/${PROJECT_NAME}
 )
 

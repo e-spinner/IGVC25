@@ -14,16 +14,16 @@
     wheel_mass: 1.0       # [kg]
 
     track_width: 0.9144  # [m]
-    wheel_base: 0.7  # [m]
+    wheel_base: 0.7      # [m]
 
     # === KINEMATICS & DYNAMICS === #
     max_inside_steering_angle: 1.199    # [rad]
     max_outside_steering_angle: 0.75    # [rad]
 
     max_steering_angular_velocity: 1.57 # [rad/s]
-    max_steering_effort: 1.0            # [Nm]
+    max_steering_effort: 100.0          # [Nm]
 
-    max_velocity: 1.0                   # [m/s]
+    max_velocity: 2.23                  # [m/s] 5 mph
     max_effort: 10.0                    # [Nm]
 
 

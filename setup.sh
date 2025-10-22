@@ -31,7 +31,8 @@ sudo apt install -y \
     ros-humble-rviz2 \
     ros-humble-rqt-graph \
     ros-humble-imu-tools \
-    ros-humble-xacro
+    ros-humble-xacro \
+    xterm
 
 sudo apt install -y \
     ros-humble-nmea-navsat-driver \
@@ -57,7 +58,9 @@ sudo apt install -y \
     ros-humble-ros-gz \
     ros-humble-ros-gz-bridge \
     ros-humble-joint-state-publisher \
-    ros-humble-robot-state-publisher
+    ros-humble-robot-state-publisher \
+    ros-hunble-teleop-twist-keyboard \
+    ros-humble-twist-stamper
 
 # === Rosdep === #
 sudo rosdep init 2>/dev/null || true

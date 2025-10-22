@@ -86,11 +86,6 @@
     <origin xyz="${chassis_offset}"/>
   </joint>
 
-  <gazebo reference="chassis_link">
-    <mu1>0.0001</mu1>
-    <mu2>0.0001</mu2>
-  </gazebo>
-
   <!-- link between rear wheels -->
   <link name="diff_link"/>
   <joint name="diff_joint" type="fixed">
@@ -116,15 +111,11 @@
     max_vel="${max_wheel_angular_velocity}"
   />
 
-  <gazebo reference="front_left_wheel_link">
-    <mu1>100.0</mu1>
-    <mu2>100.0</mu2>
-  </gazebo>
-
   <link name="front_left_steering_link">
-    <xacro:inertial_box mass="0.001" x="0.001" y="0.001" z="0.001">
-      <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
-    </xacro:inertial_box>
+    <inertial>
+      <mass value="0.1"/>
+      <inertia ixx="0.001" ixy="0.0" ixz="0.0" iyy="0.001" iyz="0.0" izz="0.002" />
+    </inertial>
   </link>
 
   <joint name="front_left_steering_joint" type="revolute">
@@ -141,7 +132,7 @@
     name="front_right_wheel"
     parent_link="front_right_steering_link"
     wheel_distance="0"
-    wheel_orientation="${pi/2}"
+    wheel_orientation="-${pi/2}"
     wheel_radius="${wheel_radius}"
     wheel_length="${wheel_length}"
     wheel_mass="${wheel_mass}"
@@ -149,15 +140,11 @@
     max_vel="${max_wheel_angular_velocity}"
   />
 
-  <gazebo reference="front_right_wheel_link">
-    <mu1>100.0</mu1>
-    <mu2>100.0</mu2>
-  </gazebo>
-
   <link name="front_right_steering_link">
-    <xacro:inertial_box mass="0.001" x="0.001" y="0.001" z="0.001">
-      <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
-    </xacro:inertial_box>
+    <inertial>
+      <mass value="0.1"/>
+      <inertia ixx="0.001" ixy="0.0" ixz="0.0" iyy="0.001" iyz="0.0" izz="0.002" />
+    </inertial>
   </link>
 
   <joint name="front_right_steering_joint" type="revolute">
@@ -182,17 +169,12 @@
     max_vel="${max_wheel_angular_velocity}"
   />
 
-  <gazebo reference="back_left_wheel_link">
-    <mu1>100.0</mu1>
-    <mu2>100.0</mu2>
-  </gazebo>
-
   <!-- ===== BACK RIGHT WHEEL ===== -->
   <xacro:wheel
     name="back_right_wheel"
     parent_link="diff_link"
     wheel_distance="-${wheel_base/2}"
-    wheel_orientation="${pi/2}"
+    wheel_orientation="-${pi/2}"
     wheel_radius="${wheel_radius}"
     wheel_length="${wheel_length}"
     wheel_mass="${wheel_mass}"
@@ -200,13 +182,28 @@
     max_vel="${max_wheel_angular_velocity}"
   />
 
-  <gazebo reference="back_right_wheel_link">
-    <mu1>100.0</mu1>
-    <mu2>100.0</mu2>
-  </gazebo>
+  <!--
+  MARK: SENSORS
+  -->
+
+  <!-- Lidar -->
+  <xacro:lidar parent="base_link">
+    <origin xyz="-0.3 0 0.3" rpy="0 0 0" />
+  </xacro:lidar>
+
+  <!-- IMU -->
+  <!-- <xacro:ph-imu parent="lidar_frame">
+    <origin xyz="0 0 0.05" rpy="0 0 0" />
+  </xacro:ph-imu> -->
+
+  <!-- GPS -->
+  <!-- <xacro:garmin-gps parent="imu">
+    <origin xyz="0 0 0.05" rpy="0 0 0" />
+  </xacro:garmin-gps> -->
+
 
   <!--
-  MARK: ROS2 CTRL
+  MARK: CTRL
   -->
 
   <!-- ===== ROS2 CONTROL ===== -->
@@ -224,11 +221,11 @@
       <state_interface name="velocity" />
       <state_interface name="position" />
     </joint>
-    <joint name="left_wheel_steering_joint">
-      <command_interface name="position" />
+    <joint name="front_left_steering_joint">
+      <command_interface name="position"/>
       <state_interface name="position" />
     </joint>
-    <joint name="right_wheel_steering_joint">
+    <joint name="front_right_steering_joint">
       <command_interface name="position" />
       <state_interface name="position" />
     </joint>
@@ -242,10 +239,24 @@
     </joint>
   </ros2_control>
 
+  <!--
+  MARK: SIM
+  -->
   <!-- ===== GAZEBO ===== -->
   <gazebo>
     <plugin filename="gz_ros2_control-system" name="gz_ros2_control::GazeboSimROS2ControlPlugin">
       <parameters>$(find igvc25)/config/gz_ros2_control.yaml</parameters>
+      <ros>
+        <remapping>ackermann_steering_controller/reference:=ackermann_steering_controller/cmd_vel</remapping>
+      </ros>
+    </plugin>
+
+    <plugin filename="libignition-gazebo-odometry-publisher-system.so"
+        name="ignition::gazebo::systems::OdometryPublisher">
+      <odom_frame>odom</odom_frame>
+      <robot_base_frame>base_link</robot_base_frame>
+      <odom_publish_frequency>50</odom_publish_frequency>
+      <odom_topic>/robot/odometry</odom_topic>
     </plugin>
   </gazebo>
 

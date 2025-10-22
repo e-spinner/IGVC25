@@ -121,7 +121,21 @@ def generate_launch_description():
     ],
   )
 
-  # MARK
+  gz_odom_tf = Node(
+    package=package_name,
+    executable="odom_to_tf.py",
+    output="screen",
+  )
+
+  teleop = Node(
+    package="teleop_twist_keyboard",
+    executable="teleop_twist_keyboard",
+    name="teleop_keyboard",
+    output="screen",
+    remappings=[("/cmd_vel", "/ackermann_steering_controller/cmd_vel")],
+    parameters=[{"stamped": True}],
+    prefix="xterm -e",  # Opens in a new terminal window
+  )
 
   # MARK: Launch!
   return LaunchDescription(
@@ -143,5 +157,7 @@ def generate_launch_description():
       spawn_robot,
       robot_state_publisher,
       gz_bridge,
+      gz_odom_tf,
+      teleop,
     ]
   )

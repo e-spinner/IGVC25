@@ -1,17 +1,44 @@
+# MARK: Clock
+
+# https://github.com/gazebosim/ros_gz/blob/ros2/ros_gz_bridge/README.md
+
+# https://gazebosim.org/docs/latest/migrating_gazebo_classic_ros2_packages/#bridge-ros-topics
+
+# gz topic published by sim
 - ros_topic_name: "clock"
   gz_topic_name: "clock"
   ros_type_name: "rosgraph_msgs/msg/Clock"
   gz_type_name: "gz.msgs.Clock"
   direction: "GZ_TO_ROS"
 
-- ros_topic_name: "joint_states"
-  gz_topic_name: "joint_states"
-  ros_type_name: "sensor_msgs/msg/JointState"
-  gz_type_name: "gz.msgs.Model"
-  direction: "GZ_TO_ROS"
 
-- ros_topic_name: "tf"
-  gz_topic_name: "tf"
-  ros_type_name: "tf2_msgs/msg/TFMessage"
-  gz_type_name: "gz.msgs.Pose_V"
+# MARK: Sensors
+
+# gz topic published by sensors plugin (gpu_lidar)
+- ros_topic_name: "scan"
+  gz_topic_name:  "scan"
+  ros_type_name:  "sensor_msgs/msg/LaserScan"
+  gz_type_name:   "gz.msgs.LaserScan"
+  direction:      "GZ_TO_ROS"
+
+# gz topic published by sensors plugin (imu)
+- ros_topic_name: "imu"
+  gz_topic_name:  "imu"
+  ros_type_name:  "sensor_msgs/msg/Imu"
+  gz_type_name:   "gz.msgs.IMU"
+  direction:      "GZ_TO_ROS"
+
+# gz topic published by sensors plugin (gps)
+- ros_topic_name: "gps"
+  gz_topic_name:  "gps"
+  ros_type_name:  "gps_msgs/msg/GPSFix"
+  gz_type_name:   "gz.msgs.NavSat"
+  direction:      "GZ_TO_ROS"
+
+
+# gz topic published by odometry plugin
+- ros_topic_name: "odom"
+  gz_topic_name: "robot/odometry"
+  ros_type_name: "nav_msgs/msg/Odometry"
+  gz_type_name: "ignition.msgs.Odometry"
   direction: "GZ_TO_ROS"
