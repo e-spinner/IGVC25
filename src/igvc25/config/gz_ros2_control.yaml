@@ -23,7 +23,7 @@ ackermann_steering_controller:
     front_wheels_radius: 0.1524
     rear_wheels_radius: 0.1524
 
-    use_stamped_vel: true
+    use_stamped_vel: false
     open_loop: false
     velocity_rolling_window_size: 10
     enable_odom_tf: false

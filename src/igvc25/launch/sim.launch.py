@@ -39,6 +39,8 @@ def generate_launch_description():
   package_name = "igvc25"
   package_path = get_package_share_directory(package_name)
 
+  # MARK: Gazebo
+
   world = os.path.join(package_path, "worlds", "plane.sdf")
 
   gazebo_launch = IncludeLaunchDescription(
@@ -53,6 +55,7 @@ def generate_launch_description():
     }.items(),
   )
 
+  # MARK: RSP
   robot_description = load_robot_description(
     os.path.join(package_path, "description", "ackermann.urdf"),
     os.path.join(package_path, "config", "ackermann.yaml"),
@@ -88,6 +91,8 @@ def generate_launch_description():
     ],
   )
 
+  # MARK: ROS2 Ctrl
+
   joint_state_broadcaster_spawner = Node(
     package="controller_manager",
     executable="spawner",
@@ -107,6 +112,8 @@ def generate_launch_description():
       controller_params,
     ],
   )
+
+  # MARK: GZ Bridge
 
   bridge_params = os.path.join(package_path, "config", "ros_gz_bridge.yaml")
 
@@ -132,8 +139,10 @@ def generate_launch_description():
     executable="teleop_twist_keyboard",
     name="teleop_keyboard",
     output="screen",
-    remappings=[("/cmd_vel", "/ackermann_steering_controller/cmd_vel")],
-    parameters=[{"stamped": True}],
+    remappings=[
+      ("/cmd_vel", "/ackermann_steering_controller/reference_unstamped")
+    ],
+    # parameters=[{"stamped": True}],
     prefix="xterm -e",  # Opens in a new terminal window
   )
 

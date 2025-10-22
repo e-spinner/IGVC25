@@ -4,8 +4,7 @@
     <RecoveryNode name="try_naviagation"
                   number_of_retries="15">
       <ReactiveFallback name="if_new_goal_stop">
-        <GoalUpdated goal="{goal}"
-                    />
+        <GoalUpdated/>
         <PipelineSequence name="navigation">
           <RateController hz="1">
             <Sequence name="plan_and_smooth_path">
@@ -14,8 +13,7 @@
                                  planner_id="grid_based"
 
 
-                                 path="{path}"
-                                 error_code_id="{compute_path_error_code}"/>
+                                 path="{path}"/>
               <SmoothPath smoother_id="simple_smoother"
                           unsmoothed_path="{path}"
                           max_smoothing_duration="3.0"
@@ -25,21 +23,13 @@
                          />
             </Sequence>
           </RateController>
-          <FollowPath controller_id="mppi_controller"
+          <FollowPath controller_id="regulated_pure_pursuit"
                       path="{path_smooth}"
-                      goal_checker_id="general_goal_checker"
-                      progress_checker_id="progress_checker"
-
-
-                      error_code_id="{follow_path_error_code}"/>
+                      goal_checker_id="general_goal_checker"/>
         </PipelineSequence>
       </ReactiveFallback>
       <BackUp backup_dist="0.25"
-              backup_speed="0.5"
-
-
-
-              error_code_id="{backup_error_code}"/>
+              backup_speed="0.5"/>
     </RecoveryNode>
   </BehaviorTree>
 
