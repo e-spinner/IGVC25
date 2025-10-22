@@ -60,7 +60,9 @@ sudo apt install -y \
     ros-humble-joint-state-publisher \
     ros-humble-robot-state-publisher \
     ros-hunble-teleop-twist-keyboard \
-    ros-humble-twist-stamper
+    ros-humble-twist-stamper \
+    ros-hunble-navigation2 \
+    ros-humble-nav2-bringup
 
 # === Rosdep === #
 sudo rosdep init 2>/dev/null || true

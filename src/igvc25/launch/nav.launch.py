@@ -42,8 +42,8 @@ def generate_launch_description():
       'smoother_server',
       'planner_server',
       'behavior_server',
-      'velocity_smoother',
-      'collision_monitor',
+      # 'velocity_smoother',
+      # 'collision_monitor',
       'bt_navigator',
       # 'waypoint_follower',
       # 'docking_server',
@@ -120,7 +120,7 @@ def generate_launch_description():
   # MARK: Bhvr Svr
   # https://github.com/ros-navigation/navigation2/tree/jazzy/nav2_behaviors
   # https://docs.nav2.org/configuration/packages/configuring-behavior-server.html
-  # responsivle for handling robot behaiviors specifies by bt-navigator
+  # responsivle for handling robot behaiviors specified by bt-navigator
   behavior_server = Node(
       package='nav2_behaviors',
       executable='behavior_server',
@@ -189,8 +189,8 @@ def generate_launch_description():
       behavior_server,
 
       # Nav2 addtional bits
-      collision_monitor,
-      vel_smoother,
+      # collision_monitor,
+      # vel_smoother,
       # waypoint_follower,
 
       # Nav2 navigator & bond
