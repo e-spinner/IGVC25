@@ -191,17 +191,6 @@
     <origin xyz="-0.3 0 0.3" rpy="0 0 0" />
   </xacro:lidar>
 
-  <!-- IMU -->
-  <!-- <xacro:ph-imu parent="lidar_frame">
-    <origin xyz="0 0 0.05" rpy="0 0 0" />
-  </xacro:ph-imu> -->
-
-  <!-- GPS -->
-  <!-- <xacro:garmin-gps parent="imu">
-    <origin xyz="0 0 0.05" rpy="0 0 0" />
-  </xacro:garmin-gps> -->
-
-
   <!--
   MARK: CTRL
   -->
@@ -258,7 +247,14 @@
       <odom_publish_frequency>50</odom_publish_frequency>
       <odom_topic>/robot/odometry</odom_topic>
     </plugin>
+
+    <plugin
+      filename="gz-sim-sensors-system"
+      name="gz::sim::systems::Sensors">
+      <render_engine>ogre2</render_engine>
+    </plugin>
   </gazebo>
+
 
 
 </robot>
