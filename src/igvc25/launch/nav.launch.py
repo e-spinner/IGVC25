@@ -38,7 +38,7 @@ def generate_launch_description():
     "smoother_server",
     "planner_server",
     "behavior_server",
-    # "velocity_smoother",
+    "velocity_smoother",
     # 'collision_monitor',
     "bt_navigator",
     # 'waypoint_follower',
@@ -72,9 +72,7 @@ def generate_launch_description():
     package="nav2_controller",
     executable="controller_server",
     parameters=[nav_params, {"use_sim_time": use_sim_time}],
-    remappings=[
-      ("cmd_vel", "/ackermann_steering_controller/reference_unstamped")
-    ],
+    remappings=[("cmd_vel", "cmd_vel_nav")],
   )
   # MARK: Smtr Svr
   # https://github.com/ros-navigation/navigation2/tree/jazzy/nav2_smoother
@@ -122,7 +120,7 @@ def generate_launch_description():
     parameters=[nav_params, {"use_sim_time": use_sim_time}],
     remappings=[
       ("cmd_vel", "cmd_vel_nav"),
-      ("/cmd_vel_smoothed", "ackermann_steering_controller/cmd_vel"),
+      ("/cmd_vel_smoothed", "cmd_vel_nav_smoothed"),
     ],
     # ackermann_steering_controller/cmd_vel
   )
@@ -153,7 +151,7 @@ def generate_launch_description():
       behavior_server,
       # Nav2 addtional bits
       # collision_monitor,
-      # vel_smoother,
+      vel_smoother,
       # waypoint_follower,
       # Nav2 navigator & bond
       bt_navigator,

@@ -139,13 +139,33 @@ def generate_launch_description():
     executable="teleop_twist_keyboard",
     name="teleop_keyboard",
     output="screen",
-    remappings=[
-      ("/cmd_vel", "/ackermann_steering_controller/reference_unstamped")
-    ],
+    remappings=[("/cmd_vel", "/cmd_vel_teleop_key")],
     # parameters=[{"stamped": True}],
     prefix="xterm -e",  # Opens in a new terminal window
   )
 
+  # https://github.com/ros-teleop/twist_mux
+  twist_mux_params = os.path.join(
+    get_package_share_directory(package_name), "config", "twist_mux.yaml"
+  )
+
+  twist_mux = Node(
+    package="twist_mux",
+    executable="twist_mux",
+    parameters=[twist_mux_params, {"use_sim_time": True}],
+    remappings=[("/cmd_vel_out", "/cmd_vel_unstamped")],
+  )
+
+  # https://github.com/joshnewans/twist_stamper
+  twist_stamper = Node(
+    package="twist_stamper",
+    executable="twist_stamper",
+    parameters=[{"use_sim_time": True}],
+    remappings=[
+      ("/cmd_vel_in", "/cmd_vel_unstamped"),
+      ("/cmd_vel_out", "/cmd_vel_stamped"),
+    ],
+  )
   # MARK: Launch!
   return LaunchDescription(
     [
@@ -168,5 +188,7 @@ def generate_launch_description():
       gz_bridge,
       gz_odom_tf,
       teleop,
+      twist_mux,
+      twist_stamper,
     ]
   )

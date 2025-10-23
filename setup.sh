@@ -59,9 +59,10 @@ sudo apt install -y \
     ros-humble-ros-gz-bridge \
     ros-humble-joint-state-publisher \
     ros-humble-robot-state-publisher \
-    ros-hunble-teleop-twist-keyboard \
+    ros-humble-teleop-twist-keyboard \
     ros-humble-twist-stamper \
-    ros-hunble-navigation2 \
+    ros-humble-twist-mux \
+    ros-humble-navigation2 \
     ros-humble-nav2-bringup
 
 # === Rosdep === #

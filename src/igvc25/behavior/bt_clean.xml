@@ -6,7 +6,7 @@
       <ReactiveFallback name="if_new_goal_stop">
         <GoalUpdated/>
         <PipelineSequence name="navigation">
-          <RateController hz="1">
+          <RateController hz="2">
             <Sequence name="plan_and_smooth_path">
               <ComputePathToPose goal="{goal}"
                                  start="{start}"
