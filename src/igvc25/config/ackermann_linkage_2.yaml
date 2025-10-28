@@ -52,5 +52,29 @@
     chassis_offset_x: -0.4572         # [m]
     chassis_offset_z: 0.0762          # [m]
 
+    # === VEHICLE KINEMATICS === #
+    wheel_base: 0.9144                # [m] distance between front and rear axles (36 inches)
+    max_steering_angle: 0.785         # [rad] maximum ideal steering angle (45 degrees)
+
+joy_node:
+  ros__parameters:
+    device_id: 0
+    deadzone: 0.05
+    autorepeat_rate: 20.0
+
+teleop_node:
+  ros__parameters:
+    axis_linear:
+      x: 1                            # linear velocity
+    scale_linear:
+      x: 2.3                          # max linear velocity (2.3 m/s)
+
+    axis_angular:
+      yaw: 0                          # yaw angular velocity
+    scale_angular:
+      yaw: 1.5                        # max yaw angular velocity (1.5 rad/s)
+
+    require_enable_button: false
+
 
 

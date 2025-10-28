@@ -14,6 +14,18 @@ class CmdInterpreter : public rclcpp::Node {
 public:
   CmdInterpreter() : Node("cmd_interpreter") {
 
+    // Declare and get parameters
+    this->declare_parameter("wheel_base", 0.9144);
+    this->declare_parameter("max_steering_angle", 0.785);
+
+    wheel_base_         = this->get_parameter("wheel_base").as_double();
+    max_steering_angle_ = this->get_parameter("max_steering_angle").as_double();
+
+    RCLCPP_INFO(
+        this->get_logger(),
+        "cmd_interpreter: wheel_base=%.3f m, max_steering_angle=%.3f rad",
+        wheel_base_, max_steering_angle_);
+
     m_tf_broadcaster = std::make_shared<tf2_ros::TransformBroadcaster>(this);
 
     m_theta_pub =
@@ -24,11 +36,12 @@ public:
           float radius =
               (msg.angular.z == 0) ? 0.0 : msg.linear.x / msg.angular.z;
 
-          auto angle  = igvc25::msg::Angle();
-          angle.theta = (radius != 0.0)
-                            ? std::clamp(std::atan(WHEEL_BASE / radius),
-                                         float(-10), float(10))
-                            : 0.0;
+          auto angle = igvc25::msg::Angle();
+          angle.theta =
+              (radius != 0.0)
+                  ? std::clamp(std::atan(wheel_base_ / radius),
+                               -max_steering_angle_, max_steering_angle_)
+                  : 0.0;
 
           if (msg.linear.x < 0) { angle.theta = -angle.theta; }
 
@@ -49,7 +62,7 @@ public:
           const double delta = angle.theta; // steering angle
 
           // Kinematic equations for Ackermann drive
-          double dtheta = (v / WHEEL_BASE) * std::tan(delta) * dt;
+          double dtheta = (v / wheel_base_) * std::tan(delta) * dt;
           theta_ += dtheta;
           x_ += v * std::cos(theta_) * dt;
           y_ += v * std::sin(theta_) * dt;
@@ -81,9 +94,10 @@ private:
   rclcpp::Publisher<igvc25::msg::Angle>::SharedPtr m_theta_pub;
   std::shared_ptr<tf2_ros::TransformBroadcaster> m_tf_broadcaster;
 
-  constexpr static const float WHEEL_BASE{0.7};
+  double wheel_base_;
+  double max_steering_angle_;
 
-  double x_, y_, theta_;
+  double x_{0.0}, y_{0.0}, theta_{0.0};
   rclcpp::Time last_time_;
 };
 
