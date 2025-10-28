@@ -1,26 +1,26 @@
 #include <rclcpp/rclcpp.hpp>
 #include <sensor_msgs/msg/joint_state.hpp>
 
-#include "hack13/msg/ack_state.hpp"
+#include "igvc25/msg/ack_state.hpp"
 
 class AckJointPublisher : public rclcpp::Node {
 public:
   AckJointPublisher() : Node("ack_joint_publisher") {
-    joint_pub_ =
-        this->create_publisher<sensor_msgs::msg::JointState>("/joint_states", 10);
+    joint_pub_ = this->create_publisher<sensor_msgs::msg::JointState>(
+        "/joint_states", 10);
 
-    ack_state_sub_ = this->create_subscription<hack13::msg::AckState>(
+    ack_state_sub_ = this->create_subscription<igvc25::msg::AckState>(
         "/ack_state", 10,
-        [this](const hack13::msg::AckState &msg) { publish_joint_state(msg); });
+        [this](const igvc25::msg::AckState &msg) { publish_joint_state(msg); });
 
     RCLCPP_INFO(this->get_logger(), "ack_joint_publisher initialized");
   }
 
 private:
   rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr joint_pub_;
-  rclcpp::Subscription<hack13::msg::AckState>::SharedPtr ack_state_sub_;
+  rclcpp::Subscription<igvc25::msg::AckState>::SharedPtr ack_state_sub_;
 
-  void publish_joint_state(const hack13::msg::AckState &msg) {
+  void publish_joint_state(const igvc25::msg::AckState &msg) {
     sensor_msgs::msg::JointState js;
     js.header.stamp = this->now();
 

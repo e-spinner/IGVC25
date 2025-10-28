@@ -7,8 +7,8 @@
 #include <tf2/LinearMath/Quaternion.hpp>
 #include <tf2_ros/transform_broadcaster.hpp>
 
-#include "hack13/msg/angle.hpp"
-// #include "hack13/msg/diff_state.hpp"
+#include "igvc25/msg/angle.hpp"
+// #include "igvc25/msg/diff_state.hpp"
 
 class CmdInterpreter : public rclcpp::Node {
 public:
@@ -16,24 +16,27 @@ public:
 
     m_tf_broadcaster = std::make_shared<tf2_ros::TransformBroadcaster>(this);
 
-    m_theta_pub = this->create_publisher<hack13::msg::Angle>("/theta_ideal", 10);
-    // m_diff_pub  = this->create_publisher<hack13::msg::DiffState>("/diff_state",
-    // 10);
+    m_theta_pub =
+        this->create_publisher<igvc25::msg::Angle>("/theta_ideal", 10);
+    // m_diff_pub  =
+    // this->create_publisher<igvc25::msg::DiffState>("/diff_state", 10);
 
     m_cmd_sub = this->create_subscription<geometry_msgs::msg::Twist>(
         "/cmd_vel", 10, [this](const geometry_msgs::msg::Twist &msg) {
-          float radius = (msg.angular.z == 0) ? 0.0 : msg.linear.x / msg.angular.z;
+          float radius =
+              (msg.angular.z == 0) ? 0.0 : msg.linear.x / msg.angular.z;
 
-          auto angle  = hack13::msg::Angle();
-          angle.theta = (radius != 0.0) ? std::clamp(std::atan(WHEEL_BASE / radius),
-                                                     float(-0.95), float(0.95))
-                                        : 0.0;
+          auto angle  = igvc25::msg::Angle();
+          angle.theta = (radius != 0.0)
+                            ? std::clamp(std::atan(WHEEL_BASE / radius),
+                                         float(-0.95), float(0.95))
+                            : 0.0;
 
           if (msg.linear.x < 0) { angle.theta = -angle.theta; }
 
           if (msg.linear.x != 0) { m_theta_pub->publish(angle); }
 
-          // auto diff = hack13::msg::DiffState();
+          // auto diff = igvc25::msg::DiffState();
 
           // diff.v_left = (angle.theta < 0)
           //                   ? msg.angular.z * (radius - (WHEEL_BASE / 2))
@@ -89,9 +92,9 @@ public:
 
 private:
   rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr m_cmd_sub;
-  rclcpp::Publisher<hack13::msg::Angle>::SharedPtr m_theta_pub;
+  rclcpp::Publisher<igvc25::msg::Angle>::SharedPtr m_theta_pub;
   std::shared_ptr<tf2_ros::TransformBroadcaster> m_tf_broadcaster;
-  // rclcpp::Publisher<hack13::msg::DiffState>::SharedPtr m_diff_pub;
+  // rclcpp::Publisher<igvc25::msg::DiffState>::SharedPtr m_diff_pub;
 
   constexpr static const float WHEEL_BASE{0.7};
 

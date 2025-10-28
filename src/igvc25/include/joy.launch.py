@@ -11,7 +11,7 @@ from launch_ros.actions import Node
 
 
 def generate_launch_description():
-  package_name = "hack13"
+  package_name = "igvc25"
 
   # https://github.com/ros-teleop/teleop_twist_joy
   joy_params = os.path.join(
