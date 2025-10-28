@@ -1,0 +1,214 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="sarah7">
+
+
+  <!-- ===== Macros ===== -->
+  <xacro:include filename="macros/materials.xacro"/>
+  <xacro:include filename="macros/inertials.xacro"/>
+  <xacro:include filename="macros/components.xacro"/>
+
+<link name="base_link"/>
+
+<link name="frame">
+    <visual>
+        <geometry>
+            <box size="0.0254 0.6096 0.0254"/>
+        </geometry>
+    </visual>
+
+</link>
+
+<joint name="frame_joint" type="fixed">
+    <origin xyz="0.0 0.0 0.0"/>
+    <parent link="base_link"/>
+    <child link="frame"/>
+</joint>
+
+<link name="left_steering_arm">
+    <visual>
+        <origin xyz="0.0 0.01905 0.0"/>
+        <geometry>
+            <box size="0.0254 0.0381 0.0254"/>
+        </geometry>
+
+    </visual>
+</link>
+
+<joint name="pin_one" type="continuous">
+    <origin xyz="0.0 0.3045 0.0"/>
+    <parent link="frame"/>
+    <child link="left_steering_arm"/>
+    <axis xyz="0.0 0.0 1.0"/>
+</joint>
+
+<link name="left_tie_rod">
+    <visual>
+        <origin xyz="0.0 0.0635 0.0"/>
+        <geometry>
+            <box size="0.0254 0.127 0.0254"/>
+        </geometry>
+    </visual>
+</link>
+
+<joint name="pin_two" type="continuous">
+    <origin xyz="0.0 0.1737 0.0"/>
+    <parent link="rack"/>
+    <child link="left_tie_rod"/>
+    <axis xyz="0.0 0.0 1.0"/>
+
+</joint>
+
+<link name="rack">
+    <visual>
+        <origin xyz="0.0 0.0 0.0"/>
+        <geometry>
+            <box size="0.0254 0.347472 0.0254"/>
+        </geometry>
+    </visual>
+</link>
+
+<joint name="rack_joint" type="prismatic">
+    <origin xyz="-0.0315 0.0 0.0"/>
+    <parent link="base_link"/>
+    <child link="rack"/>
+    <axis xyz="0.0 1.0 0.0"/>
+    <limit lower="-0.03021" upper="0.03021" effort="0.0" velocity="0.0"/>
+</joint>
+
+<link name="right_tie_rod">
+    <visual>
+        <origin xyz="0.0 -0.0635 0.0"/>
+        <geometry>
+            <box size="0.0254 0.127 0.0254"/>
+        </geometry>
+    </visual>
+</link>
+
+<joint name="pin_three" type="continuous">
+    <origin xyz="0.0 -0.1737 0.0"/>
+    <parent link="rack"/>
+    <child link="right_tie_rod"/>
+    <axis xyz="0.0 0.0 1.0"/>
+</joint>
+
+<link name="right_steering_arm">
+    <visual>
+        <origin xyz="0.0 -0.01905 0.0"/>
+        <geometry>
+            <box size="0.0254 0.0381 0.0254"/>
+        </geometry>
+
+    </visual>
+</link>
+
+<joint name="pin_four" type="continuous">
+    <origin xyz="0.0 -0.3045 0.0"/>
+    <parent link="frame"/>
+    <child link="right_steering_arm"/>
+    <axis xyz="0.0 0.0 1.0"/>
+</joint>
+
+<link name="pinion">
+    <visual>
+        <origin xyz="0.0 0.0 0.0"/>
+        <geometry>
+            <cylinder radius="0.0381" length="0.0254"/>
+        </geometry>
+      <material name="black"/>
+    </visual>
+
+</link>
+
+<joint name="pinion_joint" type="revolute">
+    <origin xyz="-0.0315 0.0 0.04445" rpy="0.0 ${pi/2} 0.0"/>
+    <parent link="base_link"/>
+    <child link="pinion"/>
+    <axis xyz="0.0 0.0 1.0"/>
+    <limit lower="-1.586" upper="1.586" effort="0.0" velocity="0.0"/>
+</joint>
+
+<link name="lf_wheel">
+  <visual>
+    <geometry>
+      <cylinder radius="0.1524" length="0.0762"/>
+    </geometry>
+      <material name="blue"/>
+  </visual>
+</link>
+
+<link name="rf_wheel">
+  <visual>
+    <geometry>
+      <cylinder radius="0.1524" length="0.0762"/>
+    </geometry>
+      <material name="blue"/>
+  </visual>
+</link>
+
+<joint name="lf_wjoint" type="fixed">
+  <parent link="left_steering_arm"/>
+  <child link="lf_wheel"/>
+  <origin xyz="0.1 0.0 0.0" rpy="0.0 -1.57 0.0"/>
+</joint>
+
+<joint name="rf_wjoint" type="fixed">
+  <parent link="right_steering_arm"/>
+  <child link="rf_wheel"/>
+  <origin xyz="0.1 0.0 0.0" rpy="0.0 -1.57 0.0"/>
+</joint>
+
+<link name="diff"></link>
+
+<joint name="diff_j" type="fixed">
+  <parent link="base_link"/>
+  <child link="diff"/>
+  <origin xyz="-0.9144 0.0 0.0"/>
+</joint>
+
+<link name="lr_wheel">
+  <visual>
+    <geometry>
+      <cylinder radius="0.1524" length="0.0762"/>
+    </geometry>
+      <material name="blue"/>
+  </visual>
+</link>
+
+<link name="rr_wheel">
+  <visual>
+    <geometry>
+      <cylinder radius="0.1524" length="0.0762"/>
+    </geometry>
+      <material name="blue"/>
+  </visual>
+</link>
+
+<joint name="lr_wjoint" type="fixed">
+  <parent link="diff"/>
+  <child link="lr_wheel"/>
+  <origin xyz="0.0 0.4048 0.0" rpy="-1.57 0.0 0.0"/>
+</joint>
+
+<joint name="rr_wjoint" type="fixed">
+  <parent link="diff"/>
+  <child link="rr_wheel"/>
+  <origin xyz="0.0 -0.4048 0.0" rpy="-1.57 0.0 0.0"/>
+</joint>
+
+  <!-- ===== CHASSIS ===== -->
+  <link name="chassis_link">
+    <visual>
+      <geometry>
+        <box size="0.9144 0.6096 0.1524"/>
+      </geometry>
+      <material name="white"/>
+    </visual>
+  </link>
+
+  <joint name="chassis_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="chassis_link"/>
+    <origin xyz="-0.4572 0.0 0.0762"/>
+  </joint>
+
+</robot>

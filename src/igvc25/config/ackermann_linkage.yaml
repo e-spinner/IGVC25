@@ -1,0 +1,61 @@
+/**:
+  ros__parameters:
+
+    # === LINKAGE GEOMETRY === #
+    # All dimensions in meters unless otherwise noted
+    
+    # Steering arm (link connecting wheel to tie rod)
+    steering_arm_length: 0.0381       # [m] 38.1 mm - link 'a' in kinematic calc
+    steering_arm_width: 0.0254        # [m] visual dimension
+    steering_arm_thickness: 0.0254    # [m] visual dimension
+    
+    # Tie rod (link connecting rack to steering arm)
+    tie_rod_length: 0.127             # [m] 127 mm - link 'b' in kinematic calc
+    tie_rod_width: 0.0254             # [m] visual dimension
+    tie_rod_thickness: 0.0254         # [m] visual dimension
+    
+    # Rack (slider mechanism)
+    rack_length: 0.347472             # [m] total rack length
+    rack_width: 0.0254                # [m] visual dimension
+    rack_thickness: 0.0254            # [m] visual dimension
+    rack_offset_x: -0.0315            # [m] -31.5 mm - link 'c' in kinematic calc
+    rack_neutral_y: 0.131064          # [m] 131.064 mm - neutral position 'd' in kinematic calc
+    rack_travel_limit: 0.03021        # [m] +/- travel from neutral (30.21 mm)
+    
+    # Pinion (rotary to linear converter)
+    pinion_radius: 0.01905            # [m] 19.05 mm
+    pinion_length: 0.0254             # [m] visual dimension
+    pinion_offset_x: -0.0315          # [m] x position
+    pinion_offset_z: 0.04445          # [m] z position
+    pinion_angle_limit: 1.586         # [rad] +/- rotation limit
+    pinion_gear_ratio: 1.652          # [unitless] gear ratio for pinion movement
+    
+    # Frame (main structural element)
+    frame_length: 0.0254              # [m] visual dimension
+    frame_width: 0.6096               # [m] 24 inches
+    frame_thickness: 0.0254           # [m] visual dimension
+    
+    # Pin positions (attachment points)
+    pin_one_y: 0.3045                 # [m] left steering arm to frame
+    pin_two_y: 0.1737                 # [m] left tie rod to rack  
+    pin_three_y: -0.1737              # [m] right tie rod to rack (negative)
+    pin_four_y: -0.3045               # [m] right steering arm to frame (negative)
+    
+    # Wheel positions (for visualization)
+    wheel_radius: 0.1524              # [m] 6 inches
+    wheel_length: 0.0762              # [m] 3 inches
+    wheel_offset_x: 0.1               # [m] forward from steering arm
+    
+    # Differential/rear axle
+    diff_offset_x: -0.9144            # [m] -36 inches from base_link
+    rear_wheel_spacing: 0.4048        # [m] +/- from diff center
+    
+    # Chassis (for visualization in linkage model)
+    chassis_length: 0.9144            # [m] 36 inches
+    chassis_width: 0.6096             # [m] 24 inches
+    chassis_height: 0.1524            # [m] 6 inches
+    chassis_offset_x: -0.4572         # [m]
+    chassis_offset_z: 0.0762          # [m]
+
+
+

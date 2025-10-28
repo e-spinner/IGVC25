@@ -40,3 +40,10 @@ now reload the udev rules:
 sudo udevadm control --reload-rules
 sudo udevadm trigger
 ```
+
+
+### Building the software again
+
+```bash
+colcon build --symlink-install --cmake-args -DCMAKE_EXPORT_COMPILE_COMMANDS=ON --packages-select igcv26
+```

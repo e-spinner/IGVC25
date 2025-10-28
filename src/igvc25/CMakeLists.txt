@@ -18,6 +18,9 @@ find_package(rosidl_default_generators REQUIRED)
 # --------------------
 rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/RootInstruction.msg"
+  "msg/Angle.msg"
+  "msg/AckState.msg"
+  "msg/DiffState.msg"
   DEPENDENCIES builtin_interfaces
 )
 
@@ -44,11 +47,32 @@ ament_target_dependencies(
   tf2_ros
 )
 
+# cmd_interpreter
+add_executable(cmd_interpreter src/cmd_interpreter.cpp)
+ament_target_dependencies(
+  cmd_interpreter
+  rclcpp
+  geometry_msgs
+  tf2_ros
+)
+
+# transform
+add_executable(transform src/transform.cpp)
+ament_target_dependencies(
+  transform
+  rclcpp
+  geometry_msgs
+  tf2_ros
+  sensor_msgs
+)
+
 # Make executables depend on generated interfaces
 rosidl_get_typesupport_target(cpp_typesupport_target ${PROJECT_NAME} "rosidl_typesupport_cpp")
 
 target_link_libraries(truth_gen ${cpp_typesupport_target})
 target_link_libraries(fusion_node ${cpp_typesupport_target})
+target_link_libraries(cmd_interpreter ${cpp_typesupport_target})
+target_link_libraries(transform ${cpp_typesupport_target})
 
 # --------------------
 # Headers
@@ -61,7 +85,7 @@ include_directories(
 # Install Nodes
 # --------------------
 install(
-  TARGETS fusion_node truth_gen
+  TARGETS fusion_node truth_gen cmd_interpreter transform
   DESTINATION lib/${PROJECT_NAME}
 )
 
@@ -85,6 +109,7 @@ ament_python_install_package(igvc25_py)
 install(PROGRAMS
   igvc25_py/root_controller.py
   igvc25_py/odom_to_tf.py
+  igvc25_py/ack_calc.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
