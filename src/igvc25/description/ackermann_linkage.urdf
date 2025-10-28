@@ -1,205 +1,285 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="sarah7">
 
+  <!-- ===== Arguments ===== -->
+  <xacro:arg name="steering_arm_length" default="0.0381"/>
+  <xacro:arg name="steering_arm_width" default="0.0254"/>
+  <xacro:arg name="steering_arm_thickness" default="0.0254"/>
+
+  <xacro:arg name="tie_rod_length" default="0.127"/>
+  <xacro:arg name="tie_rod_width" default="0.0254"/>
+  <xacro:arg name="tie_rod_thickness" default="0.0254"/>
+
+  <xacro:arg name="rack_length" default="0.347472"/>
+  <xacro:arg name="rack_width" default="0.0254"/>
+  <xacro:arg name="rack_thickness" default="0.0254"/>
+  <xacro:arg name="rack_offset_x" default="-0.0315"/>
+  <xacro:arg name="rack_travel_limit" default="0.03021"/>
+
+  <xacro:arg name="pinion_radius" default="0.01905"/>
+  <xacro:arg name="pinion_length" default="0.0254"/>
+  <xacro:arg name="pinion_offset_x" default="-0.0315"/>
+  <xacro:arg name="pinion_offset_z" default="0.04445"/>
+  <xacro:arg name="pinion_angle_limit" default="1.586"/>
+
+  <xacro:arg name="frame_length" default="0.0254"/>
+  <xacro:arg name="frame_width" default="0.6096"/>
+  <xacro:arg name="frame_thickness" default="0.0254"/>
+
+  <xacro:arg name="pin_one_y" default="0.3045"/>
+  <xacro:arg name="pin_two_y" default="0.1737"/>
+  <xacro:arg name="pin_three_y" default="-0.1737"/>
+  <xacro:arg name="pin_four_y" default="-0.3045"/>
+
+  <xacro:arg name="wheel_radius" default="0.1524"/>
+  <xacro:arg name="wheel_length" default="0.0762"/>
+  <xacro:arg name="wheel_offset_x" default="0.1"/>
+
+  <xacro:arg name="diff_offset_x" default="-0.9144"/>
+  <xacro:arg name="rear_wheel_spacing" default="0.4048"/>
+
+  <xacro:arg name="chassis_length" default="0.9144"/>
+  <xacro:arg name="chassis_width" default="0.6096"/>
+  <xacro:arg name="chassis_height" default="0.1524"/>
+  <xacro:arg name="chassis_offset_x" default="-0.4572"/>
+  <xacro:arg name="chassis_offset_z" default="0.0762"/>
+
+  <!-- ===== Properties ===== -->
+  <xacro:property name="steering_arm_length" value="$(arg steering_arm_length)"/>
+  <xacro:property name="steering_arm_width" value="$(arg steering_arm_width)"/>
+  <xacro:property name="steering_arm_thickness" value="$(arg steering_arm_thickness)"/>
+
+  <xacro:property name="tie_rod_length" value="$(arg tie_rod_length)"/>
+  <xacro:property name="tie_rod_width" value="$(arg tie_rod_width)"/>
+  <xacro:property name="tie_rod_thickness" value="$(arg tie_rod_thickness)"/>
+
+  <xacro:property name="rack_length" value="$(arg rack_length)"/>
+  <xacro:property name="rack_width" value="$(arg rack_width)"/>
+  <xacro:property name="rack_thickness" value="$(arg rack_thickness)"/>
+  <xacro:property name="rack_offset_x" value="$(arg rack_offset_x)"/>
+  <xacro:property name="rack_travel_limit" value="$(arg rack_travel_limit)"/>
+
+  <xacro:property name="pinion_radius" value="$(arg pinion_radius)"/>
+  <xacro:property name="pinion_length" value="$(arg pinion_length)"/>
+  <xacro:property name="pinion_offset_x" value="$(arg pinion_offset_x)"/>
+  <xacro:property name="pinion_offset_z" value="$(arg pinion_offset_z)"/>
+  <xacro:property name="pinion_angle_limit" value="$(arg pinion_angle_limit)"/>
+
+  <xacro:property name="frame_length" value="$(arg frame_length)"/>
+  <xacro:property name="frame_width" value="$(arg frame_width)"/>
+  <xacro:property name="frame_thickness" value="$(arg frame_thickness)"/>
+
+  <xacro:property name="pin_one_y" value="$(arg pin_one_y)"/>
+  <xacro:property name="pin_two_y" value="$(arg pin_two_y)"/>
+  <xacro:property name="pin_three_y" value="$(arg pin_three_y)"/>
+  <xacro:property name="pin_four_y" value="$(arg pin_four_y)"/>
+
+  <xacro:property name="wheel_radius" value="$(arg wheel_radius)"/>
+  <xacro:property name="wheel_length" value="$(arg wheel_length)"/>
+  <xacro:property name="wheel_offset_x" value="$(arg wheel_offset_x)"/>
+
+  <xacro:property name="diff_offset_x" value="$(arg diff_offset_x)"/>
+  <xacro:property name="rear_wheel_spacing" value="$(arg rear_wheel_spacing)"/>
+
+  <xacro:property name="chassis_length" value="$(arg chassis_length)"/>
+  <xacro:property name="chassis_width" value="$(arg chassis_width)"/>
+  <xacro:property name="chassis_height" value="$(arg chassis_height)"/>
+  <xacro:property name="chassis_offset_x" value="$(arg chassis_offset_x)"/>
+  <xacro:property name="chassis_offset_z" value="$(arg chassis_offset_z)"/>
 
   <!-- ===== Macros ===== -->
   <xacro:include filename="macros/materials.xacro"/>
   <xacro:include filename="macros/inertials.xacro"/>
   <xacro:include filename="macros/components.xacro"/>
 
-<link name="base_link"/>
+  <link name="base_link"/>
 
-<link name="frame">
+  <link name="frame">
     <visual>
-        <geometry>
-            <box size="0.0254 0.6096 0.0254"/>
-        </geometry>
+      <geometry>
+        <box size="${frame_length} ${frame_width} ${frame_thickness}"/>
+      </geometry>
     </visual>
+  </link>
 
-</link>
-
-<joint name="frame_joint" type="fixed">
+  <joint name="frame_joint" type="fixed">
     <origin xyz="0.0 0.0 0.0"/>
     <parent link="base_link"/>
     <child link="frame"/>
-</joint>
+  </joint>
 
-<link name="left_steering_arm">
+  <link name="left_steering_arm">
     <visual>
-        <origin xyz="0.0 0.01905 0.0"/>
-        <geometry>
-            <box size="0.0254 0.0381 0.0254"/>
-        </geometry>
-
+      <origin xyz="0.0 ${steering_arm_length/2} 0.0"/>
+      <geometry>
+        <box size="${steering_arm_width} ${steering_arm_length} ${steering_arm_thickness}"/>
+      </geometry>
     </visual>
-</link>
+  </link>
 
-<joint name="pin_one" type="continuous">
-    <origin xyz="0.0 0.3045 0.0"/>
+  <joint name="pin_one" type="continuous">
+    <origin xyz="0.0 ${pin_one_y} 0.0"/>
     <parent link="frame"/>
     <child link="left_steering_arm"/>
     <axis xyz="0.0 0.0 1.0"/>
-</joint>
+  </joint>
 
-<link name="left_tie_rod">
+  <link name="left_tie_rod">
     <visual>
-        <origin xyz="0.0 0.0635 0.0"/>
-        <geometry>
-            <box size="0.0254 0.127 0.0254"/>
-        </geometry>
+      <origin xyz="0.0 ${tie_rod_length/2} 0.0"/>
+      <geometry>
+        <box size="${tie_rod_width} ${tie_rod_length} ${tie_rod_thickness}"/>
+      </geometry>
     </visual>
-</link>
+  </link>
 
-<joint name="pin_two" type="continuous">
-    <origin xyz="0.0 0.1737 0.0"/>
+  <joint name="pin_two" type="continuous">
+    <origin xyz="0.0 ${pin_two_y} 0.0"/>
     <parent link="rack"/>
     <child link="left_tie_rod"/>
     <axis xyz="0.0 0.0 1.0"/>
+  </joint>
 
-</joint>
-
-<link name="rack">
+  <link name="rack">
     <visual>
-        <origin xyz="0.0 0.0 0.0"/>
-        <geometry>
-            <box size="0.0254 0.347472 0.0254"/>
-        </geometry>
+      <origin xyz="0.0 0.0 0.0"/>
+      <geometry>
+        <box size="${rack_width} ${rack_length} ${rack_thickness}"/>
+      </geometry>
     </visual>
-</link>
+  </link>
 
-<joint name="rack_joint" type="prismatic">
-    <origin xyz="-0.0315 0.0 0.0"/>
+  <joint name="rack_joint" type="prismatic">
+    <origin xyz="${rack_offset_x} 0.0 0.0"/>
     <parent link="base_link"/>
     <child link="rack"/>
     <axis xyz="0.0 1.0 0.0"/>
-    <limit lower="-0.03021" upper="0.03021" effort="0.0" velocity="0.0"/>
-</joint>
+    <limit lower="-${rack_travel_limit}" upper="${rack_travel_limit}" effort="0.0" velocity="0.0"/>
+  </joint>
 
-<link name="right_tie_rod">
+  <link name="right_tie_rod">
     <visual>
-        <origin xyz="0.0 -0.0635 0.0"/>
-        <geometry>
-            <box size="0.0254 0.127 0.0254"/>
-        </geometry>
+      <origin xyz="0.0 -${tie_rod_length/2} 0.0"/>
+      <geometry>
+        <box size="${tie_rod_width} ${tie_rod_length} ${tie_rod_thickness}"/>
+      </geometry>
     </visual>
-</link>
+  </link>
 
-<joint name="pin_three" type="continuous">
-    <origin xyz="0.0 -0.1737 0.0"/>
+  <joint name="pin_three" type="continuous">
+    <origin xyz="0.0 ${pin_three_y} 0.0"/>
     <parent link="rack"/>
     <child link="right_tie_rod"/>
     <axis xyz="0.0 0.0 1.0"/>
-</joint>
+  </joint>
 
-<link name="right_steering_arm">
+  <link name="right_steering_arm">
     <visual>
-        <origin xyz="0.0 -0.01905 0.0"/>
-        <geometry>
-            <box size="0.0254 0.0381 0.0254"/>
-        </geometry>
-
+      <origin xyz="0.0 -${steering_arm_length/2} 0.0"/>
+      <geometry>
+        <box size="${steering_arm_width} ${steering_arm_length} ${steering_arm_thickness}"/>
+      </geometry>
     </visual>
-</link>
+  </link>
 
-<joint name="pin_four" type="continuous">
-    <origin xyz="0.0 -0.3045 0.0"/>
+  <joint name="pin_four" type="continuous">
+    <origin xyz="0.0 ${pin_four_y} 0.0"/>
     <parent link="frame"/>
     <child link="right_steering_arm"/>
     <axis xyz="0.0 0.0 1.0"/>
-</joint>
+  </joint>
 
-<link name="pinion">
+  <link name="pinion">
     <visual>
-        <origin xyz="0.0 0.0 0.0"/>
-        <geometry>
-            <cylinder radius="0.0381" length="0.0254"/>
-        </geometry>
+      <origin xyz="0.0 0.0 0.0"/>
+      <geometry>
+        <cylinder radius="${pinion_radius}" length="${pinion_length}"/>
+      </geometry>
       <material name="black"/>
     </visual>
+  </link>
 
-</link>
-
-<joint name="pinion_joint" type="revolute">
-    <origin xyz="-0.0315 0.0 0.04445" rpy="0.0 ${pi/2} 0.0"/>
+  <joint name="pinion_joint" type="revolute">
+    <origin xyz="${pinion_offset_x} 0.0 ${pinion_offset_z}" rpy="0.0 ${pi/2} 0.0"/>
     <parent link="base_link"/>
     <child link="pinion"/>
     <axis xyz="0.0 0.0 1.0"/>
-    <limit lower="-1.586" upper="1.586" effort="0.0" velocity="0.0"/>
-</joint>
+    <limit lower="-${pinion_angle_limit}" upper="${pinion_angle_limit}" effort="0.0" velocity="0.0"/>
+  </joint>
 
-<link name="lf_wheel">
-  <visual>
-    <geometry>
-      <cylinder radius="0.1524" length="0.0762"/>
-    </geometry>
+  <link name="lf_wheel">
+    <visual>
+      <geometry>
+        <cylinder radius="${wheel_radius}" length="${wheel_length}"/>
+      </geometry>
       <material name="blue"/>
-  </visual>
-</link>
+    </visual>
+  </link>
 
-<link name="rf_wheel">
-  <visual>
-    <geometry>
-      <cylinder radius="0.1524" length="0.0762"/>
-    </geometry>
+  <link name="rf_wheel">
+    <visual>
+      <geometry>
+        <cylinder radius="${wheel_radius}" length="${wheel_length}"/>
+      </geometry>
       <material name="blue"/>
-  </visual>
-</link>
+    </visual>
+  </link>
 
-<joint name="lf_wjoint" type="fixed">
-  <parent link="left_steering_arm"/>
-  <child link="lf_wheel"/>
-  <origin xyz="0.1 0.0 0.0" rpy="0.0 -1.57 0.0"/>
-</joint>
+  <joint name="lf_wjoint" type="fixed">
+    <parent link="left_steering_arm"/>
+    <child link="lf_wheel"/>
+    <origin xyz="${wheel_offset_x} 0.0 0.0" rpy="0.0 -1.57 0.0"/>
+  </joint>
 
-<joint name="rf_wjoint" type="fixed">
-  <parent link="right_steering_arm"/>
-  <child link="rf_wheel"/>
-  <origin xyz="0.1 0.0 0.0" rpy="0.0 -1.57 0.0"/>
-</joint>
+  <joint name="rf_wjoint" type="fixed">
+    <parent link="right_steering_arm"/>
+    <child link="rf_wheel"/>
+    <origin xyz="${wheel_offset_x} 0.0 0.0" rpy="0.0 -1.57 0.0"/>
+  </joint>
 
-<link name="diff"></link>
+  <link name="diff"></link>
 
-<joint name="diff_j" type="fixed">
-  <parent link="base_link"/>
-  <child link="diff"/>
-  <origin xyz="-0.9144 0.0 0.0"/>
-</joint>
+  <joint name="diff_j" type="fixed">
+    <parent link="base_link"/>
+    <child link="diff"/>
+    <origin xyz="${diff_offset_x} 0.0 0.0"/>
+  </joint>
 
-<link name="lr_wheel">
-  <visual>
-    <geometry>
-      <cylinder radius="0.1524" length="0.0762"/>
-    </geometry>
+  <link name="lr_wheel">
+    <visual>
+      <geometry>
+        <cylinder radius="${wheel_radius}" length="${wheel_length}"/>
+      </geometry>
       <material name="blue"/>
-  </visual>
-</link>
+    </visual>
+  </link>
 
-<link name="rr_wheel">
-  <visual>
-    <geometry>
-      <cylinder radius="0.1524" length="0.0762"/>
-    </geometry>
+  <link name="rr_wheel">
+    <visual>
+      <geometry>
+        <cylinder radius="${wheel_radius}" length="${wheel_length}"/>
+      </geometry>
       <material name="blue"/>
-  </visual>
-</link>
+    </visual>
+  </link>
 
-<joint name="lr_wjoint" type="fixed">
-  <parent link="diff"/>
-  <child link="lr_wheel"/>
-  <origin xyz="0.0 0.4048 0.0" rpy="-1.57 0.0 0.0"/>
-</joint>
+  <joint name="lr_wjoint" type="fixed">
+    <parent link="diff"/>
+    <child link="lr_wheel"/>
+    <origin xyz="0.0 ${rear_wheel_spacing} 0.0" rpy="-1.57 0.0 0.0"/>
+  </joint>
 
-<joint name="rr_wjoint" type="fixed">
-  <parent link="diff"/>
-  <child link="rr_wheel"/>
-  <origin xyz="0.0 -0.4048 0.0" rpy="-1.57 0.0 0.0"/>
-</joint>
+  <joint name="rr_wjoint" type="fixed">
+    <parent link="diff"/>
+    <child link="rr_wheel"/>
+    <origin xyz="0.0 -${rear_wheel_spacing} 0.0" rpy="-1.57 0.0 0.0"/>
+  </joint>
 
   <!-- ===== CHASSIS ===== -->
   <link name="chassis_link">
     <visual>
       <geometry>
-        <box size="0.9144 0.6096 0.1524"/>
+        <box size="${chassis_length} ${chassis_width} ${chassis_height}"/>
       </geometry>
       <material name="white"/>
     </visual>
@@ -208,7 +288,8 @@
   <joint name="chassis_joint" type="fixed">
     <parent link="base_link"/>
     <child link="chassis_link"/>
-    <origin xyz="-0.4572 0.0 0.0762"/>
+    <origin xyz="${chassis_offset_x} 0.0 ${chassis_offset_z}"/>
   </joint>
 
 </robot>
+

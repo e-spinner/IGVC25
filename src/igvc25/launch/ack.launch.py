@@ -1,4 +1,5 @@
 import os
+import yaml
 
 from ament_index_python.packages import get_package_share_directory
 
@@ -12,8 +13,28 @@ from launch_ros.actions import Node
 import xacro
 
 
+def load_robot_description(robot_description_path, robot_params_path):
+  with open(robot_params_path, "r") as params:
+    robot_params = yaml.safe_load(params)["/**"]["ros__parameters"]
+
+  robot_description = xacro.process_file(
+    robot_description_path,
+    mappings={key: str(value) for key, value in robot_params.items()},
+  )
+
+  return robot_description.toxml()  # type: ignore
+
+
 def generate_launch_description():
   package_name = "igvc25"
+  pkg_path = get_package_share_directory(package_name)
+
+  # Load ackermann linkage parameters from yaml
+  linkage_config_file = os.path.join(
+    pkg_path, "config", "ackermann_linkage.yaml"
+  )
+  with open(linkage_config_file, "r") as f:
+    linkage_params = yaml.safe_load(f)["/**"]["ros__parameters"]
 
   cmd_interpreter = Node(
     package=package_name,
@@ -23,6 +44,7 @@ def generate_launch_description():
   ack_calc = Node(
     package=package_name,
     executable="ack_calc.py",
+    parameters=[linkage_params],  # Pass linkage parameters to the node
   )
 
   transform = Node(
@@ -30,9 +52,10 @@ def generate_launch_description():
     executable="transform",
   )
 
-  pkg_path = os.path.join(get_package_share_directory("hack13"))
-  xacro_file = os.path.join(pkg_path, "description", "ackermann.urdf.xacro")
-  robot_description = xacro.process_file(xacro_file).toxml()  # type: ignore
+  robot_description = load_robot_description(
+    os.path.join(pkg_path, "description", "ackermann_linkage.urdf"),
+    os.path.join(pkg_path, "config", "ackermann_linkage.yaml"),
+  )
 
   robot_state_publisher = Node(
     package="robot_state_publisher",

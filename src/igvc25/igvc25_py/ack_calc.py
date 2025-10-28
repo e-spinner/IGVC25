@@ -1,18 +1,36 @@
 #!/usr/bin/env python3
 import rclpy
 import math as m
-from typing import Final
 from rclpy.node import Node
 from hack13.msg import Angle
 from hack13.msg import AckState
 
 
-Radius: Final[float] = 19.05  # [mm]
-
-
 class AckCalc(Node):
   def __init__(self):
     super().__init__("ack_calc")
+
+    # Declare and get linkage parameters (convert from meters to millimeters)
+    self.declare_parameter("pinion_radius", 0.01905)
+    self.declare_parameter("steering_arm_length", 0.0381)
+    self.declare_parameter("tie_rod_length", 0.127)
+    self.declare_parameter("rack_offset_x", -0.0315)
+    self.declare_parameter("rack_neutral_y", 0.131064)
+    self.declare_parameter("pinion_gear_ratio", 1.652)
+
+    # Get parameters and convert to mm for calculations
+    self.pinion_radius = (
+      self.get_parameter("pinion_radius").value * 1000.0
+    )  # [mm]
+    self.link_a = (
+      self.get_parameter("steering_arm_length").value * 1000.0
+    )  # [mm]
+    self.link_b = self.get_parameter("tie_rod_length").value * 1000.0  # [mm]
+    self.link_c = self.get_parameter("rack_offset_x").value * 1000.0  # [mm]
+    self.rack_neutral = (
+      self.get_parameter("rack_neutral_y").value * 1000.0
+    )  # [mm]
+    self.pinion_gear_ratio = self.get_parameter("pinion_gear_ratio").value
 
     self.Ideal_Angle_Sub = self.create_subscription(
       Angle, "/theta_ideal", self.Angle_Callback, 10
@@ -21,18 +39,21 @@ class AckCalc(Node):
       AckState, "/ack_state", 10
     )
 
-    self.get_logger().info("ack_calc init()")
+    self.get_logger().info(
+      f"ack_calc init() with pinion_radius={self.pinion_radius:.3f}mm, "
+      f"link_a={self.link_a:.3f}mm, link_b={self.link_b:.3f}mm"
+    )
 
   def Angle_Callback(self, msg: Angle):
     Ideal_Angle = m.degrees(msg.theta)
-    Ackermann_Angles = self.Linkage_Angles(Ideal_Angle, Radius)
+    Ackermann_Angles = self.Linkage_Angles(Ideal_Angle, self.pinion_radius)
     Output_Msg = AckState()
     Output_Msg.theta_2 = m.radians(Ackermann_Angles[0]) - 3.14
     Output_Msg.theta_3 = m.radians(Ackermann_Angles[1]) + 3.14
     Output_Msg.theta_4 = m.radians(Ackermann_Angles[2])
     Output_Msg.theta_5 = m.radians(Ackermann_Angles[3])
-    Output_Msg.theta_pin = -m.radians(Ideal_Angle) * 1.652
-    Output_Msg.d = -(Ackermann_Angles[4] - 131.064) / 1000.0
+    Output_Msg.theta_pin = -m.radians(Ideal_Angle) * self.pinion_gear_ratio
+    Output_Msg.d = -(Ackermann_Angles[4] - self.rack_neutral) / 1000.0
     self.Ackermann_State_Pub.publish(Output_Msg)
 
   def Crank_Slider(self, a: float, b: float, c: float, Theta_2: float):
@@ -61,19 +82,19 @@ class AckCalc(Node):
     )
     return [Theta_3_Positive, Theta_3_Negative]
 
-  def Pinion_Move(self, Ideal_Angle: float = 0, Radius=19.05):
+  def Pinion_Move(self, Ideal_Angle: float = 0, Radius: float = 19.05):
     """treat as angle"""
-    Move = m.radians(Ideal_Angle) * 1.652 * Radius
+    Move = m.radians(Ideal_Angle) * self.pinion_gear_ratio * Radius
     return Move
 
   def Linkage_Angles(self, Ideal_Angle: float = 0, Pinion_Radius: float = 0):
-    # Link Lengths
-    a = 38.1  # [mm]
-    b = 127  # [mm]
-    c = -31.5  # [mm]
-    d = (
-      131.064 + self.Pinion_Move(Ideal_Angle, Pinion_Radius)
-    )  # [mm] min = 100.85 mm max = 161.27 mm difference: 60.42 mm neutral: 131.064 MinMove: -30.21 MaxMove: 30.21
+    # Use parameterized link lengths
+    a = self.link_a  # [mm] steering arm length
+    b = self.link_b  # [mm] tie rod length
+    c = self.link_c  # [mm] rack offset
+    d = self.rack_neutral + self.Pinion_Move(
+      Ideal_Angle, Pinion_Radius
+    )  # [mm] rack position
 
     # Left Side of the linkage
     K_1 = a**2 - b**2 + c**2 + d**2
@@ -81,14 +102,12 @@ class AckCalc(Node):
     K_3 = -2 * a * d
     Theta_2 = self.Slider_Crank_Theta2(K_1, K_2, K_3)
     Theta_3 = self.Slider_Crank_Theta3(a, c, b, Theta_2)
-    # print(Theta_2[1])
-    # print(Theta_3[1])
 
     # Right Side of the linkage
     e = a
     f = b
     g = c
-    h = (131.064 - d) + 131.064
+    h = (self.rack_neutral - d) + self.rack_neutral
     K_4 = e**2 - f**2 + g**2 + h**2
     K_5 = -2 * e * g
     K_6 = -2 * e * h
