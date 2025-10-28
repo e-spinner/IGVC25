@@ -18,8 +18,6 @@ public:
 
     m_theta_pub =
         this->create_publisher<igvc25::msg::Angle>("/theta_ideal", 10);
-    // m_diff_pub  =
-    // this->create_publisher<igvc25::msg::DiffState>("/diff_state", 10);
 
     m_cmd_sub = this->create_subscription<geometry_msgs::msg::Twist>(
         "/cmd_vel", 10, [this](const geometry_msgs::msg::Twist &msg) {
@@ -29,24 +27,12 @@ public:
           auto angle  = igvc25::msg::Angle();
           angle.theta = (radius != 0.0)
                             ? std::clamp(std::atan(WHEEL_BASE / radius),
-                                         float(-0.95), float(0.95))
+                                         float(-10), float(10))
                             : 0.0;
 
           if (msg.linear.x < 0) { angle.theta = -angle.theta; }
 
           if (msg.linear.x != 0) { m_theta_pub->publish(angle); }
-
-          // auto diff = igvc25::msg::DiffState();
-
-          // diff.v_left = (angle.theta < 0)
-          //                   ? msg.angular.z * (radius - (WHEEL_BASE / 2))
-          //                   : msg.angular.z * (radius + (WHEEL_BASE / 2));
-
-          // diff.v_right = (angle.theta < 0)
-          //                    ? msg.angular.z * (radius + (WHEEL_BASE / 2))
-          //                    : msg.angular.z * (radius - (WHEEL_BASE / 2));
-
-          // m_diff_pub->publish(diff);
 
           // Integrate using Ackermann model
           const double v = msg.linear.x;
@@ -94,7 +80,6 @@ private:
   rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr m_cmd_sub;
   rclcpp::Publisher<igvc25::msg::Angle>::SharedPtr m_theta_pub;
   std::shared_ptr<tf2_ros::TransformBroadcaster> m_tf_broadcaster;
-  // rclcpp::Publisher<igvc25::msg::DiffState>::SharedPtr m_diff_pub;
 
   constexpr static const float WHEEL_BASE{0.7};
 

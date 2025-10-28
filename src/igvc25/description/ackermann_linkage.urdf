@@ -34,6 +34,7 @@
   <xacro:arg name="wheel_radius" default="0.1524"/>
   <xacro:arg name="wheel_length" default="0.0762"/>
   <xacro:arg name="wheel_offset_x" default="0.1"/>
+  <xacro:arg name="wheel_angle" default="0.1"/>
 
   <xacro:arg name="diff_offset_x" default="-0.9144"/>
   <xacro:arg name="rear_wheel_spacing" default="0.4048"/>
@@ -69,14 +70,15 @@
   <xacro:property name="frame_width" value="$(arg frame_width)"/>
   <xacro:property name="frame_thickness" value="$(arg frame_thickness)"/>
 
-  <xacro:property name="pin_one_y" value="$(arg pin_one_y)"/>
-  <xacro:property name="pin_two_y" value="$(arg pin_two_y)"/>
-  <xacro:property name="pin_three_y" value="$(arg pin_three_y)"/>
-  <xacro:property name="pin_four_y" value="$(arg pin_four_y)"/>
+  <xacro:property name="pin_one_y" value="${$(arg frame_width)/2}"/>
+  <xacro:property name="pin_two_y" value="${$(arg rack_length)/2}"/>
+  <xacro:property name="pin_three_y" value="-${$(arg rack_length)/2}"/>
+  <xacro:property name="pin_four_y" value="-${$(arg frame_width)/2}"/>
 
   <xacro:property name="wheel_radius" value="$(arg wheel_radius)"/>
   <xacro:property name="wheel_length" value="$(arg wheel_length)"/>
   <xacro:property name="wheel_offset_x" value="$(arg wheel_offset_x)"/>
+  <xacro:property name="wheel_angle" value="$(arg wheel_angle)"/>
 
   <xacro:property name="diff_offset_x" value="$(arg diff_offset_x)"/>
   <xacro:property name="rear_wheel_spacing" value="$(arg rear_wheel_spacing)"/>
@@ -228,13 +230,13 @@
   <joint name="lf_wjoint" type="fixed">
     <parent link="left_steering_arm"/>
     <child link="lf_wheel"/>
-    <origin xyz="${wheel_offset_x} 0.0 0.0" rpy="0.0 -1.57 0.0"/>
+    <origin xyz="${wheel_offset_x} 0.0 0.0" rpy="0.0 -1.57 -${wheel_angle}"/>
   </joint>
 
   <joint name="rf_wjoint" type="fixed">
     <parent link="right_steering_arm"/>
     <child link="rf_wheel"/>
-    <origin xyz="${wheel_offset_x} 0.0 0.0" rpy="0.0 -1.57 0.0"/>
+    <origin xyz="${wheel_offset_x} 0.0 0.0" rpy="0.0 -1.57 ${wheel_angle}"/>
   </joint>
 
   <link name="diff"></link>
@@ -292,4 +294,3 @@
   </joint>
 
 </robot>
-

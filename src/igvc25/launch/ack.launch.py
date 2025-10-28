@@ -31,7 +31,7 @@ def generate_launch_description():
 
   # Load ackermann linkage parameters from yaml
   linkage_config_file = os.path.join(
-    pkg_path, "config", "ackermann_linkage.yaml"
+    pkg_path, "config", "ackermann_linkage_2.yaml"
   )
   with open(linkage_config_file, "r") as f:
     linkage_params = yaml.safe_load(f)["/**"]["ros__parameters"]
@@ -54,7 +54,7 @@ def generate_launch_description():
 
   robot_description = load_robot_description(
     os.path.join(pkg_path, "description", "ackermann_linkage.urdf"),
-    os.path.join(pkg_path, "config", "ackermann_linkage.yaml"),
+    os.path.join(pkg_path, "config", "ackermann_linkage_2.yaml"),
   )
 
   robot_state_publisher = Node(
@@ -69,6 +69,22 @@ def generate_launch_description():
     ],
   )
 
+  # https://github.com/ros-teleop/teleop_twist_joy
+  joy_params = os.path.join(
+    get_package_share_directory(package_name), "config", "joy_params.yaml"
+  )
+  joy_node = Node(
+    package="joy",
+    executable="joy_node",
+    parameters=[joy_params],
+  )
+  teleop_joy = Node(
+    package="teleop_twist_joy",
+    executable="teleop_node",
+    name="teleop_node",
+    parameters=[joy_params],
+  )
+
   # MARK: Launch!
   return LaunchDescription(
     [
@@ -77,5 +93,7 @@ def generate_launch_description():
       ack_calc,
       transform,
       robot_state_publisher,
+      joy_node,
+      teleop_joy,
     ]
   )

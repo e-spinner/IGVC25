@@ -47,3 +47,40 @@ sudo udevadm trigger
 ```bash
 colcon build --symlink-install --cmake-args -DCMAKE_EXPORT_COMPILE_COMMANDS=ON --packages-select igcv26
 ```
+
+### Package Structure
+
+The igvc25 package contains:
+
+- `behavior/` - Behavior tree configurations for autonomous navigation
+- `config/` - Configuration files for ros nodes
+- `description/` - Robot URDF models (ackermann, ackermann_linkage, ...)
+- `igvc25_py/` - Python nodes
+- `launch/` - Launch files to start different systems
+- `msg/` - Custom ROS message definitions
+- `src/` - C++ nodes
+- `worlds/` - Gazebo simulation worlds
+
+### Running the System
+
+After building, source the workspace:
+
+```bash
+source install/setup.bash
+```
+
+Run different system configurations:
+
+```bash
+# Ackermann linkage visualzation + control by joy-teleop
+ros2 launch igvc25 ack.launch.py
+
+# Navigation stack  --- intended to be used on top of sim
+ros2 launch igvc25 nav.launch.py
+
+# Simulation environment + basic ackermann robot
+ros2 launch igvc25 sim.launch.py
+
+# Vision sensors drivers (GPS and IMU)
+ros2 launch igvc25 vision.launch.py
+```
