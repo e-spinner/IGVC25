@@ -39,7 +39,7 @@
     wheel_radius: 0.1524              # [m] 6 inches
     wheel_length: 0.0762              # [m] 3 inches
     wheel_offset_x: 0.1               # [m] forward from steering arm
-    wheel_angle:  0.2                 # [rad] correct for steering arm angle
+    wheel_angle:  0.32253             # [rad] correct for steering arm angle
 
     # Differential/rear axle
     diff_offset_x: -0.9144            # [m] -36 inches from base_link
@@ -54,7 +54,7 @@
 
     # === VEHICLE KINEMATICS === #
     wheel_base: 0.9144                # [m] distance between front and rear axles (36 inches)
-    max_steering_angle: 0.785         # [rad] maximum ideal steering angle (45 degrees)
+    max_steering_angle: 2.0        # [rad] maximum ideal steering angle (45 degrees)
 
 joy_node:
   ros__parameters:
@@ -72,7 +72,7 @@ teleop_node:
     axis_angular:
       yaw: 0                          # yaw angular velocity
     scale_angular:
-      yaw: 1.5                        # max yaw angular velocity (1.5 rad/s)
+      yaw: 2.0                        # max yaw angular velocity (1.5 rad/s)
 
     require_enable_button: false
 

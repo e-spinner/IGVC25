@@ -101,6 +101,7 @@
       <geometry>
         <box size="${frame_length} ${frame_width} ${frame_thickness}"/>
       </geometry>
+      <material name="black"/>
     </visual>
   </link>
 
@@ -148,6 +149,7 @@
       <geometry>
         <box size="${rack_width} ${rack_length} ${rack_thickness}"/>
       </geometry>
+      <material name="black"/>
     </visual>
   </link>
 

@@ -33,22 +33,24 @@ public:
 
     m_cmd_sub = this->create_subscription<geometry_msgs::msg::Twist>(
         "/cmd_vel", 10, [this](const geometry_msgs::msg::Twist &msg) {
-          float radius =
-              (msg.angular.z == 0) ? 0.0 : msg.linear.x / msg.angular.z;
+          // Update current steering angle from joystick
+          double current_steering_angle = 0.0;
 
-          auto angle = igvc25::msg::Angle();
-          angle.theta =
-              (radius != 0.0)
-                  ? std::clamp(std::atan(wheel_base_ / radius),
-                               -max_steering_angle_, max_steering_angle_)
-                  : 0.0;
+          if (msg.angular.z != 0.0) {
+            current_steering_angle = std::clamp(
+                msg.angular.z, -max_steering_angle_, max_steering_angle_);
+            steering_angle_ = current_steering_angle;
 
-          if (msg.linear.x < 0) { angle.theta = -angle.theta; }
-
-          if (msg.linear.x != 0) { m_theta_pub->publish(angle); }
-
-          // Integrate using Ackermann model
-          const double v = msg.linear.x;
+            // Publish steering angle when moving
+            if (msg.linear.x != 0.0) {
+              auto angle_msg  = igvc25::msg::Angle();
+              angle_msg.theta = current_steering_angle;
+              m_theta_pub->publish(angle_msg);
+            }
+          } else {
+            // When no steering input, use the last commanded angle
+            current_steering_angle = steering_angle_;
+          }
 
           auto now = this->get_clock()->now();
           if (last_time_.nanoseconds() == 0) {
@@ -59,13 +61,23 @@ public:
           double dt  = (now - last_time_).seconds();
           last_time_ = now;
 
-          const double delta = angle.theta; // steering angle
+          // Skip odometry update if dt is too large (likely from pause/startup)
+          if (dt > 1.0) {
+            RCLCPP_WARN(this->get_logger(),
+                        "Large dt detected: %.3f s, skipping odometry update",
+                        dt);
+            return;
+          }
+
+          const double v = msg.linear.x;
 
           // Kinematic equations for Ackermann drive
-          double dtheta = (v / wheel_base_) * std::tan(delta) * dt;
-          theta_ += dtheta;
-          x_ += v * std::cos(theta_) * dt;
-          y_ += v * std::sin(theta_) * dt;
+          // Only update if we're actually moving
+          if (std::abs(v) > 1e-6) {
+            theta_ += current_steering_angle * dt;
+            x_ += v * std::cos(theta_) * dt;
+            y_ += v * std::sin(theta_) * dt;
+          }
 
           // Broadcast transform
           geometry_msgs::msg::TransformStamped t;
@@ -98,6 +110,7 @@ private:
   double max_steering_angle_;
 
   double x_{0.0}, y_{0.0}, theta_{0.0};
+  double steering_angle_{0.0};
   rclcpp::Time last_time_;
 };
 

@@ -73,7 +73,7 @@ Run different system configurations:
 
 ```bash
 # Ackermann linkage visualzation + control by joy-teleop
-ros2 launch igvc25 ack.launch.py
+ros2 launch igvc25 ack.launch.py linkage_config:=2
 
 # Navigation stack  --- intended to be used on top of sim
 ros2 launch igvc25 nav.launch.py
