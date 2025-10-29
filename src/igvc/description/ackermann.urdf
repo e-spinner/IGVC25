@@ -234,7 +234,7 @@
   <!-- ===== GAZEBO ===== -->
   <gazebo>
     <plugin filename="gz_ros2_control-system" name="gz_ros2_control::GazeboSimROS2ControlPlugin">
-      <parameters>$(find igvc25)/config/gz_ros2_control.yaml</parameters>
+      <parameters>$(find igvc)/config/gz_ros2_control.yaml</parameters>
       <ros>
         <remapping>ackermann_steering_controller/reference:=cmd_vel_stamped</remapping>
         <remapping>ackermann_steering_controller/reference_unstamped:=cmd_vel_unstamped</remapping>

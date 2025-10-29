@@ -1,4 +1,4 @@
-# IGVC25 Capstone Software
+# igvc Capstone Software
 > subtitle!
 ---
 
@@ -13,7 +13,7 @@ Once you are in, I reccomend setting up [ssh with git.](https://docs.github.com/
 Either way, clone this repo, and navigate to it via terminal:
 
 ```bash
-git clone git@github.com:e-spinner/IGVC25.git && cd IGVC25
+git clone git@github.com:e-spinner/igvc.git && cd igvc
 ```
 
 ### Installing Ros
@@ -50,12 +50,12 @@ colcon build --symlink-install --cmake-args -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -
 
 ### Package Structure
 
-The igvc25 package contains:
+The igvc package contains:
 
 - `behavior/` - Behavior tree configurations for autonomous navigation
 - `config/` - Configuration files for ros nodes
 - `description/` - Robot URDF models (ackermann, ackermann_linkage, ...)
-- `igvc25_py/` - Python nodes
+- `igvc_py/` - Python nodes
 - `launch/` - Launch files to start different systems
 - `msg/` - Custom ROS message definitions
 - `src/` - C++ nodes
@@ -73,14 +73,14 @@ Run different system configurations:
 
 ```bash
 # Ackermann linkage visualzation + control by joy-teleop
-ros2 launch igvc25 ack.launch.py linkage_config:=2
+ros2 launch igvc ack.launch.py linkage_config:=2
 
 # Navigation stack  --- intended to be used on top of sim
-ros2 launch igvc25 nav.launch.py
+ros2 launch igvc nav.launch.py
 
 # Simulation environment + basic ackermann robot
-ros2 launch igvc25 sim.launch.py
+ros2 launch igvc sim.launch.py
 
 # Vision sensors drivers (GPS and IMU)
-ros2 launch igvc25 vision.launch.py
+ros2 launch igvc vision.launch.py
 ```

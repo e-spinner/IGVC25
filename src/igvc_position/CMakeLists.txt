@@ -24,6 +24,7 @@ ament_target_dependencies(
   rclcpp
   sensor_msgs
   nav_msgs
+  igvc
 )
 
 # Truth Gen
@@ -34,13 +35,8 @@ ament_target_dependencies(
   sensor_msgs
   nav_msgs
   tf2_ros
+  igvc
 )
-
-# Make executables depend on generated interfaces from igvc package
-rosidl_get_typesupport_target(cpp_typesupport_target igvc "rosidl_typesupport_cpp")
-
-target_link_libraries(truth_gen ${cpp_typesupport_target})
-target_link_libraries(fusion_node ${cpp_typesupport_target})
 
 # --------------------
 # Headers

@@ -20,7 +20,7 @@ from launch_ros.actions import Node, PushRosNamespace
 
 
 def generate_launch_description():
-  package_name = "igvc25"
+  package_name = "igvc"
 
   # MARK: Args
   temp = LaunchConfiguration("temp")

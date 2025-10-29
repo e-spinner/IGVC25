@@ -24,6 +24,7 @@ ament_target_dependencies(
   rclcpp
   geometry_msgs
   tf2_ros
+  igvc
 )
 
 # transform
@@ -34,13 +35,8 @@ ament_target_dependencies(
   geometry_msgs
   tf2_ros
   sensor_msgs
+  igvc
 )
-
-# Make executables depend on generated interfaces from igvc package
-rosidl_get_typesupport_target(cpp_typesupport_target igvc "rosidl_typesupport_cpp")
-
-target_link_libraries(cmd_interpreter ${cpp_typesupport_target})
-target_link_libraries(transform ${cpp_typesupport_target})
 
 # --------------------
 # Headers

@@ -65,7 +65,11 @@ def launch_setup(context, *args, **kwargs):
   )
 
   robot_description = load_robot_description(
-    os.path.join(pkg_path, "description", "ackermann_linkage.urdf"),
+    os.path.join(
+      get_package_share_directory("igvc"),
+      "description",
+      "ackermann_linkage.urdf",
+    ),
     linkage_config_file,
   )
 
