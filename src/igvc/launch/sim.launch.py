@@ -36,7 +36,7 @@ def load_robot_description(robot_description_path, robot_params_path):
 
 
 def generate_launch_description():
-  package_name = "igvc25"
+  package_name = "igvc"
   package_path = get_package_share_directory(package_name)
 
   # MARK: Gazebo
@@ -129,7 +129,7 @@ def generate_launch_description():
   )
 
   gz_odom_tf = Node(
-    package=package_name,
+    package="igvc_position",
     executable="odom_to_tf.py",
     output="screen",
   )
@@ -146,7 +146,7 @@ def generate_launch_description():
 
   # https://github.com/ros-teleop/twist_mux
   twist_mux_params = os.path.join(
-    get_package_share_directory(package_name), "config", "twist_mux.yaml"
+    get_package_share_directory("igvc"), "config", "twist_mux.yaml"
   )
 
   twist_mux = Node(

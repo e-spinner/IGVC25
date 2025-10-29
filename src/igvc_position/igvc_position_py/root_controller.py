@@ -12,7 +12,7 @@ from irobot_edu_sdk.backend.bluetooth import Bluetooth
 from irobot_edu_sdk.robots import Root, event
 from irobot_edu_sdk.music import Note
 
-from igvc25.msg import RootInstruction
+from igvc.msg import RootInstruction
 
 
 class RootController(Node):

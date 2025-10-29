@@ -38,7 +38,7 @@ def device_connected(device_id):
 
 
 def generate_launch_description():
-  package_name = "igvc25"
+  package_name = "igvc"
 
   # MARK: GPS
   gps_driver = Node(

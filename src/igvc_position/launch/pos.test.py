@@ -23,7 +23,7 @@ from launch_ros.actions import Node, PushRosNamespace
 
 
 def generate_launch_description():
-  package_name = "igvc25"
+  package_name = "igvc_position"
 
   # MARK: Args
   commands_file_arg = DeclareLaunchArgument(
@@ -71,21 +71,21 @@ def generate_launch_description():
 
   # MARK: GTG
   truth_gen = Node(
-    package="igvc25",
+    package="igvc_position",
     executable="truth_gen",
     output="screen",
   )
 
   # MARK: ROOT
   root_controller = Node(
-    package="igvc25",
+    package="igvc_position",
     executable="root_controller.py",
     output="screen",
     parameters=[
       {
         "commands_file": PathJoinSubstitution(
           [
-            get_package_share_directory("igvc25"),
+            get_package_share_directory("igvc_position"),
             "config",
             "root",
             LaunchConfiguration("commands_file"),
@@ -106,7 +106,7 @@ def generate_launch_description():
       "record",
       "-o",
       PathJoinSubstitution(
-        [get_package_share_directory("igvc25"), "bags", bag_name]
+        [get_package_share_directory("igvc_position"), "bags", bag_name]
       ),
       "--all",
     ],

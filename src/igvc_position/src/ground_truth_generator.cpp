@@ -11,7 +11,7 @@
 #include <tf2/LinearMath/Quaternion.h>
 #include <tf2_ros/transform_broadcaster.hpp>
 
-#include "igvc25/msg/root_instruction.hpp"
+#include "igvc/msg/root_instruction.hpp"
 
 // this node listens for a RootInstruction msg from root_controller.py and
 // generates a truth odometry for use with testing different pos-estimation algs
@@ -35,9 +35,9 @@ public:
 
     tf_broadcaster = std::make_shared<tf2_ros::TransformBroadcaster>(this);
 
-    subscriber = this->create_subscription<igvc25::msg::RootInstruction>(
+    subscriber = this->create_subscription<igvc::msg::RootInstruction>(
         ROOT_TOPIC, QOS,
-        [this](const igvc25::msg::RootInstruction::SharedPtr msg) {
+        [this](const igvc::msg::RootInstruction::SharedPtr msg) {
           // immediatly start executing new instuction
           current_instr   = *msg;
           instr_time      = 0.0;
@@ -122,7 +122,7 @@ private:
   rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr odom_publisher;
   rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr joint_publisher;
   std::shared_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster;
-  rclcpp::Subscription<igvc25::msg::RootInstruction>::SharedPtr subscriber;
+  rclcpp::Subscription<igvc::msg::RootInstruction>::SharedPtr subscriber;
   rclcpp::TimerBase::SharedPtr timer;
 
   double x{0.0}, y{0.0}, theta_z{0.0};
@@ -131,7 +131,7 @@ private:
   double instr_time{0.0}, delta_time{0.02};
   bool has_instruction{false};
 
-  igvc25::msg::RootInstruction current_instr;
+  igvc::msg::RootInstruction current_instr;
 };
 
 int main(int argc, char **argv) {

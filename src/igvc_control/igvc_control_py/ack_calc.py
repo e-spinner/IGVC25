@@ -2,8 +2,8 @@
 import rclpy
 import math as m
 from rclpy.node import Node
-from igvc25.msg import Angle
-from igvc25.msg import AckState
+from igvc.msg import Angle
+from igvc.msg import AckState
 
 
 class AckCalc(Node):

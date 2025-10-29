@@ -7,8 +7,8 @@
 #include <tf2/LinearMath/Quaternion.hpp>
 #include <tf2_ros/transform_broadcaster.hpp>
 
-#include "igvc25/msg/angle.hpp"
-// #include "igvc25/msg/diff_state.hpp"
+#include "igvc/msg/angle.hpp"
+// #include "igvc/msg/diff_state.hpp"
 
 class CmdInterpreter : public rclcpp::Node {
 public:
@@ -29,7 +29,7 @@ public:
     m_tf_broadcaster = std::make_shared<tf2_ros::TransformBroadcaster>(this);
 
     m_theta_pub =
-        this->create_publisher<igvc25::msg::Angle>("/theta_ideal", 10);
+        this->create_publisher<igvc::msg::Angle>("/theta_ideal", 10);
 
     m_cmd_sub = this->create_subscription<geometry_msgs::msg::Twist>(
         "/cmd_vel", 10, [this](const geometry_msgs::msg::Twist &msg) {
@@ -43,7 +43,7 @@ public:
 
             // Publish steering angle when moving
             if (msg.linear.x != 0.0) {
-              auto angle_msg  = igvc25::msg::Angle();
+              auto angle_msg  = igvc::msg::Angle();
               angle_msg.theta = current_steering_angle;
               m_theta_pub->publish(angle_msg);
             }
@@ -103,7 +103,7 @@ public:
 
 private:
   rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr m_cmd_sub;
-  rclcpp::Publisher<igvc25::msg::Angle>::SharedPtr m_theta_pub;
+  rclcpp::Publisher<igvc::msg::Angle>::SharedPtr m_theta_pub;
   std::shared_ptr<tf2_ros::TransformBroadcaster> m_tf_broadcaster;
 
   double wheel_base_;

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.8)
-project(igvc25)
+project(igvc_control)
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
@@ -8,44 +8,14 @@ endif()
 # find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
+find_package(geometry_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
-find_package(nav_msgs REQUIRED)
 find_package(tf2_ros REQUIRED)
-find_package(rosidl_default_generators REQUIRED)
-
-# --------------------
-# Message generation
-# --------------------
-rosidl_generate_interfaces(${PROJECT_NAME}
-  "msg/RootInstruction.msg"
-  "msg/Angle.msg"
-  "msg/AckState.msg"
-  "msg/DiffState.msg"
-  DEPENDENCIES builtin_interfaces
-)
+find_package(igvc REQUIRED)
 
 # ----------------
 # C++ nodes
 # ----------------
-
-# Fusion Node
-add_executable(fusion_node src/fusion_node.cpp)
-ament_target_dependencies(
-  fusion_node
-  rclcpp
-  sensor_msgs
-  nav_msgs
-)
-
-# Truth Gen
-add_executable(truth_gen src/ground_truth_generator.cpp)
-ament_target_dependencies(
-  truth_gen
-  rclcpp
-  sensor_msgs
-  nav_msgs
-  tf2_ros
-)
 
 # cmd_interpreter
 add_executable(cmd_interpreter src/cmd_interpreter.cpp)
@@ -66,11 +36,9 @@ ament_target_dependencies(
   sensor_msgs
 )
 
-# Make executables depend on generated interfaces
-rosidl_get_typesupport_target(cpp_typesupport_target ${PROJECT_NAME} "rosidl_typesupport_cpp")
+# Make executables depend on generated interfaces from igvc package
+rosidl_get_typesupport_target(cpp_typesupport_target igvc "rosidl_typesupport_cpp")
 
-target_link_libraries(truth_gen ${cpp_typesupport_target})
-target_link_libraries(fusion_node ${cpp_typesupport_target})
 target_link_libraries(cmd_interpreter ${cpp_typesupport_target})
 target_link_libraries(transform ${cpp_typesupport_target})
 
@@ -85,7 +53,7 @@ include_directories(
 # Install Nodes
 # --------------------
 install(
-  TARGETS fusion_node truth_gen cmd_interpreter transform
+  TARGETS cmd_interpreter transform
   DESTINATION lib/${PROJECT_NAME}
 )
 
@@ -93,7 +61,7 @@ install(
 # Install Extra Folders
 # --------------------
 install(
-  DIRECTORY launch description config worlds behavior
+  DIRECTORY launch description config
   DESTINATION share/${PROJECT_NAME}
 )
 
@@ -103,15 +71,13 @@ install(
 find_package(ament_cmake_python REQUIRED)
 
 # Install Python module
-ament_python_install_package(igvc25_py)
+ament_python_install_package(igvc_control_py)
 
 # Install Python executables
 install(PROGRAMS
-  igvc25_py/root_controller.py
-  igvc25_py/odom_to_tf.py
-  igvc25_py/ack_calc.py
+  igvc_control_py/ack_calc.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
-ament_export_dependencies(rosidl_default_runtime)
 ament_package()
+

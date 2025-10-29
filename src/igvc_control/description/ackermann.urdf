@@ -1,0 +1,261 @@
+<?xml version="1.0"?>
+
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="robot_name">
+
+  <!-- ===== Arguments ===== -->
+  <xacro:arg name="chassis_length" default="3.0"/>
+  <xacro:arg name="chassis_width" default="2.0"/>
+  <xacro:arg name="chassis_height" default="1.0"/>
+  <xacro:arg name="chassis_mass" default="25.0"/>
+  <xacro:arg name="chassis_offset" default="-1.25 0.0 0.5"/>
+
+  <xacro:arg name="wheel_length" default="0.25"/>
+  <xacro:arg name="wheel_radius" default="0.5"/>
+  <xacro:arg name="wheel_mass" default="1.0"/>
+  <xacro:arg name="track_width" default="2.25"/>
+  <xacro:arg name="wheel_base" default="2.5"/>
+
+  <xacro:arg name="max_inside_steering_angle" default="0.60"/>
+  <xacro:arg name="max_outside_steering_angle" default="0.60"/>
+  <xacro:arg name="max_steering_angular_velocity" default="1.57"/>
+  <xacro:arg name="max_steering_effort" default="1.0"/>
+  <xacro:arg name="max_velocity" default="1.0"/>
+  <xacro:arg name="max_effort" default="10.0"/>
+
+  <!-- ===== Properties ===== -->
+  <xacro:property name="chassis_length" value="$(arg chassis_length)"/>
+  <xacro:property name="chassis_width" value="$(arg chassis_width)"/>
+  <xacro:property name="chassis_height" value="$(arg chassis_height)"/>
+  <xacro:property name="chassis_mass" value="$(arg chassis_mass)"/>
+  <xacro:property name="chassis_offset" value="$(arg chassis_offset)"/>
+
+  <xacro:property name="wheel_length" value="$(arg wheel_length)"/>
+  <xacro:property name="wheel_radius" value="$(arg wheel_radius)"/>
+  <xacro:property name="wheel_mass" value="$(arg wheel_mass)"/>
+  <xacro:property name="track_width" value="$(arg track_width)"/>
+  <xacro:property name="wheel_base" value="$(arg wheel_base)"/>
+
+  <xacro:property name="max_inside_steering_angle" value="$(arg max_inside_steering_angle)"/>
+  <xacro:property name="max_outside_steering_angle" value="$(arg max_outside_steering_angle)"/>
+  <xacro:property name="max_steering_angle_v" value="$(arg max_steering_angular_velocity)"/>
+  <xacro:property name="max_steering_effort" value="$(arg max_steering_effort)"/>
+  <xacro:property name="max_velocity" value="$(arg max_velocity)"/>
+  <xacro:property name="max_effort" value="$(arg max_effort)"/>
+
+  <!-- ===== Derived Properties ===== -->
+  <xacro:property name="max_wheel_angular_velocity" value="${max_velocity / wheel_radius}"/>
+
+  <!-- ===== Macros ===== -->
+  <xacro:include filename="macros/materials.xacro"/>
+  <xacro:include filename="macros/inertials.xacro"/>
+  <xacro:include filename="macros/components.xacro"/>
+
+  <!-- ===== ORIGIN ===== -->
+  <link name="base_link"/>
+
+  <!-- projection of base_link onto map frame -->
+  <!-- <link name="base_footprint"/> -->
+
+
+  <!--
+  MARK: CHASSIS
+  -->
+  <!-- ===== CHASSIS ===== -->
+  <link name="chassis_link">
+    <xacro:inertial_box mass="${chassis_mass}" x="${chassis_length}" y="${chassis_width}" z="${chassis_height}">
+      <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+    </xacro:inertial_box>
+
+    <visual>
+      <geometry>
+        <box size="${chassis_length} ${chassis_width} ${chassis_height}"/>
+      </geometry>
+      <material name="white"/>
+    </visual>
+
+    <collision>
+      <geometry>
+        <box size="${chassis_length} ${chassis_width} ${chassis_height}"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="chassis_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="chassis_link"/>
+    <origin xyz="${chassis_offset}"/>
+  </joint>
+
+  <!-- link between rear wheels -->
+  <link name="diff_link"/>
+  <joint name="diff_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="diff_link"/>
+    <origin xyz="-${track_width} 0 0"/>
+  </joint>
+
+  <!--
+  MARK: WHEELS
+  -->
+
+  <!-- ===== FRONT LEFT WHEEL ===== -->
+  <xacro:wheel
+    name="front_left_wheel"
+    parent_link="front_left_steering_link"
+    wheel_distance="0"
+    wheel_orientation="-${pi/2}"
+    wheel_radius="${wheel_radius}"
+    wheel_length="${wheel_length}"
+    wheel_mass="${wheel_mass}"
+    max_effort="${max_effort}"
+    max_vel="${max_wheel_angular_velocity}"
+  />
+
+  <link name="front_left_steering_link">
+    <inertial>
+      <mass value="0.1"/>
+      <inertia ixx="0.001" ixy="0.0" ixz="0.0" iyy="0.001" iyz="0.0" izz="0.002" />
+    </inertial>
+  </link>
+
+  <joint name="front_left_steering_joint" type="revolute">
+    <parent link="base_link"/>
+    <child link="front_left_steering_link"/>
+    <origin xyz="0 ${wheel_base/2} 0"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="-${max_outside_steering_angle}" upper="${max_inside_steering_angle}" effort="${max_steering_effort}" velocity="${max_steering_angle_v}"/>
+    <dynamics damping="0.1" friction="0.1"/>
+  </joint>
+
+  <!-- ===== FRONT RIGHT WHEEL ===== -->
+   <xacro:wheel
+    name="front_right_wheel"
+    parent_link="front_right_steering_link"
+    wheel_distance="0"
+    wheel_orientation="-${pi/2}"
+    wheel_radius="${wheel_radius}"
+    wheel_length="${wheel_length}"
+    wheel_mass="${wheel_mass}"
+    max_effort="${max_effort}"
+    max_vel="${max_wheel_angular_velocity}"
+  />
+
+  <link name="front_right_steering_link">
+    <inertial>
+      <mass value="0.1"/>
+      <inertia ixx="0.001" ixy="0.0" ixz="0.0" iyy="0.001" iyz="0.0" izz="0.002" />
+    </inertial>
+  </link>
+
+  <joint name="front_right_steering_joint" type="revolute">
+    <parent link="base_link"/>
+    <child link="front_right_steering_link"/>
+    <origin xyz="0 -${wheel_base/2} 0"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="-${max_inside_steering_angle}" upper="${max_outside_steering_angle}" effort="${max_steering_effort}" velocity="${max_steering_angle_v}"/>
+    <dynamics damping="0.1" friction="0.1"/>
+  </joint>
+
+  <!-- ===== BACK LEFT WHEEL ===== -->
+  <xacro:wheel
+    name="back_left_wheel"
+    parent_link="diff_link"
+    wheel_distance="${wheel_base/2}"
+    wheel_orientation="-${pi/2}"
+    wheel_radius="${wheel_radius}"
+    wheel_length="${wheel_length}"
+    wheel_mass="${wheel_mass}"
+    max_effort="${max_effort}"
+    max_vel="${max_wheel_angular_velocity}"
+  />
+
+  <!-- ===== BACK RIGHT WHEEL ===== -->
+  <xacro:wheel
+    name="back_right_wheel"
+    parent_link="diff_link"
+    wheel_distance="-${wheel_base/2}"
+    wheel_orientation="-${pi/2}"
+    wheel_radius="${wheel_radius}"
+    wheel_length="${wheel_length}"
+    wheel_mass="${wheel_mass}"
+    max_effort="${max_effort}"
+    max_vel="${max_wheel_angular_velocity}"
+  />
+
+  <!--
+  MARK: SENSORS
+  -->
+
+  <!-- Lidar -->
+  <xacro:lidar parent="base_link">
+    <origin xyz="-0.3 0 0.3" rpy="0 0 0" />
+  </xacro:lidar>
+
+  <!--
+  MARK: CTRL
+  -->
+
+  <!-- ===== ROS2 CONTROL ===== -->
+  <ros2_control name="GazeboSimSystem" type="system">
+    <hardware>
+      <plugin>gz_ros2_control/GazeboSimSystem</plugin>
+    </hardware>
+    <joint name="back_left_wheel_joint">
+      <command_interface name="velocity" />
+      <state_interface name="velocity" />
+      <state_interface name="position" />
+    </joint>
+    <joint name="back_right_wheel_joint">
+      <command_interface name="velocity" />
+      <state_interface name="velocity" />
+      <state_interface name="position" />
+    </joint>
+    <joint name="front_left_steering_joint">
+      <command_interface name="position"/>
+      <state_interface name="position" />
+    </joint>
+    <joint name="front_right_steering_joint">
+      <command_interface name="position" />
+      <state_interface name="position" />
+    </joint>
+    <joint name="front_left_wheel_joint">
+      <state_interface name="position" />
+      <state_interface name="velocity" />
+    </joint>
+    <joint name="front_right_wheel_joint">
+      <state_interface name="position" />
+      <state_interface name="velocity" />
+    </joint>
+  </ros2_control>
+
+  <!--
+  MARK: SIM
+  -->
+  <!-- ===== GAZEBO ===== -->
+  <gazebo>
+    <plugin filename="gz_ros2_control-system" name="gz_ros2_control::GazeboSimROS2ControlPlugin">
+      <parameters>$(find igvc25)/config/gz_ros2_control.yaml</parameters>
+      <ros>
+        <remapping>ackermann_steering_controller/reference:=cmd_vel_stamped</remapping>
+        <remapping>ackermann_steering_controller/reference_unstamped:=cmd_vel_unstamped</remapping>
+      </ros>
+    </plugin>
+
+    <plugin filename="libignition-gazebo-odometry-publisher-system.so"
+        name="ignition::gazebo::systems::OdometryPublisher">
+      <odom_frame>odom</odom_frame>
+      <robot_base_frame>base_link</robot_base_frame>
+      <odom_publish_frequency>50</odom_publish_frequency>
+      <odom_topic>/robot/odometry</odom_topic>
+    </plugin>
+
+    <plugin
+      filename="gz-sim-sensors-system"
+      name="gz::sim::systems::Sensors">
+      <render_engine>ogre2</render_engine>
+    </plugin>
+  </gazebo>
+
+
+
+</robot>

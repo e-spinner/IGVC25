@@ -30,7 +30,7 @@ def load_robot_description(robot_description_path, robot_params_path):
 
 
 def launch_setup(context, *args, **kwargs):
-  package_name = "igvc25"
+  package_name = "igvc_control"
   pkg_path = get_package_share_directory(package_name)
 
   # Get linkage config number from launch argument
