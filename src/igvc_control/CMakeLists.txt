@@ -57,7 +57,7 @@ install(
 # Install Extra Folders
 # --------------------
 install(
-  DIRECTORY launch description config
+  DIRECTORY launch config
   DESTINATION share/${PROJECT_NAME}
 )
 

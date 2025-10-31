@@ -28,8 +28,7 @@ public:
 
     m_tf_broadcaster = std::make_shared<tf2_ros::TransformBroadcaster>(this);
 
-    m_theta_pub =
-        this->create_publisher<igvc::msg::Angle>("/theta_ideal", 10);
+    m_theta_pub = this->create_publisher<igvc::msg::Angle>("/theta_ideal", 10);
 
     m_cmd_sub = this->create_subscription<geometry_msgs::msg::Twist>(
         "/cmd_vel", 10, [this](const geometry_msgs::msg::Twist &msg) {
@@ -95,7 +94,7 @@ public:
           t.transform.rotation.z = q.z();
           t.transform.rotation.w = q.w();
 
-          m_tf_broadcaster->sendTransform(t);
+          // m_tf_broadcaster->sendTransform(t);
         });
 
     RCLCPP_INFO(this->get_logger(), "cmd_interpreter init()");
