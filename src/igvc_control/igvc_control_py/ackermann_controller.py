@@ -26,6 +26,7 @@ class AckermannController(Node):
     # Vehicle geometry parameters
     self.declare_parameter("wheelbase", 0.42)
     self.declare_parameter("track_width", 0.36)
+    self.declare_parameter("linkage_num", 1)
 
     # Get parameters in meters
     self.pinion_radius = self.get_parameter("pinion_radius").value  # [m]
@@ -38,6 +39,7 @@ class AckermannController(Node):
     self.wheel_angle = self.get_parameter("wheel_angle").value  # [rad]
     self.wheelbase = self.get_parameter("wheelbase").value  # [m]
     self.track_width = self.get_parameter("track_width").value  # [m]
+    self.linkage_num = self.get_parameter("linkage_num").value  # [m]
 
     self.Ideal_Angle_Sub = self.create_subscription(
       Angle, "/theta_ideal", self.angle_callback, 10
@@ -73,7 +75,7 @@ class AckermannController(Node):
     b = self.link_b  # [m] tie rod length
     c = self.link_c  # [m] rack offset
     d = self.rack_neutral + (
-      pinion_angle * self.pinion_gear_ratio * self.pinion_radius
+      pinion_angle * self.pinion_gear_ratio * self.pinion_radius  # type: ignore
     )  # [m] rack position
 
     assert a is not None
@@ -129,30 +131,55 @@ class AckermannController(Node):
 
     left_wheel_angles = []
     right_wheel_angles = []
+    actual_radii = []
+    ideal_radii = []
     ideal_angles = []
     for pinion_angle in pinion_angles:
       angles = self.Linkage_Angles(pinion_angle)  # type: ignore
 
-      θ_left = angles[0] - m.pi - self.wheel_angle
-      θ_right = angles[2] + self.wheel_angle
+      θ_left = angles[0] + m.pi + self.wheel_angle
+      θ_right = angles[2] - self.wheel_angle
       left_wheel_angles.append(θ_left)
       right_wheel_angles.append(θ_right)
 
       r = r_actual(θ_left, θ_right)
-
-      ideal_angles.append(θ_ideal(r))
+      actual_radii.append(r)
+      i = θ_ideal(r)
+      ideal_angles.append(i)
+      r_ideal = self.wheelbase / m.tan(i) if i != 0 else float("inf")  # type: ignore
+      ideal_radii.append(r_ideal)
 
     # graph wheel angles
     fig, ax = plt.subplots()
     ax.plot(ideal_angles, left_wheel_angles, color="blue", label="left wheel angle")
     ax.plot(ideal_angles, right_wheel_angles, color="red", label="rigth wheel angle")
+    ax.plot(ideal_angles, pinion_angles, color="green", label="pinion angle")
     ax.legend()
     ax.set(
       xlabel="ideal steering angle [rad]",
       ylabel="wheel angle [rad]",
       title="steering angle vs. wheel angles",
     )
-    fig.savefig("out")
+    fig.savefig(f"wheel_angles: {self.linkage_num}", dpi=600)  # type: ignore
+
+    # Graph turning radius comparison
+    fig2, ax2 = plt.subplots()
+    ax2.plot(ideal_angles, actual_radii, color="blue", label="actual turning radius")
+    ax2.plot(
+      ideal_angles,
+      ideal_radii,
+      color="red",
+      linestyle="--",
+      label="ideal turning radius",
+    )
+    ax2.legend()
+    ax2.set(
+      xlabel="ideal steering angle [rad]",
+      ylabel="turning radius [m]",
+      title="actual vs. ideal turning radius",
+    )
+    ax2.grid(True, alpha=0.3)
+    fig2.savefig(f"turning_radius: {self.linkage_num}", dpi=600)  # type: ignore
 
     caligration_func = interp1d(
       pinion_angles,

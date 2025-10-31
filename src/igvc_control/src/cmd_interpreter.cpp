@@ -21,10 +21,9 @@ public:
     wheel_base_         = this->get_parameter("wheel_base").as_double();
     max_steering_angle_ = this->get_parameter("max_steering_angle").as_double();
 
-    RCLCPP_INFO(
-        this->get_logger(),
-        "cmd_interpreter: wheel_base=%.3f m, max_steering_angle=%.3f rad",
-        wheel_base_, max_steering_angle_);
+    RCLCPP_INFO(this->get_logger(),
+                "cmd_interpreter: wheel_base=%.3f m, max_steering_angle=%.3f rad",
+                wheel_base_, max_steering_angle_);
 
     m_tf_broadcaster = std::make_shared<tf2_ros::TransformBroadcaster>(this);
 
@@ -36,8 +35,8 @@ public:
           double current_steering_angle = 0.0;
 
           if (msg.angular.z != 0.0) {
-            current_steering_angle = std::clamp(
-                msg.angular.z, -max_steering_angle_, max_steering_angle_);
+            current_steering_angle =
+                std::clamp(msg.angular.z, -max_steering_angle_, max_steering_angle_);
             steering_angle_ = current_steering_angle;
 
             // Publish steering angle when moving
@@ -63,8 +62,7 @@ public:
           // Skip odometry update if dt is too large (likely from pause/startup)
           if (dt > 1.0) {
             RCLCPP_WARN(this->get_logger(),
-                        "Large dt detected: %.3f s, skipping odometry update",
-                        dt);
+                        "Large dt detected: %.3f s, skipping odometry update", dt);
             return;
           }
 
