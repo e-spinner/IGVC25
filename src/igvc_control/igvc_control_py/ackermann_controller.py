@@ -19,6 +19,7 @@ class AckermannController(Node):
     self.declare_parameter("rack_offset_x", -0.0315)
     self.declare_parameter("rack_neutral_y", 0.131064)
     self.declare_parameter("pinion_gear_ratio", 1.652)
+    self.declare_parameter("max_pinion_angle", 2.0)
 
     # Vehicle geometry parameters
     self.declare_parameter("wheelbase", 0.42)
@@ -31,6 +32,9 @@ class AckermannController(Node):
     self.link_c = self.get_parameter("rack_offset_x").value  # [m]
     self.rack_neutral = self.get_parameter("rack_neutral_y").value  # [m]
     self.pinion_gear_ratio = self.get_parameter("pinion_gear_ratio").value
+    self.max_pinion_angle = self.get_parameter(
+      "max_pinion_angle"
+    ).value  # [rad]
     self.wheelbase = self.get_parameter("wheelbase").value  # [m]
     self.track_width = self.get_parameter("track_width").value  # [m]
 
@@ -51,13 +55,16 @@ class AckermannController(Node):
 
   def angle_callback(self, msg: Angle):
     ideal_angle = msg.theta  # Already in radians
-    ackermann_angles = self.Linkage_Angles(ideal_angle, self.pinion_radius)  # type: ignore
+
+    pinion_angle = self.calibration_func(ideal_angle)
+
+    ackermann_angles = self.Linkage_Angles(pinion_angle, self.pinion_radius)  # type: ignore
     Output_Msg = AckState()
     Output_Msg.theta_2 = ackermann_angles[0] - m.pi
     Output_Msg.theta_3 = ackermann_angles[1] + m.pi
     Output_Msg.theta_4 = ackermann_angles[2]
     Output_Msg.theta_5 = ackermann_angles[3]
-    Output_Msg.theta_pin = -ideal_angle * self.pinion_gear_ratio  # type: ignore
+    Output_Msg.theta_pin = -pinion_angle * self.pinion_gear_ratio  # type: ignore
     Output_Msg.d = -(ackermann_angles[4] - self.rack_neutral)
     self.Ackermann_State_Pub.publish(Output_Msg)
 
@@ -74,18 +81,18 @@ class AckermannController(Node):
     theta_3_negative = m.asin(-(a * m.sin(theta2[1]) - c) / b) + m.pi
     return [theta_3_positive, theta_3_negative]
 
-  def Pinion_Move(self, ideal_angle: float = 0, radius: float = 0.01905):
+  def Pinion_Move(self, pinion_angle: float = 0, radius: float = 0.01905):
     """Calculate rack displacement from pinion rotation angle (in radians)"""
-    move = ideal_angle * self.pinion_gear_ratio * radius  # type: ignore
+    move = pinion_angle * self.pinion_gear_ratio * radius  # type: ignore
     return move
 
-  def Linkage_Angles(self, ideal_angle: float = 0, pinion_radius: float = 0):
+  def Linkage_Angles(self, pinion_angle: float = 0, pinion_radius: float = 0):
     # Use parameterized link lengths
     a = self.link_a  # [m] steering arm length
     b = self.link_b  # [m] tie rod length
     c = self.link_c  # [m] rack offset
     d = self.rack_neutral + self.Pinion_Move(
-      ideal_angle, pinion_radius
+      pinion_angle, pinion_radius
     )  # [m] rack position
 
     assert a is not None
@@ -116,7 +123,37 @@ class AckermannController(Node):
     return angles
 
   def build_calibration(self):
-    pass
+    assert self.max_pinion_angle is not None
+
+    pinion_angles = np.linspace(
+      -self.max_pinion_angle, self.max_pinion_angle, 1024
+    )
+
+    def r_actual(θ_l: float, θ_r: float) -> float:
+      return (self.wheelbase) / (2 * (m.tan(θ_l) + m.tan(θ_r)))  # type: ignore
+
+    def θ_ideal(r: float) -> float:
+      return m.atan(self.wheelbase / r)  # type: ignore
+
+    ideal_angles = []
+    for pinion_angle in pinion_angles:
+      angles = self.Linkage_Angles(pinion_angle, self.pinion_radius)  # type: ignore
+
+      θ_left = angles[0] - m.pi
+      θ_right = angles[2]
+
+      r = r_actual(θ_left, θ_right)
+
+      ideal_angles.append(θ_ideal(r))
+
+    caligration_func = interp1d(
+      pinion_angles,
+      ideal_angles,
+      kind="linear",
+      bounds_error=False,
+    )
+
+    return caligration_func
 
 
 def main(args=None):

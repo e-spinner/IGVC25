@@ -72,6 +72,7 @@ ament_python_install_package(igvc_control_py)
 # Install Python executables
 install(PROGRAMS
   igvc_control_py/ack_calc.py
+  igvc_control_py/ackermann_controller.py
   DESTINATION lib/${PROJECT_NAME}
 )
 

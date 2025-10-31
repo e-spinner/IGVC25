@@ -55,7 +55,8 @@
     # === VEHICLE KINEMATICS === #
     wheel_base: 0.9144                # [m] distance between front and rear axles (36 inches)
     track_width: 0.9144               # [m] distance between front and rear axles (36 inches)
-    max_steering_angle: 2.0           # [rad] maximum ideal steering angle (45 degrees)
+    max_pinion_angle: 2.0             # [rad]
+    max_steering_sngle: 2.0           # [rad]
 
 joy_node:
   ros__parameters:

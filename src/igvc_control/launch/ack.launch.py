@@ -55,7 +55,7 @@ def launch_setup(context, *args, **kwargs):
 
   ack_calc = Node(
     package=package_name,
-    executable="ack_calc.py",
+    executable="ackermann_controller.py",
     parameters=[linkage_params],  # Pass linkage parameters to the node
   )
 
