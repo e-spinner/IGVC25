@@ -1,7 +1,7 @@
 [tool.ruff]
 select = ["E", "F", "W"]
 ignore = ["F401", "E703", "F841", "E501"]
-line-length = 79
+line-length = 85
 indent-width = 2
 target-version = "py310"
 exclude = ["install/*", "build/*"]

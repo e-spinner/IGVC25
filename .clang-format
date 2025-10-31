@@ -1,6 +1,6 @@
 BasedOnStyle: LLVM
 IndentWidth: 2
-ColumnLimit: 80
+ColumnLimit: 85
 IndentCaseLabels: false
 AllowShortCaseLabelsOnASingleLine: true
 AllowShortLoopsOnASingleLine: true
