@@ -53,7 +53,7 @@ controller_server:
     goal_checker_plugins: ["general_goal_checker"]
     # current_goal_checker: general_goal_checker
     # https://docs.nav2.org/plugins/index.html#controllers
-    controller_plugins: ["regulated_pure_pursuit"]
+    controller_plugins: ["pure_pursuit"]
     use_realtime_priority: false
 
     # Progress checker parameters
@@ -103,6 +103,12 @@ controller_server:
       min_distance_to_obstacle: 0.0
       stateful: true
 
+    pure_pursuit:
+      plugin: igvc_control::PurePursuit
+      lookahead_distance: 1.0
+      min_velocity: 0.1
+      max_velocity: 2.3
+      wheel_base: 0.9144
 
     # https://github.com/ros-navigation/navigation2/tree/jazzy/nav2_mppi_controller
     mppi_controller:

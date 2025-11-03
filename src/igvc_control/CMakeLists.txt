@@ -10,8 +10,17 @@ find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
+find_package(nav_msgs REQUIRED)
+find_package(tf2 REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(igvc REQUIRED)
+find_package(nav2_common REQUIRED)
+find_package(nav2_core REQUIRED)
+find_package(nav2_costmap_2d REQUIRED)
+find_package(nav2_util REQUIRED)
+find_package(pluginlib REQUIRED)
+# find_package(nav2_ros_common REQUIRED)
+
 
 # ----------------
 # C++ nodes
@@ -36,6 +45,38 @@ ament_target_dependencies(
   tf2_ros
   sensor_msgs
   igvc
+)
+
+
+# --------------------
+# Builld Plugin
+# --------------------
+
+nav2_package()
+
+add_library(pure_pursuit_controller SHARED
+        src/pure_pursuit.cpp)
+
+# prevent pluginlib from using boost
+target_compile_definitions(pure_pursuit_controller PUBLIC "PLUGINLIB__DISABLE_BOOST_FUNCTIONS")
+
+ament_target_dependencies(pure_pursuit_controller
+  rclcpp
+  rclcpp_lifecycle
+  geometry_msgs
+  nav_msgs
+  nav2_core
+  nav2_costmap_2d
+  nav2_util
+  pluginlib
+  tf2
+  tf2_ros
+)
+
+install(TARGETS pure_pursuit_controller
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin
 )
 
 # --------------------
@@ -75,6 +116,11 @@ install(PROGRAMS
   igvc_control_py/ackermann_controller.py
   DESTINATION lib/${PROJECT_NAME}
 )
+
+# --------------------
+# Export Plugins
+# --------------------
+pluginlib_export_plugin_description_file(nav2_core pure_pursuit_controller.xml)
 
 ament_package()
 
