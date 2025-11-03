@@ -23,7 +23,7 @@
                          />
             </Sequence>
           </RateController>
-          <FollowPath controller_id="regulated_pure_pursuit"
+          <FollowPath controller_id="pure_pursuit"
                       path="{path_smooth}"
                       goal_checker_id="general_goal_checker"/>
         </PipelineSequence>

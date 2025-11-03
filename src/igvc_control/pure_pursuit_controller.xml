@@ -1,5 +1,5 @@
 <class_libraries>
-  <library path="igvc_control">
+  <library path="pure_pursuit_controller">
     <class type="igvc_control::PurePursuit"
            base_class_type="nav2_core::Controller">
       <description>Pure Pursuit Controller for IGVC</description>
