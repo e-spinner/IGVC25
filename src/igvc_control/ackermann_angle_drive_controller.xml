@@ -1,0 +1,8 @@
+<class_libraries>
+  <library path="ackermann_angle_drive_controller">
+    <class type="igvc_control::AckermannAngleDriveController"
+           base_class_type="controller_interface::ControllerInterface">
+      <description>Ackermann steering controller with angle-based control and rear differential drive</description>
+    </class>
+  </library>
+</class_libraries>
