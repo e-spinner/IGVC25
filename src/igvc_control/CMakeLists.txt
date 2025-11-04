@@ -19,6 +19,7 @@ find_package(nav2_core REQUIRED)
 find_package(nav2_costmap_2d REQUIRED)
 find_package(nav2_util REQUIRED)
 find_package(pluginlib REQUIRED)
+find_package(controller_interface REQUIRED)
 # find_package(nav2_ros_common REQUIRED)
 
 
