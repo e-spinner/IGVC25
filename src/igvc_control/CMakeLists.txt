@@ -81,13 +81,13 @@ install(TARGETS pure_pursuit_controller
 )
 
 # AckermannAngleDriveController
-add_library(ackermann_angle_drive_controller SHARED
-        src/ackermann_angle_drive_controller.cpp)
+add_library(ackermann_angle_controller SHARED
+        src/ackermann_angle_controller.cpp)
 
 # prevent pluginlib from using boost
-target_compile_definitions(ackermann_angle_drive_controller PUBLIC "PLUGINLIB__DISABLE_BOOST_FUNCTIONS")
+target_compile_definitions(ackermann_angle_controller PUBLIC "PLUGINLIB__DISABLE_BOOST_FUNCTIONS")
 
-ament_target_dependencies(ackermann_angle_drive_controller
+ament_target_dependencies(ackermann_angle_controller
   rclcpp
   rclcpp_lifecycle
   geometry_msgs
@@ -96,7 +96,7 @@ ament_target_dependencies(ackermann_angle_drive_controller
   pluginlib
 )
 
-install(TARGETS ackermann_angle_drive_controller
+install(TARGETS ackermann_angle_controller
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION bin
@@ -109,10 +109,10 @@ include_directories(
   include
 )
 
-install(
-  DIRECTORY include/
-  DESTINATION include
-)
+# install(
+#   DIRECTORY include/
+#   DESTINATION include
+# )
 
 # --------------------
 # Install Nodes
@@ -149,7 +149,7 @@ install(PROGRAMS
 # Export Plugins
 # --------------------
 pluginlib_export_plugin_description_file(nav2_core pure_pursuit_controller.xml)
-pluginlib_export_plugin_description_file(controller_interface ackermann_angle_drive_controller.xml)
+pluginlib_export_plugin_description_file(controller_interface ackermann_angle_controller.xml)
 
 ament_package()
 

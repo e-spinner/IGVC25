@@ -8,8 +8,7 @@
 #include <geometry_msgs/msg/twist.hpp>
 #include <hardware_interface/types/hardware_interface_type_values.hpp>
 #include <rclcpp/rclcpp.hpp>
-#include <rclcpp_lifecycle/node_interfaces/lifecycle_node_interface.hpp>
-#include <rclcpp_lifecycle/state.hpp>
+#include <rclcpp_lifecycle/lifecycle_node.hpp>
 #include <sensor_msgs/msg/joint_state.hpp>
 
 namespace igvc_control {
@@ -22,41 +21,42 @@ public:
   // MARK: INIT
   controller_interface::CallbackReturn on_init() override {
     try {
-      m_node   = get_node();
-      m_logger = m_node->get_logger();
+      m_node    = get_node();
+      auto node = m_node.lock();
+      m_logger  = node->get_logger();
 
       // Declare parameters
       // -----------------------------------------------------------------------------
 
       // Linkage Parameters
-      m_node->declare_parameter("pinion_radius", 0.01905);
-      m_node->declare_parameter("steering_arm_length", 0.0381);
-      m_node->declare_parameter("tie_rod_length", 0.127);
-      m_node->declare_parameter("rack_offset_x", -0.0315);
-      m_node->declare_parameter("rack_neutral_y", 0.131064);
-      m_node->declare_parameter("pinion_gear_ratio", 1.652);
-      m_node->declare_parameter("max_pinion_angle", 2.0);
-      m_node->declare_parameter("wheel_angle", 0.32253);
-      m_node->declare_parameter("wheelbase", 0.42);
-      m_node->declare_parameter("track_width", 0.36);
-      m_node->declare_parameter("wheel_radius", 0.1524);
+      node->declare_parameter("pinion_radius", 0.01905);
+      node->declare_parameter("steering_arm_length", 0.0381);
+      node->declare_parameter("tie_rod_length", 0.127);
+      node->declare_parameter("rack_offset_x", -0.0315);
+      node->declare_parameter("rack_neutral_y", 0.131064);
+      node->declare_parameter("pinion_gear_ratio", 1.652);
+      node->declare_parameter("max_pinion_angle", 2.0);
+      node->declare_parameter("wheel_angle", 0.32253);
+      node->declare_parameter("wheelbase", 0.42);
+      node->declare_parameter("track_width", 0.36);
+      node->declare_parameter("wheel_radius", 0.1524);
 
       // Joint names
-      m_node->declare_parameter("front_left_steering_joint",
-                                "front_left_steering_joint");
-      m_node->declare_parameter("front_right_steering_joint",
-                                "front_right_steering_joint");
-      m_node->declare_parameter("pinion_joint", "pinion_joint");
-      m_node->declare_parameter("back_left_wheel_joint", "back_left_wheel_joint");
-      m_node->declare_parameter("back_right_wheel_joint", "back_right_wheel_joint");
-      m_node->declare_parameter("rear_motor_joint", "rear_motor_joint");
+      node->declare_parameter("front_left_steering_joint",
+                              "front_left_steering_joint");
+      node->declare_parameter("front_right_steering_joint",
+                              "front_right_steering_joint");
+      node->declare_parameter("pinion_joint", "pinion_joint");
+      node->declare_parameter("back_left_wheel_joint", "back_left_wheel_joint");
+      node->declare_parameter("back_right_wheel_joint", "back_right_wheel_joint");
+      node->declare_parameter("rear_motor_joint", "rear_motor_joint");
 
       // Twist subscription
-      m_node->declare_parameter("cmd_vel_topic", "/cmd_vel");
-      m_node->declare_parameter("reference_timeout", 2.0);
+      node->declare_parameter("cmd_vel_topic", "/cmd_vel");
+      node->declare_parameter("reference_timeout", 2.0);
 
       // Calibration parameters
-      m_node->declare_parameter("calibration_sample_size", 1024);
+      node->declare_parameter("calibration_sample_size", 1024);
 
     } catch (const std::exception &e) {
       RCLCPP_ERROR(m_logger, "Exception thrown during init stage with message: %s",
@@ -68,51 +68,53 @@ public:
 
   // MARK: CONF
   controller_interface::CallbackReturn
-  on_configure(const rclcpp_lifecycle::State &previous_state) override {
+  on_configure(const rclcpp_lifecycle::State & /*previous_state*/) override {
+
+    auto node = m_node.lock();
 
     // Get parameters
     // -----------------------------------------------------------------------------
-    p_pinion_radius       = m_node->get_parameter("pinion_radius").as_double();
-    p_steering_arm_length = m_node->get_parameter("steering_arm_length").as_double();
-    p_tie_rod_length      = m_node->get_parameter("tie_rod_length").as_double();
-    p_rack_offset_x       = m_node->get_parameter("rack_offset_x").as_double();
-    p_rack_neutral_y      = m_node->get_parameter("rack_neutral_y").as_double();
-    p_pinion_gear_ratio   = m_node->get_parameter("pinion_gear_ratio").as_double();
-    p_max_pinion_angle    = m_node->get_parameter("max_pinion_angle").as_double();
-    p_wheel_angle         = m_node->get_parameter("wheel_angle").as_double();
-    p_wheelbase           = m_node->get_parameter("wheelbase").as_double();
-    p_track_width         = m_node->get_parameter("track_width").as_double();
-    p_wheel_radius        = m_node->get_parameter("wheel_radius").as_double();
+    p_pinion_radius       = node->get_parameter("pinion_radius").as_double();
+    p_steering_arm_length = node->get_parameter("steering_arm_length").as_double();
+    p_tie_rod_length      = node->get_parameter("tie_rod_length").as_double();
+    p_rack_offset_x       = node->get_parameter("rack_offset_x").as_double();
+    p_rack_neutral_y      = node->get_parameter("rack_neutral_y").as_double();
+    p_pinion_gear_ratio   = node->get_parameter("pinion_gear_ratio").as_double();
+    p_max_pinion_angle    = node->get_parameter("max_pinion_angle").as_double();
+    p_wheel_angle         = node->get_parameter("wheel_angle").as_double();
+    p_wheelbase           = node->get_parameter("wheelbase").as_double();
+    p_track_width         = node->get_parameter("track_width").as_double();
+    p_wheel_radius        = node->get_parameter("wheel_radius").as_double();
 
     p_front_left_steering_joint_name =
-        m_node->get_parameter("front_left_steering_joint").as_string();
+        node->get_parameter("front_left_steering_joint").as_string();
     p_front_right_steering_joint_name =
-        m_node->get_parameter("front_right_steering_joint").as_string();
-    p_pinion_joint_name = m_node->get_parameter("pinion_joint").as_string();
+        node->get_parameter("front_right_steering_joint").as_string();
+    p_pinion_joint_name = node->get_parameter("pinion_joint").as_string();
     p_back_left_wheel_joint_name =
-        m_node->get_parameter("back_left_wheel_joint").as_string();
+        node->get_parameter("back_left_wheel_joint").as_string();
     p_back_right_wheel_joint_name =
-        m_node->get_parameter("back_right_wheel_joint").as_string();
-    p_rear_motor_joint_name = m_node->get_parameter("rear_motor_joint").as_string();
+        node->get_parameter("back_right_wheel_joint").as_string();
+    p_rear_motor_joint_name = node->get_parameter("rear_motor_joint").as_string();
 
-    p_cmd_vel_topic     = m_node->get_parameter("cmd_vel_topic").as_string();
-    p_reference_timeout = m_node->get_parameter("reference_timeout").as_double();
+    p_cmd_vel_topic     = node->get_parameter("cmd_vel_topic").as_string();
+    p_reference_timeout = node->get_parameter("reference_timeout").as_double();
     p_calibration_sample_size =
-        m_node->get_parameter("calibration_sample_size").as_int();
+        node->get_parameter("calibration_sample_size").as_int();
 
     // Initialize calibration
     initialize_calibration();
 
     // Create twist subscription
-    m_twist_sub = m_node->create_subscription<geometry_msgs::msg::Twist>(
-        p_cmd_vel_topic, 10, [this](const geometry_msgs::msg::Twist &msg) {
+    m_twist_sub = node->create_subscription<geometry_msgs::msg::Twist>(
+        p_cmd_vel_topic, 10, [this, node](const geometry_msgs::msg::Twist &msg) {
           m_current_twist     = msg;
-          m_last_command_time = rclcpp::Time(msg.header.stamp);
+          m_last_command_time = node->now();
         });
 
     // Create joint state publisher
     m_joint_state_pub =
-        m_node->create_publisher<sensor_msgs::msg::JointState>("/joint_states", 10);
+        node->create_publisher<sensor_msgs::msg::JointState>("/joint_states", 10);
 
     RCLCPP_INFO(
         m_logger,
@@ -124,14 +126,14 @@ public:
 
   // MARK: ACT
   controller_interface::CallbackReturn
-  on_activate(const rclcpp_lifecycle::State &previous_state) override {
+  on_activate(const rclcpp_lifecycle::State & /*previous_state*/) override {
     // Get handles to command interfaces by searching through available interfaces
     const std::string pinion_pos_cmd =
         p_pinion_joint_name + "/" + hardware_interface::HW_IF_POSITION;
     const std::string rear_motor_vel_cmd =
         p_rear_motor_joint_name + "/" + hardware_interface::HW_IF_VELOCITY;
 
-    for (auto &cmd_interface : *command_interfaces_) {
+    for (auto &cmd_interface : command_interfaces_) {
       if (cmd_interface.get_name() == pinion_pos_cmd) {
         m_cmd_pinion_pos = &cmd_interface;
       } else if (cmd_interface.get_name() == rear_motor_vel_cmd) {
@@ -145,7 +147,7 @@ public:
     const std::string rear_motor_vel_state =
         p_rear_motor_joint_name + "/" + hardware_interface::HW_IF_VELOCITY;
 
-    for (const auto &state_interface : *state_interfaces_) {
+    for (const auto &state_interface : state_interfaces_) {
       if (state_interface.get_name() == pinion_pos_state) {
         m_state_pinion_pos = &state_interface;
       } else if (state_interface.get_name() == rear_motor_vel_state) {
@@ -165,7 +167,7 @@ public:
 
   // MARK: DEACT
   controller_interface::CallbackReturn
-  on_deactivate(const rclcpp_lifecycle::State &previous_state) override {
+  on_deactivate(const rclcpp_lifecycle::State & /*previous_state*/) override {
     // Clear handles
     m_cmd_pinion_pos       = nullptr;
     m_cmd_rear_motor_vel   = nullptr;
@@ -213,8 +215,8 @@ public:
   }
 
   // MARK: UPDATE
-  controller_interface::return_type update(const rclcpp::Time &time,
-                                           const rclcpp::Duration &period) override {
+  controller_interface::return_type
+  update(const rclcpp::Time &time, const rclcpp::Duration & /*period*/) override {
     // Check for command timeout
     const double time_since_cmd = (time - m_last_command_time).seconds();
     if (time_since_cmd > p_reference_timeout) {
@@ -355,7 +357,7 @@ private:
   // Node
   rclcpp_lifecycle::LifecycleNode::WeakPtr m_node;
   // Logger
-  rclcpp::Logger m_logger;
+  rclcpp::Logger m_logger{rclcpp::get_logger("AckermannAngleController")};
 
   // Joint state publisher for RViz2
   rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr m_joint_state_pub;
@@ -369,11 +371,11 @@ private:
   double m_actual_radius_max;
 
   // Command/state interface handles (populated in on_activate)
-  hardware_interface::CommandInterface *m_cmd_pinion_pos     = nullptr;
-  hardware_interface::CommandInterface *m_cmd_rear_motor_vel = nullptr;
+  hardware_interface::LoanedCommandInterface *m_cmd_pinion_pos     = nullptr;
+  hardware_interface::LoanedCommandInterface *m_cmd_rear_motor_vel = nullptr;
 
-  const hardware_interface::StateInterface *m_state_pinion_pos     = nullptr;
-  const hardware_interface::StateInterface *m_state_rear_motor_vel = nullptr;
+  const hardware_interface::LoanedStateInterface *m_state_pinion_pos     = nullptr;
+  const hardware_interface::LoanedStateInterface *m_state_rear_motor_vel = nullptr;
 
   // Position tracking for wheels (integrated from velocity)
   double m_rear_motor_position       = 0.0;
