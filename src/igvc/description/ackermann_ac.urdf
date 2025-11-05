@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="igvc25">
+
+  <!-- ===== Arguments ===== -->
+  <xacro:arg name="wheel_length" default="0.25" />
+  <xacro:arg name="wheel_radius" default="0.5" />
+  <xacro:arg name="wheel_mass" default="1.0" />
+
+  <xacro:arg name="track_width" default="2.25" />
+  <xacro:arg name="wheel_base" default="2.5" />
+
+  <!-- ===== Properties ===== -->
+  <xacro:property name="wheel_length" value="$(arg wheel_length)" />
+  <xacro:property name="wheel_radius" value="$(arg wheel_radius)" />
+  <xacro:property name="wheel_mass" value="$(arg wheel_mass)" />
+
+  <xacro:property name="track_width" value="$(arg track_width)" />
+  <xacro:property name="wheel_base" value="$(arg wheel_base)" />
+
+  <!--
+  ===== Macros ===== -->
+  <xacro:include filename="macros/materials.xacro" />
+  <xacro:include filename="macros/inertials.xacro" />
+  <xacro:include filename="macros/components.xacro" />
+
+  <link name="base_link" />
+
+  <!-- MARK: WHEELS
+   === FRONT === -->
+  <xacro:steer name="front_left"
+    parent_link="base_link"
+    wheel_radius="${wheel_radius}"
+    wheel_length="${wheel_length}"
+    wheel_mass="${wheel_mass}">
+    <origin xyz="0 -${wheel_base/2} 0" />
+  </xacro:steer>
+
+</robot>

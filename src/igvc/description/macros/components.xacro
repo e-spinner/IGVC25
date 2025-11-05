@@ -38,6 +38,42 @@
   </xacro:macro>
 
   <!--
+        MARK: steer
+    -->
+
+  <xacro:macro name="steer" params="*origin name parent_link wheel_radius wheel_length wheel_mass">
+
+    <joint name="${name}_steering_joint" type="revolute">
+      <parent link="${parent_link}"/>
+      <child link="${name}_link"/>
+      <xacro:insert_block name="origin" />
+      <axis xyz="0 0 1"/>
+    </joint>
+
+    <link name="${name}_wheel">
+      <xacro:inertial_cylinder mass="${wheel_mass}" radius="${wheel_radius}"
+        length="${wheel_length}">
+        <origin xyz="0 0 0" rpy="-${pi/2} 0 0" />
+      </xacro:inertial_cylinder>
+      <visual>
+        <origin xyz="0 0 0" rpy="-${pi/2} 0 0" />
+        <geometry>
+          <cylinder radius="${wheel_radius}" length="${wheel_length}" />
+        </geometry>
+        <material name="blue" />
+      </visual>
+
+      <collision>
+        <origin xyz="0 0 0" rpy="-${pi/2} 0 0" />
+        <geometry>
+          <cylinder radius="${wheel_radius}" length="${wheel_length}" />
+        </geometry>
+      </collision>
+    </link>
+
+  </xacro:macro>
+
+  <!--
         MARK: flat-lidar
     -->
 

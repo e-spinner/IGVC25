@@ -57,7 +57,7 @@ def generate_launch_description():
 
   # MARK: RSP
   robot_description = load_robot_description(
-    os.path.join(package_path, "description", "ackermann.urdf"),
+    os.path.join(package_path, "description", "ackermann_gz.urdf"),
     os.path.join(package_path, "config", "ackermann.yaml"),
   )
 
@@ -99,9 +99,7 @@ def generate_launch_description():
     arguments=["joint_state_broadcaster"],
   )
 
-  controller_params = os.path.join(
-    package_path, "config", "gz_ros2_control.yaml"
-  )
+  controller_params = os.path.join(package_path, "config", "gz_ros2_control.yaml")
 
   ackermann_steering_controller_spawner = Node(
     package="controller_manager",
