@@ -2,17 +2,19 @@
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="igvc25">
 
   <!-- ===== Arguments ===== -->
-  <xacro:arg name="wheel_length" default="0.25" />
-  <xacro:arg name="wheel_radius" default="0.5" />
+  <xacro:arg name="wheel_length" default="0.0762" />
+  <xacro:arg name="wheel_radius" default="0.1524" />
   <xacro:arg name="wheel_mass" default="1.0" />
+  <xacro:arg name="wheel_offset" default="0.1" />
 
-  <xacro:arg name="track_width" default="2.25" />
-  <xacro:arg name="wheel_base" default="2.5" />
+  <xacro:arg name="track_width" default="0.9144" />
+  <xacro:arg name="wheel_base" default="0.6" />
 
   <!-- ===== Properties ===== -->
   <xacro:property name="wheel_length" value="$(arg wheel_length)" />
   <xacro:property name="wheel_radius" value="$(arg wheel_radius)" />
   <xacro:property name="wheel_mass" value="$(arg wheel_mass)" />
+  <xacro:property name="wheel_offset" value="$(arg wheel_offset)" />
 
   <xacro:property name="track_width" value="$(arg track_width)" />
   <xacro:property name="wheel_base" value="$(arg wheel_base)" />
@@ -25,14 +27,82 @@
 
   <link name="base_link" />
 
-  <!-- MARK: WHEELS
-   === FRONT === -->
+  <!-- MARK: STEER
+  === FRONT === -->
   <xacro:steer name="front_left"
     parent_link="base_link"
     wheel_radius="${wheel_radius}"
     wheel_length="${wheel_length}"
-    wheel_mass="${wheel_mass}">
+    wheel_mass="${wheel_mass}"
+    wheel_offset="${wheel_offset}">
+    <origin xyz="0 ${wheel_base/2} 0" />
+  </xacro:steer>
+
+  <xacro:steer name="front_right"
+    parent_link="base_link"
+    wheel_radius="${wheel_radius}"
+    wheel_length="${wheel_length}"
+    wheel_mass="${wheel_mass}"
+    wheel_offset="-${wheel_offset}">
     <origin xyz="0 -${wheel_base/2} 0" />
   </xacro:steer>
+
+  <link name="pinion">
+    <visual>
+      <geometry>
+        <cylinder radius="0.05" length="0.025" />
+      </geometry>
+      <material name="black" />
+    </visual>
+  </link>
+
+  <joint name="pinion_joint" type="continuous">
+    <parent link="base_link" />
+    <child link="pinion" />
+    <origin xyz="0.0 0.0 0.1" rpy="0.0 -${pi/2} 0.0" />
+    <axis xyz="0 0 1" />
+  </joint>
+
+  <!-- MARK: DRIVE
+  === BACK === -->
+
+
+  <link name="diff_link" />
+
+  <joint name="diff_joint" type="fixed">
+    <parent link="base_link" />
+    <child link="diff_link" />
+    <origin xyz="-${track_width} 0 0" />
+  </joint>
+
+  <xacro:wheel2 name="back_left"
+    parent_link="diff_link"
+    wheel_radius="${wheel_radius}"
+    wheel_length="${wheel_length}"
+    wheel_mass="${wheel_mass}"
+    wheel_offset="${wheel_base/2}" />
+
+  <xacro:wheel2 name="back_right"
+    parent_link="diff_link"
+    wheel_radius="${wheel_radius}"
+    wheel_length="${wheel_length}"
+    wheel_mass="${wheel_mass}"
+    wheel_offset="-${wheel_base/2}" />
+
+  <link name="motor">
+    <visual>
+      <geometry>
+        <cylinder radius="0.05" length="0.025" />
+      </geometry>
+      <material name="black" />
+    </visual>
+  </link>
+
+  <joint name="motor_joint" type="continuous">
+    <parent link="diff_link" />
+    <child link="motor" />
+    <origin xyz="0.0 0.0 0.1" rpy="0.0 -${pi/2} 0.0" />
+    <axis xyz="0 0 1" />
+  </joint>
 
 </robot>

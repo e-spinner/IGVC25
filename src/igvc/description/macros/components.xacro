@@ -11,11 +11,44 @@
       <child link="${name}_link" />
       <origin xyz="0 ${wheel_distance} 0" rpy="${wheel_orientation} 0 0" />
       <axis xyz="0 0 1" />
-      <limit effort="${max_effort}" velocity="${max_vel}"/>
-      <dynamics damping="0.1" friction="0.1"/>
+      <limit effort="${max_effort}" velocity="${max_vel}" />
+      <dynamics damping="0.1" friction="0.1" />
     </joint>
 
     <link name="${name}_link">
+      <xacro:inertial_cylinder mass="${wheel_mass}" radius="${wheel_radius}"
+        length="${wheel_length}">
+        <origin xyz="0 0 0" rpy="0 0 0" />
+      </xacro:inertial_cylinder>
+
+      <visual>
+        <geometry>
+          <cylinder radius="${wheel_radius}" length="${wheel_length}" />
+        </geometry>
+        <material name="blue" />
+      </visual>
+
+      <collision>
+        <geometry>
+          <cylinder radius="${wheel_radius}" length="${wheel_length}" />
+        </geometry>
+      </collision>
+    </link>
+
+  </xacro:macro>
+
+
+  <xacro:macro name="wheel2"
+    params="name parent_link wheel_offset wheel_radius wheel_length wheel_mass">
+
+    <joint name="${name}_wheel_joint" type="continuous">
+      <parent link="${parent_link}" />
+      <child link="${name}_wheel" />
+      <origin xyz="0 ${wheel_offset} 0" rpy="-${pi/2} 0 0" />
+      <axis xyz="0 0 1" />
+    </joint>
+
+    <link name="${name}_wheel">
       <xacro:inertial_cylinder mass="${wheel_mass}" radius="${wheel_radius}"
         length="${wheel_length}">
         <origin xyz="0 0 0" rpy="0 0 0" />
@@ -41,22 +74,34 @@
         MARK: steer
     -->
 
-  <xacro:macro name="steer" params="*origin name parent_link wheel_radius wheel_length wheel_mass">
+  <xacro:macro name="steer"
+    params="*origin name parent_link wheel_radius wheel_length wheel_mass wheel_offset">
 
-    <joint name="${name}_steering_joint" type="revolute">
-      <parent link="${parent_link}"/>
-      <child link="${name}_link"/>
+    <joint name="${name}_steering_joint" type="continuous">
+      <parent link="${parent_link}" />
+      <child link="${name}_steering_knuckle" />
       <xacro:insert_block name="origin" />
-      <axis xyz="0 0 1"/>
+      <axis xyz="0 0 1" />
+    </joint>
+
+    <link name="${name}_steering_knuckle">
+      <!-- <xacro:inertial_box mass="0.1" x="0.01" y="0.01" z="0.1">
+        <origin xyz="0 0 0" />
+      </xacro:inertial_box> -->
+    </link>
+
+    <joint name="${name}_wheel_mount" type="fixed">
+      <parent link="${name}_steering_knuckle" />
+      <child link="${name}_wheel" />
+      <origin xyz="0 ${wheel_offset} 0" rpy="-${pi/2} 0 0" />
     </joint>
 
     <link name="${name}_wheel">
       <xacro:inertial_cylinder mass="${wheel_mass}" radius="${wheel_radius}"
         length="${wheel_length}">
-        <origin xyz="0 0 0" rpy="-${pi/2} 0 0" />
+        <origin xyz="0 0 0" />
       </xacro:inertial_cylinder>
       <visual>
-        <origin xyz="0 0 0" rpy="-${pi/2} 0 0" />
         <geometry>
           <cylinder radius="${wheel_radius}" length="${wheel_length}" />
         </geometry>
@@ -64,7 +109,6 @@
       </visual>
 
       <collision>
-        <origin xyz="0 0 0" rpy="-${pi/2} 0 0" />
         <geometry>
           <cylinder radius="${wheel_radius}" length="${wheel_length}" />
         </geometry>
