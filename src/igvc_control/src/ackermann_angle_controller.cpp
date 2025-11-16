@@ -14,7 +14,7 @@
 namespace igvc_control {
 
 class AckermannAngleController final
-    : public controller_interface::ControllerInterface {
+    : public controller_interface::ControllerInterface {  
 public:
   AckermannAngleController() : controller_interface::ControllerInterface() {}
 
