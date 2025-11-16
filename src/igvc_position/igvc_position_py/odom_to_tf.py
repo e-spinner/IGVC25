@@ -13,7 +13,7 @@ class OdomToTF(Node):
 
     self.tf_broadcaster = TransformBroadcaster(self)
     self.sub = self.create_subscription(
-      Odometry, "/odom", self.odom_callback, 10
+      Odometry, "/odometry/raw", self.odom_callback, 10
     )
 
   def odom_callback(self, msg: Odometry):

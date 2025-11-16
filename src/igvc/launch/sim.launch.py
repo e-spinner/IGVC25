@@ -18,7 +18,7 @@ from launch.substitutions import (
   PathJoinSubstitution,
   PythonExpression,
 )
-from launch.conditions import IfCondition
+from launch.conditions import IfCondition, UnlessCondition
 
 from launch_ros.actions import Node, PushRosNamespace
 
@@ -126,11 +126,33 @@ def generate_launch_description():
     ],
   )
 
+  # MARK: Lztn
+
   gz_odom_tf = Node(
     package="igvc_position",
     executable="odom_to_tf.py",
     output="screen",
+    condition=UnlessCondition(LaunchConfiguration("filter")),
   )
+
+  static_tf_map_odom = Node(
+    package="tf2_ros",
+    executable="static_transform_publisher",
+    name="static_map_to_odom",
+    arguments=["0", "0", "0", "0", "0", "0", "map", "odom"],
+    output="screen",
+    condition=UnlessCondition(LaunchConfiguration("filter")),
+  )
+
+  # Run this launch file only when filter=true
+  filter_launch = IncludeLaunchDescription(
+    PythonLaunchDescriptionSource(
+      os.path.join(package_path, "launch", "pos.launch.py")
+    ),
+    condition=IfCondition(LaunchConfiguration("filter")),
+  )
+
+  # MARK: Ctrl
 
   teleop = Node(
     package="teleop_twist_keyboard",
@@ -167,6 +189,7 @@ def generate_launch_description():
   # MARK: Launch!
   return LaunchDescription(
     [
+      DeclareLaunchArgument("filter", default_value="false", description="temp"),
       # Nodes
       gazebo_launch,
       RegisterEventHandler(
@@ -184,7 +207,11 @@ def generate_launch_description():
       spawn_robot,
       robot_state_publisher,
       gz_bridge,
+      # Only if filter=false
       gz_odom_tf,
+      static_tf_map_odom,
+      # Only if filter=true
+      filter_launch,
       teleop,
       twist_mux,
       twist_stamper,

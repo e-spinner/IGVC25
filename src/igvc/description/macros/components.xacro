@@ -309,15 +309,14 @@
       <sensor name="imu" type="imu">
         <pose>0 0 0 0 0 0</pose>
         <always_on>true</always_on>
-        <update_rate>1</update_rate>
+        <update_rate>20</update_rate>
         <visualize>true</visualize>
         <topic>imu</topic>
 
         <gz_frame_id>imu</gz_frame_id>
 
-        <plugin
-          filename="gz-sim-imu-system"
-          name="gz::sim::systems::Imu">
+        <plugin filename="libignition-gazebo-imu-system.so"
+          name="ignition::gazebo::systems::Imu">
         </plugin>
       </sensor>
 
@@ -353,15 +352,11 @@
         <pose>0 0 0 0 0 0</pose>
         <always_on>true</always_on>
         <update_rate>1</update_rate>
-        <visualize>true</visualize>
+        <!-- <visualize>true</visualize> -->
         <topic>gps</topic>
 
         <gz_frame_id>gps</gz_frame_id>
 
-        <plugin
-          filename="gz-sim-navsat-system"
-          name="gz::sim::systems::NavSat">
-        </plugin>
       </sensor>
 
     </gazebo>

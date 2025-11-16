@@ -63,7 +63,8 @@ sudo apt install -y \
     ros-humble-twist-stamper \
     ros-humble-twist-mux \
     ros-humble-navigation2 \
-    ros-humble-nav2-bringup
+    ros-humble-nav2-bringup \
+    ros-humble-robot-localization
 
 # === Rosdep === #
 sudo rosdep init 2>/dev/null || true

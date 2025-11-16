@@ -81,7 +81,7 @@ controller_server:
       max_lookahead_dist: 0.9
       lookahead_time: 1.5
       rotate_to_heading_angular_vel: 1.57
-      transform_tolerance: 0.1
+      transform_tolerance: 2.5
       use_velocity_scaled_lookahead_dist: false
       min_approach_linear_velocity: 0.05
       approach_velocity_scaling_dist: 0.6
@@ -153,7 +153,7 @@ controller_server:
 
       PathHandler:
          prune_distance: 1.7
-         transform_tolerance: 0.1
+         transform_tolerance: 2.5
 
       # MARK: ACK RAD
       AckermannConstraints:
@@ -305,7 +305,7 @@ behavior_server:
     global_frame: map
     robot_base_frame: base_link
 
-    transform_tolerance: 0.1
+    transform_tolerance: 2.5
     simulate_ahead_time: 2.0
 
     max_rotational_vel: 1.57
@@ -470,7 +470,7 @@ collision_monitor:
     odom_frame_id: "odom"
     cmd_vel_in_topic: "cmd_vel_smoothed"
     cmd_vel_out_topic: "cmd_vel"
-    transform_tolerance: 0.5
+    transform_tolerance: 2.5
     source_timeout: 5.0
     stop_pub_timeout: 2.0
 

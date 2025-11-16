@@ -22,14 +22,14 @@
   direction:      "GZ_TO_ROS"
 
 # gz topic published by sensors plugin (imu)
-- ros_topic_name: "imu"
+- ros_topic_name: "imu/data"
   gz_topic_name:  "imu"
   ros_type_name:  "sensor_msgs/msg/Imu"
   gz_type_name:   "gz.msgs.IMU"
   direction:      "GZ_TO_ROS"
 
 # gz topic published by sensors plugin (gps)
-- ros_topic_name: "gps"
+- ros_topic_name: "gps/fix"
   gz_topic_name:  "gps"
   ros_type_name:  "gps_msgs/msg/GPSFix"
   gz_type_name:   "gz.msgs.NavSat"
@@ -37,7 +37,7 @@
 
 
 # gz topic published by odometry plugin
-- ros_topic_name: "odom"
+- ros_topic_name: "odometry/raw"
   gz_topic_name: "robot/odometry"
   ros_type_name: "nav_msgs/msg/Odometry"
   gz_type_name: "ignition.msgs.Odometry"

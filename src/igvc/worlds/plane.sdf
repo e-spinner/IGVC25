@@ -1,4 +1,4 @@
-<?xml version="1.0" ?>
+<?xml version="1.0"?>
 <sdf version="1.8">
   <world name="plane">
 
@@ -9,6 +9,9 @@
       <elevation>30</elevation>
       <heading_deg>0</heading_deg>
     </spherical_coordinates>
+    <plugin filename="libignition-gazebo-navsat-system.so"
+      name="ignition::gazebo::systems::NavSat">
+    </plugin>
 
 
     <physics name="1ms" type="ignored">
@@ -47,24 +50,24 @@
       <static>true</static>
       <link name="link">
         <collision name="collision">
-        <geometry>
-          <plane>
-          <normal>0 0 1</normal>
-          </plane>
-        </geometry>
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+            </plane>
+          </geometry>
         </collision>
         <visual name="visual">
-        <geometry>
-          <plane>
-          <normal>0 0 1</normal>
-          <size>100 100</size>
-          </plane>
-        </geometry>
-        <material>
-          <ambient>0.8 0.8 0.8 1</ambient>
-          <diffuse>0.8 0.8 0.8 1</diffuse>
-          <specular>0.8 0.8 0.8 1</specular>
-        </material>
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+          <material>
+            <ambient>0.8 0.8 0.8 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+            <specular>0.8 0.8 0.8 1</specular>
+          </material>
         </visual>
       </link>
     </model>
