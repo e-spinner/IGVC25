@@ -373,10 +373,21 @@ local_costmap:
       obstacle_layer:
         plugin: "nav2_costmap_2d::ObstacleLayer"
         enabled: True
-        observation_sources: scan
+        observation_sources: [scan, scan_lane]
 
         scan:
           topic: /scan
+          max_obstacle_height: 2.0
+          clearing: True
+          marking: True
+          data_type: "LaserScan"
+          raytrace_max_range: 10.0
+          raytrace_min_range: 0.0
+          obstacle_max_range: 8.0
+          obstacle_min_range: 0.0
+
+        scan_lane:
+          topic: /scan_lane
           max_obstacle_height: 2.0
           clearing: True
           marking: True
@@ -439,7 +450,7 @@ global_costmap:
       obstacle_layer:
         plugin: "nav2_costmap_2d::ObstacleLayer"
         enabled: True
-        observation_sources: scan
+        observation_sources: [scan, scan_lane]
 
         scan:
           topic: /scan
@@ -452,6 +463,18 @@ global_costmap:
           obstacle_max_range: 30.0
           obstacle_min_range: 0.0
           inf_is_valid: true   # fixes [#3]!!! yay
+
+        scan_lane:
+          topic: /scan_lane
+          max_obstacle_height: 2.0
+          clearing: True
+          marking: True
+          data_type: "LaserScan"
+          raytrace_max_range: 30.0
+          raytrace_min_range: 0.0
+          obstacle_max_range: 30.0
+          obstacle_min_range: 0.0
+          inf_is_valid: true
 
       # https://github.com/ros-navigation/navigation2/blob/jazzy/nav2_costmap_2d/plugins/inflation_layer.cpp
       # https://docs.nav2.org/configuration/packages/costmap-plugins/inflation.html
