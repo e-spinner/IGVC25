@@ -1,3 +1,68 @@
+# IGVC25 — Lane detector prototype (branch: lane_following_restart_from_main)
+
+This branch contains a minimal prototype for camera-based lane detection that
+projects detected lane pixels to the ground and publishes them so Nav2 can
+avoid painted lanes in simulation.
+
+Summary of what's included
+- `src/igvc/igvc_vision/lane_detector.py` — prototype node (rclpy). Publishes:
+  - `/lane_points` (sensor_msgs/PointCloud2)
+  - `/scan_lane` (sensor_msgs/LaserScan) — useful for Nav2 obstacle layers
+  - `/lane_follow/debug_left`, `/lane_follow/debug_right` (sensor_msgs/Image)
+- `src/igvc/config/navigation.yaml` — updated to include `scan_lane` as an observation source (so Nav2 can observe `/scan_lane`).
+- `tests/test_projection.py` and `tests/test_projection_extra.py` — unit tests for the projection math (fallback, TF-disabled mode).
+- `tools/sim_publish_camera.py` — synthetic camera + CameraInfo publisher (5s) for quick integration checks.
+- `tools/listen_lane_points.py` — timed listener that waits for `/lane_points` and prints metadata.
+
+Branch and PR
+- Branch: `lane_following_restart_from_main`
+- A new remote branch was pushed; you can create a PR with the GitHub hint shown when the branch was pushed.
+
+Quick usage
+
+1) Run unit tests (fast, no ROS nodes required):
+
+```bash
+python3 tests/test_projection.py
+python3 tests/test_projection_extra.py
+```
+
+2) Quick integration check (three separate terminals)
+
+- Terminal A — start the lane detector node (it will listen for camera topics):
+
+```bash
+python3 src/igvc/igvc_vision/lane_detector.py
+```
+
+- Terminal B — publish synthetic camera frames for ~5s:
+
+```bash
+python3 tools/sim_publish_camera.py
+```
+
+- Terminal C — wait for `/lane_points` and print a summary:
+
+```bash
+python3 tools/listen_lane_points.py
+```
+
+Notes
+- The node tries to use TF2 when available; if TF lookups fail it falls back to parameters:
+  - `camera_height` (meters)
+  - `camera_pitch_deg` (degrees)
+  - `use_tf` (bool) — set to `False` to force fallback mode.
+- For integration tests the node defaults `debug_publish_test_points` to `True`, which makes it publish a small synthetic line of points when no lane detections are found. Set this parameter to `False` in real runs.
+
+Next recommended steps
+- Create a ROS2 launch to start the node and the synthetic publisher together for deterministic testing.
+- Tune Canny / Hough parameters and sampling density for better detection in sim.
+- Add a small integration test that runs the node and asserts `/lane_points` is published.
+
+If you'd like, I can open a PR description and add a short `CHANGELOG.md` summarizing the work for reviewers.
+
+---
+Commit: lane_following_restart_from_main (pushed to origin)
 # igvc Capstone Software
 > subtitle!
 ---
