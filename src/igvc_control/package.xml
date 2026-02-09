@@ -19,9 +19,13 @@
   <depend>tf2_ros</depend>
   <depend>sensor_msgs</depend>
   <depend>igvc</depend>
+  <depend>hardware_interface</depend>
+  <depend>controller_interface</depend>
 
   <export>
     <build_type>ament_cmake</build_type>
-  <nav2_core plugin="${prefix}/pure_pursuit_controller.xml" />
+    <nav2_core plugin="${prefix}/pure_pursuit_controller.xml" />
+    <controller_interface plugin="${prefix}/ackermann_angle_controller.xml" />
+    <hardware_interface plugin="${prefix}/ackermann_arduino_hardware.xml" />
   </export>
 </package>

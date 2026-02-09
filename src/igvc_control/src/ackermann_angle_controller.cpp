@@ -14,7 +14,7 @@
 namespace igvc_control {
 
 class AckermannAngleController final
-    : public controller_interface::ControllerInterface {  
+    : public controller_interface::ControllerInterface {
 public:
   AckermannAngleController() : controller_interface::ControllerInterface() {}
 
@@ -185,7 +185,7 @@ public:
     cmd_interfaces_config.type =
         controller_interface::interface_configuration_type::INDIVIDUAL;
 
-    // COMMAND INTERFACES: Controller writes → Hardware interface reads
+    // COMMAND INTERFACES: Controller writes -> Hardware interface reads
     //
     // Hardware actually controls:
     cmd_interfaces_config.names.push_back(p_pinion_joint_name + "/" +
@@ -205,7 +205,7 @@ public:
     state_interfaces_config.type =
         controller_interface::interface_configuration_type::INDIVIDUAL;
 
-    // STATE INTERFACES: Hardware interface writes → Controller reads
+    // STATE INTERFACES: Hardware interface writes -> Controller reads
     state_interfaces_config.names.push_back(p_pinion_joint_name + "/" +
                                             hardware_interface::HW_IF_POSITION);
     state_interfaces_config.names.push_back(p_rear_motor_joint_name + "/" +

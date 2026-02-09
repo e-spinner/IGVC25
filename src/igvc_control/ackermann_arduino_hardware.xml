@@ -1,0 +1,8 @@
+<class_libraries>
+  <library path="ackermann_arduino_hardware">
+    <class type="igvc_control::AckermannArduinoHardware"
+           base_class_type="hardware_interface::SystemInterface">
+      <description>Hardware interface for Ackermann steering system with Arduino control</description>
+    </class>
+  </library>
+</class_libraries>

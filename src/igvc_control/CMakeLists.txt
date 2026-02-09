@@ -20,6 +20,7 @@ find_package(nav2_costmap_2d REQUIRED)
 find_package(nav2_util REQUIRED)
 find_package(pluginlib REQUIRED)
 find_package(controller_interface REQUIRED)
+find_package(hardware_interface REQUIRED)
 # find_package(nav2_ros_common REQUIRED)
 
 
@@ -102,6 +103,26 @@ install(TARGETS ackermann_angle_controller
   RUNTIME DESTINATION bin
 )
 
+# AckermannArduinoHardware
+add_library(ackermann_arduino_hardware SHARED
+        src/ackermann_arduino_hardware.cpp)
+
+# prevent pluginlib from using boost
+target_compile_definitions(ackermann_arduino_hardware PUBLIC "PLUGINLIB__DISABLE_BOOST_FUNCTIONS")
+
+ament_target_dependencies(ackermann_arduino_hardware
+  rclcpp
+  rclcpp_lifecycle
+  hardware_interface
+  pluginlib
+)
+
+install(TARGETS ackermann_arduino_hardware
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin
+)
+
 # --------------------
 # Headers
 # --------------------
@@ -150,6 +171,7 @@ install(PROGRAMS
 # --------------------
 pluginlib_export_plugin_description_file(nav2_core pure_pursuit_controller.xml)
 pluginlib_export_plugin_description_file(controller_interface ackermann_angle_controller.xml)
+pluginlib_export_plugin_description_file(hardware_interface ackermann_arduino_hardware.xml)
 
 ament_package()
 
