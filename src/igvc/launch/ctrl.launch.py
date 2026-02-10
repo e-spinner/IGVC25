@@ -47,8 +47,13 @@ def launch_setup(context, *args, **kwargs):
     os.path.join(igvc_path, "config", "ackermann.yaml"),
   )
 
-  with open(robot_description_path, "r") as f:
-    robot_description = f.read()
+  # Load ros2_control config
+  ros2_control_config_file = os.path.join(
+    igvc_control_path, "config", "ros2_control.yaml"
+  )
+
+  with open(ros2_control_config_file, "r") as f:
+    ros2_control_config = yaml.safe_load(f)
 
   # Load linkage parameters for controller
   linkage_config_file = os.path.join(
@@ -130,7 +135,6 @@ def launch_setup(context, *args, **kwargs):
     parameters=[
       ros2_control_config.get("controller_manager", {}),
       {
-        "robot_description": robot_description,
         "use_sim_time": False,
       },
     ],
@@ -148,30 +152,6 @@ def launch_setup(context, *args, **kwargs):
 
   # MARK: Ackermann Angle Controller
   # -----------------------------------------------------------------------------
-  # Controller parameters from linkage config
-  controller_params = {
-    "ackermann_angle_controller": {
-      "ros__parameters": {
-        "pinion_radius": linkage_params.get("pinion_radius", 0.01905),
-        "steering_arm_length": linkage_params.get("steering_arm_length", 0.0381),
-        "tie_rod_length": linkage_params.get("tie_rod_length", 0.127),
-        "rack_offset_x": linkage_params.get("rack_offset_x", -0.0315),
-        "rack_neutral_y": linkage_params.get("rack_neutral_y", 0.131064),
-        "pinion_gear_ratio": linkage_params.get("pinion_gear_ratio", 1.652),
-        "max_pinion_angle": linkage_params.get("pinion_angle_limit", 2.0),
-        "wheel_angle": linkage_params.get("wheel_angle", 0.32253),
-        "wheelbase": linkage_params.get("wheel_base", 0.42),
-        "track_width": linkage_params.get("track_width", 0.36),
-        "wheel_radius": linkage_params.get("wheel_radius", 0.1524),
-        "pinion_joint": "pinion_joint",
-        "rear_motor_joint": "rear_motor_joint",
-        "cmd_vel_topic": "/cmd_vel",
-        "reference_timeout": 2.0,
-        "calibration_sample_size": 1024,
-      }
-    }
-  }
-
   ackermann_angle_controller_spawner = Node(
     package="controller_manager",
     executable="spawner",
