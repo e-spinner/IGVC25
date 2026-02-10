@@ -42,12 +42,13 @@ def launch_setup(context, *args, **kwargs):
 
   # MARK: Robot Description
   # -----------------------------------------------------------------------------
-  robot_description_path = os.path.join(
-    igvc_path, "description", "ackermann_ac.urdf"
+  robot_description = load_robot_description(
+    os.path.join(igvc_path, "description", "ackermann_ac.urdf"),
+    os.path.join(igvc_path, "config", "ackermann.yaml"),
   )
 
-  with open(ros2_control_config_file, "r") as f:
-    ros2_control_config = yaml.safe_load(f)
+  with open(robot_description_path, "r") as f:
+    robot_description = f.read()
 
   # Load linkage parameters for controller
   linkage_config_file = os.path.join(
@@ -129,6 +130,7 @@ def launch_setup(context, *args, **kwargs):
     parameters=[
       ros2_control_config.get("controller_manager", {}),
       {
+        "robot_description": robot_description,
         "use_sim_time": False,
       },
     ],
@@ -163,7 +165,7 @@ def launch_setup(context, *args, **kwargs):
         "wheel_radius": linkage_params.get("wheel_radius", 0.1524),
         "pinion_joint": "pinion_joint",
         "rear_motor_joint": "rear_motor_joint",
-        "cmd_vel_topic": "/cmd_vel_stamped",
+        "cmd_vel_topic": "/cmd_vel",
         "reference_timeout": 2.0,
         "calibration_sample_size": 1024,
       }

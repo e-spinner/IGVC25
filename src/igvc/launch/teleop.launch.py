@@ -45,6 +45,7 @@ def generate_launch_description():
     package="teleop_twist_joy",
     executable="teleop_node",
     name="teleop_node",
+    remappings=[("/cmd_vel", "/cmd_vel_teleop_joy")],
     parameters=[joystick_params],
   )
 
@@ -78,8 +79,8 @@ def generate_launch_description():
     [
       # Nodes
       teleop,
-      joy_node,
-      teleop_joy,
+      # joy_node,
+      # teleop_joy,
       twist_mux,
       twist_stamper,
     ]

@@ -112,7 +112,7 @@
   <!-- ===== ROS2 CONTROL ===== -->
   <ros2_control name="AckermannArduinoSystem" type="system">
     <hardware>
-      <plugin>igvc_control/AckermannArduinoHardware</plugin>
+      <plugin>igvc_control::AckermannArduinoHardware</plugin>
       <param name="device">/dev/ttyUSB0</param>
       <param name="baud_rate">9600</param>
       <param name="timeout_ms">1000</param>

@@ -13,7 +13,7 @@ twist_mux:
       teleop_joy:
         topic: cmd_vel_teleop_joy
         timeout: 0.5
-        priority: 70
+        priority: 30
       # estop:
       #   topic: cmd_vel_estop
       #   timeout: 0.5
