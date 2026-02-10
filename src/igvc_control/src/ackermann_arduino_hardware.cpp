@@ -1,3 +1,4 @@
+#include <cctype>
 #include <cmath>
 #include <cstring>
 #include <errno.h>
@@ -126,7 +127,8 @@ public:
       m_rear_motor_position_ = 0.0;
       m_last_read_time_      = rclcpp::Time();
 
-      m_serial_fd = -1;
+      m_serial_fd      = -1;
+      m_serial_buffer_ = ""; // Initialize serial read buffer
 
     } catch (const std::exception &e) {
       RCLCPP_ERROR(m_logger, "Exception thrown during init stage with message: %s",
@@ -278,6 +280,7 @@ public:
     // Initialize time tracking
     m_last_read_time_      = rclcpp::Time(0, 0, RCL_STEADY_TIME);
     m_rear_motor_position_ = 0.0;
+    m_serial_buffer_       = ""; // Clear serial buffer
 
     RCLCPP_INFO(m_logger, "AckermannArduinoHardware activated");
     return CallbackReturn::SUCCESS;
@@ -304,30 +307,69 @@ public:
       RCLCPP_DEBUG(m_logger,
                    "READ: No serial connection, using command values as fallback");
     } else {
-      // Read available data from serial port
+      // Read available data from serial port and accumulate in buffer
       char read_buffer[256];
       ssize_t bytes_read = ::read(m_serial_fd, read_buffer, sizeof(read_buffer) - 1);
 
       if (bytes_read > 0) {
         read_buffer[bytes_read] = '\0'; // Null terminate
 
-        // Log raw data received
+        // Log raw data received with hex dump
         std::string raw_data(read_buffer, bytes_read);
-        RCLCPP_INFO(m_logger, "READ from Arduino: [%zd bytes] '%s'", bytes_read,
-                    raw_data.c_str());
+        std::string hex_dump = bytesToHex(read_buffer, bytes_read);
 
-        // Parse feedback messages
-        // Expected format: "F:P:<pinion_angle>,V:<velocity>\n"
-        std::string feedback(read_buffer);
-        double pinion_before   = m_pinion_position_state_;
-        double velocity_before = m_rear_motor_velocity_state_;
-        parseFeedback(feedback);
+        // Try to show as string if printable, otherwise show hex
+        bool is_printable = true;
+        for (size_t i = 0; i < bytes_read; ++i) {
+          if (!std::isprint(static_cast<unsigned char>(read_buffer[i])) &&
+              read_buffer[i] != '\n' && read_buffer[i] != '\r' &&
+              read_buffer[i] != '\t') {
+            is_printable = false;
+            break;
+          }
+        }
 
-        // Log parsed values
-        if (m_pinion_position_state_ != pinion_before ||
-            m_rear_motor_velocity_state_ != velocity_before) {
-          RCLCPP_INFO(m_logger, "READ parsed: pinion=%.6f, velocity=%.6f",
-                      m_pinion_position_state_, m_rear_motor_velocity_state_);
+        if (is_printable) {
+          RCLCPP_INFO(m_logger, "READ from Arduino: [%zd bytes] '%s' (hex: %s)",
+                      bytes_read, raw_data.c_str(), hex_dump.c_str());
+        } else {
+          RCLCPP_INFO(m_logger,
+                      "READ from Arduino: [%zd bytes] (non-printable) hex: %s",
+                      bytes_read, hex_dump.c_str());
+        }
+
+        // Accumulate data in buffer
+        m_serial_buffer_ += raw_data;
+
+        // Process complete lines (ending with '\n')
+        size_t newline_pos;
+        while ((newline_pos = m_serial_buffer_.find('\n')) != std::string::npos) {
+          // Extract complete line (including newline)
+          std::string complete_line = m_serial_buffer_.substr(0, newline_pos + 1);
+          m_serial_buffer_.erase(0, newline_pos +
+                                        1); // Remove processed line from buffer
+
+          // Parse feedback messages
+          // Expected format: "F:P:<pinion_angle>,V:<velocity>\n"
+          double pinion_before   = m_pinion_position_state_;
+          double velocity_before = m_rear_motor_velocity_state_;
+          parseFeedback(complete_line);
+
+          // Log parsed values
+          if (m_pinion_position_state_ != pinion_before ||
+              m_rear_motor_velocity_state_ != velocity_before) {
+            RCLCPP_INFO(m_logger, "READ parsed: pinion=%.6f, velocity=%.6f",
+                        m_pinion_position_state_, m_rear_motor_velocity_state_);
+          }
+        }
+
+        // Warn if buffer is getting too large (indicates no newlines received)
+        if (m_serial_buffer_.length() > 512) {
+          RCLCPP_WARN(m_logger,
+                      "Serial buffer overflow (>512 bytes), clearing buffer. Buffer "
+                      "content: '%s'",
+                      m_serial_buffer_.c_str());
+          m_serial_buffer_.clear();
         }
       } else if (bytes_read == 0) {
         // No data available, use command values as fallback
@@ -353,6 +395,19 @@ public:
   }
 
 private:
+  // MARK: UTILITY
+  // -----------------------------------------------------------------------------
+  std::string bytesToHex(const char *data, size_t len) {
+    std::string hex;
+    hex.reserve(len * 3); // Each byte becomes "XX "
+    for (size_t i = 0; i < len; ++i) {
+      char buf[4];
+      snprintf(buf, sizeof(buf), "%02X ", static_cast<unsigned char>(data[i]));
+      hex += buf;
+    }
+    return hex;
+  }
+
   // MARK: DERIVED STATES
   // -----------------------------------------------------------------------------
   void computeDerivedStates(const rclcpp::Time &time) {
@@ -478,9 +533,12 @@ private:
     std::string msg = "P:" + std::to_string(m_pinion_position_cmd_) +
                       ",V:" + std::to_string(m_rear_motor_velocity_cmd_) + "\n";
 
-    // Log what we're sending
-    RCLCPP_INFO(m_logger, "WRITE to Arduino: pinion=%.6f, velocity=%.6f -> '%s'",
-                m_pinion_position_cmd_, m_rear_motor_velocity_cmd_, msg.c_str());
+    // Log what we're sending with hex dump
+    std::string hex_dump = bytesToHex(msg.c_str(), msg.length());
+    RCLCPP_INFO(m_logger,
+                "WRITE to Arduino: pinion=%.6f, velocity=%.6f -> '%s' (hex: %s)",
+                m_pinion_position_cmd_, m_rear_motor_velocity_cmd_, msg.c_str(),
+                hex_dump.c_str());
 
     ssize_t bytes_written = ::write(m_serial_fd, msg.c_str(), msg.length());
 
@@ -547,6 +605,9 @@ private:
   // Position integration tracking
   double m_rear_motor_position_;
   rclcpp::Time m_last_read_time_;
+
+  // Serial read buffer (accumulates data until complete line received)
+  std::string m_serial_buffer_;
 
   // Logger
   rclcpp::Logger m_logger{rclcpp::get_logger("AckermannArduinoHardware")};
