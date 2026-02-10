@@ -301,6 +301,8 @@ public:
       // No serial connection, use command values as fallback
       m_pinion_position_state_     = m_pinion_position_cmd_;
       m_rear_motor_velocity_state_ = m_rear_motor_velocity_cmd_;
+      RCLCPP_DEBUG(m_logger,
+                   "READ: No serial connection, using command values as fallback");
     } else {
       // Read available data from serial port
       char read_buffer[256];
@@ -309,14 +311,33 @@ public:
       if (bytes_read > 0) {
         read_buffer[bytes_read] = '\0'; // Null terminate
 
+        // Log raw data received
+        std::string raw_data(read_buffer, bytes_read);
+        RCLCPP_INFO(m_logger, "READ from Arduino: [%zd bytes] '%s'", bytes_read,
+                    raw_data.c_str());
+
         // Parse feedback messages
         // Expected format: "F:P:<pinion_angle>,V:<velocity>\n"
         std::string feedback(read_buffer);
+        double pinion_before   = m_pinion_position_state_;
+        double velocity_before = m_rear_motor_velocity_state_;
         parseFeedback(feedback);
-      } else {
+
+        // Log parsed values
+        if (m_pinion_position_state_ != pinion_before ||
+            m_rear_motor_velocity_state_ != velocity_before) {
+          RCLCPP_INFO(m_logger, "READ parsed: pinion=%.6f, velocity=%.6f",
+                      m_pinion_position_state_, m_rear_motor_velocity_state_);
+        }
+      } else if (bytes_read == 0) {
         // No data available, use command values as fallback
         m_pinion_position_state_     = m_pinion_position_cmd_;
         m_rear_motor_velocity_state_ = m_rear_motor_velocity_cmd_;
+        RCLCPP_DEBUG(m_logger,
+                     "READ: No data available from Arduino, using command values");
+      } else {
+        // Error reading
+        RCLCPP_WARN(m_logger, "READ error: %s", strerror(errno));
       }
     }
 
@@ -403,6 +424,8 @@ private:
     size_t f_pos = feedback.find("F:P:");
     if (f_pos == std::string::npos) {
       // Not a feedback message, use command values
+      RCLCPP_WARN(m_logger, "PARSE: Feedback message missing 'F:P:' marker in: '%s'",
+                  feedback.c_str());
       m_pinion_position_state_     = m_pinion_position_cmd_;
       m_rear_motor_velocity_state_ = m_rear_motor_velocity_cmd_;
       return;
@@ -411,6 +434,8 @@ private:
     size_t v_pos = feedback.find(",V:", f_pos);
     if (v_pos == std::string::npos) {
       // Invalid format, use command values
+      RCLCPP_WARN(m_logger, "PARSE: Feedback message missing ',V:' marker in: '%s'",
+                  feedback.c_str());
       m_pinion_position_state_     = m_pinion_position_cmd_;
       m_rear_motor_velocity_state_ = m_rear_motor_velocity_cmd_;
       return;
@@ -420,8 +445,10 @@ private:
     std::string pinion_str = feedback.substr(f_pos + 4, v_pos - (f_pos + 4));
     try {
       m_pinion_position_state_ = std::stod(pinion_str);
-    } catch (const std::exception &) {
+    } catch (const std::exception &e) {
       // Parse error, use command value
+      RCLCPP_WARN(m_logger, "PARSE: Failed to parse pinion angle from '%s': %s",
+                  pinion_str.c_str(), e.what());
       m_pinion_position_state_ = m_pinion_position_cmd_;
     }
 
@@ -431,8 +458,10 @@ private:
     std::string velocity_str = feedback.substr(v_pos + 3, end_pos - (v_pos + 3));
     try {
       m_rear_motor_velocity_state_ = std::stod(velocity_str);
-    } catch (const std::exception &) {
+    } catch (const std::exception &e) {
       // Parse error, use command value
+      RCLCPP_WARN(m_logger, "PARSE: Failed to parse velocity from '%s': %s",
+                  velocity_str.c_str(), e.what());
       m_rear_motor_velocity_state_ = m_rear_motor_velocity_cmd_;
     }
   }
@@ -440,17 +469,31 @@ private:
   // MARK: WRITE
   return_type write(const rclcpp::Time & /*time*/,
                     const rclcpp::Duration & /*period*/) override {
-    if (m_serial_fd < 0) return return_type::ERROR;
+    if (m_serial_fd < 0) {
+      RCLCPP_WARN(m_logger, "WRITE: No serial connection available");
+      return return_type::ERROR;
+    }
 
     // Construct the string: "P:0.123,V:1.23\n"
     std::string msg = "P:" + std::to_string(m_pinion_position_cmd_) +
                       ",V:" + std::to_string(m_rear_motor_velocity_cmd_) + "\n";
 
+    // Log what we're sending
+    RCLCPP_INFO(m_logger, "WRITE to Arduino: pinion=%.6f, velocity=%.6f -> '%s'",
+                m_pinion_position_cmd_, m_rear_motor_velocity_cmd_, msg.c_str());
+
     ssize_t bytes_written = ::write(m_serial_fd, msg.c_str(), msg.length());
 
     if (bytes_written < 0) {
-      RCLCPP_WARN(m_logger, "Failed to write to serial: %s", strerror(errno));
+      RCLCPP_WARN(m_logger, "WRITE failed: %s", strerror(errno));
       return return_type::ERROR;
+    }
+
+    if (bytes_written != static_cast<ssize_t>(msg.length())) {
+      RCLCPP_WARN(m_logger, "WRITE incomplete: wrote %zd of %zu bytes",
+                  bytes_written, msg.length());
+    } else {
+      RCLCPP_DEBUG(m_logger, "WRITE successful: %zd bytes written", bytes_written);
     }
 
     return return_type::OK;
