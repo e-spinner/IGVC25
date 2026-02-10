@@ -113,7 +113,7 @@
   <ros2_control name="AckermannArduinoSystem" type="system">
     <hardware>
       <plugin>igvc_control::AckermannArduinoHardware</plugin>
-      <param name="device">/dev/ttyUSB0</param>
+      <param name="device">/dev/ttyACM0</param>
       <param name="baud_rate">9600</param>
       <param name="timeout_ms">1000</param>
       <param name="pinion_joint_name">pinion_joint</param>

@@ -1,22 +1,22 @@
 controller_manager:
   ros__parameters:
     use_sim_time: false
-    update_rate: 100 # Hz
+    update_rate: 100  # Hz
 
-    joint_state_broadcaster:
-      type: joint_state_broadcaster/JointStateBroadcaster
-
-    ackermann_angle_controller:
-      type: igvc_control/AckermannAngleController
+joint_state_broadcaster:
+  ros__parameters:
+    type: joint_state_broadcaster/JointStateBroadcaster
 
 ackermann_angle_controller:
   ros__parameters:
+    type: igvc_control/AckermannAngleController
+
     # Joint names
     pinion_joint: pinion_joint
     rear_motor_joint: rear_motor_joint
 
     # Topics
-    cmd_vel_topic: /cmd_vel
+    cmd_vel_topic: /cmd_vel_stamped
     reference_timeout: 2.0
     calibration_sample_size: 1024
 

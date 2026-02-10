@@ -133,12 +133,13 @@ def launch_setup(context, *args, **kwargs):
     package="controller_manager",
     executable="ros2_control_node",
     parameters=[
-      ros2_control_config.get("controller_manager", {}),
+      ros2_control_config,
       {
         "use_sim_time": False,
       },
     ],
     output="screen",
+    remappings=[("/controller_manager/robot_description", "/robot_description")],
   )
 
   # MARK: Joint State Broadcaster
@@ -157,10 +158,6 @@ def launch_setup(context, *args, **kwargs):
     executable="spawner",
     arguments=[
       "ackermann_angle_controller",
-      "--controller-manager",
-      "/controller_manager",
-      "--controller-manager-timeout",
-      "10",
     ],
     parameters=[
       {
@@ -175,18 +172,8 @@ def launch_setup(context, *args, **kwargs):
   return [
     robot_state_publisher,
     controller_manager,
-    RegisterEventHandler(
-      event_handler=OnProcessExit(
-        target_action=controller_manager,
-        on_exit=[joint_state_broadcaster_spawner],
-      )
-    ),
-    RegisterEventHandler(
-      event_handler=OnProcessExit(
-        target_action=joint_state_broadcaster_spawner,
-        on_exit=[ackermann_angle_controller_spawner],
-      )
-    ),
+    joint_state_broadcaster_spawner,
+    ackermann_angle_controller_spawner,
   ]
 
 
@@ -195,7 +182,7 @@ def generate_launch_description():
   # -----------------------------------------------------------------------------
   device_arg = DeclareLaunchArgument(
     "device",
-    default_value="/dev/ttyUSB0",
+    default_value="/dev/ttyACM0",
     description="Serial device path for Arduino",
   )
 
