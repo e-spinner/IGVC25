@@ -54,6 +54,8 @@ public:
 
   void setPlan(const nav_msgs::msg::Path &path) override { m_plan = path; }
 
+  // MARK: Plan
+  // ------------------------------------------------------------------------
   geometry_msgs::msg::TwistStamped
   computeVelocityCommands(const geometry_msgs::msg::PoseStamped &pose,
                           const geometry_msgs::msg::Twist &velocity,

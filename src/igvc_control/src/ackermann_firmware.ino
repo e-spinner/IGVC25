@@ -3,6 +3,8 @@
 // MARK: CONFIG
 // -----------------------------------------------------------------------------
 
+// TODO: setup sensor feedback
+
 // Stepper motor configuration
 const int STEPS_PER_REVOLUTION = 2048;    // Steps per full revolution
 const int STEPPER_SPEED        = 17;      // Stepper motor speed (RPM)
