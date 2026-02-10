@@ -3,14 +3,14 @@ controller_manager:
     use_sim_time: false
     update_rate: 100  # Hz
 
-joint_state_broadcaster:
-  ros__parameters:
-    type: joint_state_broadcaster/JointStateBroadcaster
+    joint_state_broadcaster:
+      type: joint_state_broadcaster/JointStateBroadcaster
+
+    ackermann_angle_controller:
+      type: igvc_control/AckermannAngleController
 
 ackermann_angle_controller:
   ros__parameters:
-    type: igvc_control/AckermannAngleController
-
     # Joint names
     pinion_joint: pinion_joint
     rear_motor_joint: rear_motor_joint

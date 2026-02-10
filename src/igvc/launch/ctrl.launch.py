@@ -133,7 +133,7 @@ def launch_setup(context, *args, **kwargs):
     package="controller_manager",
     executable="ros2_control_node",
     parameters=[
-      ros2_control_config,
+      ros2_control_config.get("controller_manager", {}),
       {
         "use_sim_time": False,
       },
