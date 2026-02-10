@@ -9,7 +9,6 @@
 #include <hardware_interface/types/hardware_interface_type_values.hpp>
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp_lifecycle/lifecycle_node.hpp>
-#include <sensor_msgs/msg/joint_state.hpp>
 
 namespace igvc_control {
 
@@ -52,7 +51,7 @@ public:
       node->declare_parameter("rear_motor_joint", "rear_motor_joint");
 
       // Twist subscription
-      node->declare_parameter("cmd_vel_topic", "/cmd_vel");
+      node->declare_parameter("cmd_vel_topic", "/cmd_vel_unstamped");
       node->declare_parameter("reference_timeout", 2.0);
 
       // Calibration parameters
@@ -112,10 +111,6 @@ public:
           m_last_command_time = node->now();
         });
 
-    // Create joint state publisher
-    m_joint_state_pub =
-        node->create_publisher<sensor_msgs::msg::JointState>("/joint_states", 10);
-
     RCLCPP_INFO(
         m_logger,
         "AckermannAngleController configured: pinion_radius=%.5f, wheelbase=%.5f",
@@ -127,6 +122,8 @@ public:
   // MARK: ACT
   controller_interface::CallbackReturn
   on_activate(const rclcpp_lifecycle::State & /*previous_state*/) override {
+    auto node = m_node.lock();
+
     // Get handles to command interfaces by searching through available interfaces
     const std::string pinion_pos_cmd =
         p_pinion_joint_name + "/" + hardware_interface::HW_IF_POSITION;
@@ -155,11 +152,9 @@ public:
       }
     }
 
-    // Initialize position tracking
-    m_rear_motor_position       = 0.0;
-    m_back_left_wheel_position  = 0.0;
-    m_back_right_wheel_position = 0.0;
-    m_last_update_time          = rclcpp::Time();
+    // Initialize last command time to current time to avoid time source mismatch
+    // This ensures m_last_command_time uses the same clock source as update() calls
+    m_last_command_time = node->now();
 
     RCLCPP_INFO(m_logger, "AckermannAngleController activated");
     return controller_interface::CallbackReturn::SUCCESS;
@@ -245,75 +240,6 @@ public:
       m_cmd_rear_motor_vel->set_value(cmd_rear_motor_velocity);
     }
 
-    // Publish joint states for RViz2 visualization
-    // Read pinion position from hardware feedback (or use command if no feedback)
-    double actual_pinion_angle = cmd_pinion_angle;
-    if (m_state_pinion_pos) {
-      actual_pinion_angle = m_state_pinion_pos->get_value();
-    }
-
-    // compute wheel angles from actual pinion feedback for accurate visualization
-    const auto feedback_linkage_angles = linkage_angles(actual_pinion_angle);
-    const double actual_front_left_angle =
-        compute_wheel_angle(feedback_linkage_angles.first, true);
-    const double actual_front_right_angle =
-        compute_wheel_angle(feedback_linkage_angles.second, false);
-
-    // Read rear motor state
-    double rear_motor_velocity = cmd_rear_motor_velocity;
-    if (m_state_rear_motor_vel) {
-      rear_motor_velocity = m_state_rear_motor_vel->get_value();
-    }
-
-    // Update wheel positions by integrating velocity
-    double dt = 0.0;
-    if (m_last_update_time.nanoseconds() > 0) {
-      dt = (time - m_last_update_time).seconds();
-    }
-    m_last_update_time = time;
-
-    if (dt > 0.0 && dt < 1.0) { // Sanity check: dt should be reasonable
-      // Integrate motor velocity to get motor position
-      m_rear_motor_position += rear_motor_velocity * dt;
-
-      // Both wheels spin at the same rate as the motor [TODO: take in gear ratio]
-      // Wheel position in radians
-      m_back_left_wheel_position  = m_rear_motor_position;
-      m_back_right_wheel_position = m_rear_motor_position;
-    }
-
-    // Publish joint states
-    sensor_msgs::msg::JointState joint_state_msg;
-    joint_state_msg.header.stamp = time;
-    joint_state_msg.name         = {p_pinion_joint_name,
-                                    p_front_left_steering_joint_name,
-                                    p_front_right_steering_joint_name,
-                                    p_rear_motor_joint_name,
-                                    p_back_left_wheel_joint_name,
-                                    p_back_right_wheel_joint_name};
-
-    // Positions
-    joint_state_msg.position = {
-        actual_pinion_angle,        // pinion
-        actual_front_left_angle,    // front_left_steering
-        actual_front_right_angle,   // front_right_steering
-        m_rear_motor_position,      // rear_motor position (integrated from velocity)
-        m_back_left_wheel_position, // back_left_wheel (spins with motor)
-        m_back_right_wheel_position // back_right_wheel (spins with motor)
-    };
-
-    // Velocities
-    joint_state_msg.velocity = {
-        0.0,                 // pinion velocity (not tracked)
-        0.0,                 // front_left_steering velocity (not tracked)
-        0.0,                 // front_right_steering velocity (not tracked)
-        rear_motor_velocity, // rear_motor velocity
-        rear_motor_velocity, // back_left_wheel velocity (assuming same as motor)
-        rear_motor_velocity  // back_right_wheel velocity (assuming same as motor)
-    };
-
-    m_joint_state_pub->publish(joint_state_msg);
-
     return controller_interface::return_type::OK;
   }
 
@@ -359,9 +285,6 @@ private:
   // Logger
   rclcpp::Logger m_logger{rclcpp::get_logger("AckermannAngleController")};
 
-  // Joint state publisher for RViz2
-  rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr m_joint_state_pub;
-
   // Calibration lookup table (discrete lookup)
   std::vector<double> m_pinion_angles;
   std::vector<double> m_ideal_angles;
@@ -376,12 +299,6 @@ private:
 
   const hardware_interface::LoanedStateInterface *m_state_pinion_pos     = nullptr;
   const hardware_interface::LoanedStateInterface *m_state_rear_motor_vel = nullptr;
-
-  // Position tracking for wheels (integrated from velocity)
-  double m_rear_motor_position       = 0.0;
-  double m_back_left_wheel_position  = 0.0;
-  double m_back_right_wheel_position = 0.0;
-  rclcpp::Time m_last_update_time;
 
   // Helper methods
   // -----------------------------------------------------------------------------

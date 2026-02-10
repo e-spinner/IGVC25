@@ -1,4 +1,6 @@
 #include <cmath>
+#include <cstring>
+#include <errno.h>
 #include <fcntl.h>
 #include <limits>
 #include <string>
@@ -70,11 +72,59 @@ public:
       p_rear_motor_joint_name =
           info_.hardware_parameters.at("rear_motor_joint_name");
 
+      // Linkage parameters (optional, with defaults)
+      p_steering_arm_length =
+          info_.hardware_parameters.find("steering_arm_length") !=
+                  info_.hardware_parameters.end()
+              ? std::stod(info_.hardware_parameters.at("steering_arm_length"))
+              : 0.0381;
+      p_tie_rod_length =
+          info_.hardware_parameters.find("tie_rod_length") !=
+                  info_.hardware_parameters.end()
+              ? std::stod(info_.hardware_parameters.at("tie_rod_length"))
+              : 0.127;
+      p_rack_offset_x =
+          info_.hardware_parameters.find("rack_offset_x") !=
+                  info_.hardware_parameters.end()
+              ? std::stod(info_.hardware_parameters.at("rack_offset_x"))
+              : -0.0315;
+      p_rack_neutral_y =
+          info_.hardware_parameters.find("rack_neutral_y") !=
+                  info_.hardware_parameters.end()
+              ? std::stod(info_.hardware_parameters.at("rack_neutral_y"))
+              : 0.131064;
+      p_pinion_gear_ratio =
+          info_.hardware_parameters.find("pinion_gear_ratio") !=
+                  info_.hardware_parameters.end()
+              ? std::stod(info_.hardware_parameters.at("pinion_gear_ratio"))
+              : 1.652;
+      p_pinion_radius =
+          info_.hardware_parameters.find("pinion_radius") !=
+                  info_.hardware_parameters.end()
+              ? std::stod(info_.hardware_parameters.at("pinion_radius"))
+              : 0.01905;
+      p_wheel_angle = info_.hardware_parameters.find("wheel_angle") !=
+                              info_.hardware_parameters.end()
+                          ? std::stod(info_.hardware_parameters.at("wheel_angle"))
+                          : 0.32253;
+
       // Initialize command and state storage
       m_pinion_position_cmd_       = 0.0;
       m_rear_motor_velocity_cmd_   = 0.0;
       m_pinion_position_state_     = 0.0;
       m_rear_motor_velocity_state_ = 0.0;
+
+      // Derived joint states
+      m_front_left_steering_position_  = 0.0;
+      m_front_right_steering_position_ = 0.0;
+      m_back_left_wheel_position_      = 0.0;
+      m_back_left_wheel_velocity_      = 0.0;
+      m_back_right_wheel_position_     = 0.0;
+      m_back_right_wheel_velocity_     = 0.0;
+
+      // Position integration tracking
+      m_rear_motor_position_ = 0.0;
+      m_last_read_time_      = rclcpp::Time();
 
       m_serial_fd = -1;
 
@@ -103,6 +153,26 @@ public:
         p_rear_motor_joint_name, hardware_interface::HW_IF_VELOCITY,
         &m_rear_motor_velocity_state_));
 
+    // Derived joint states
+    state_interfaces.emplace_back(hardware_interface::StateInterface(
+        "front_left_steering_joint", hardware_interface::HW_IF_POSITION,
+        &m_front_left_steering_position_));
+    state_interfaces.emplace_back(hardware_interface::StateInterface(
+        "front_right_steering_joint", hardware_interface::HW_IF_POSITION,
+        &m_front_right_steering_position_));
+    state_interfaces.emplace_back(hardware_interface::StateInterface(
+        "back_left_wheel_joint", hardware_interface::HW_IF_POSITION,
+        &m_back_left_wheel_position_));
+    state_interfaces.emplace_back(hardware_interface::StateInterface(
+        "back_left_wheel_joint", hardware_interface::HW_IF_VELOCITY,
+        &m_back_left_wheel_velocity_));
+    state_interfaces.emplace_back(hardware_interface::StateInterface(
+        "back_right_wheel_joint", hardware_interface::HW_IF_POSITION,
+        &m_back_right_wheel_position_));
+    state_interfaces.emplace_back(hardware_interface::StateInterface(
+        "back_right_wheel_joint", hardware_interface::HW_IF_VELOCITY,
+        &m_back_right_wheel_velocity_));
+
     return state_interfaces;
   }
 
@@ -122,11 +192,25 @@ public:
     return command_interfaces;
   }
 
+  hardware_interface::return_type prepare_command_mode_switch(
+      const std::vector<std::string> & /*start_interfaces*/,
+      const std::vector<std::string> & /*stop_interfaces*/) override {
+
+    return hardware_interface::return_type::OK;
+  }
+
+  hardware_interface::return_type perform_command_mode_switch(
+      const std::vector<std::string> & /*start_interfaces*/,
+      const std::vector<std::string> & /*stop_interfaces*/) override {
+
+    return hardware_interface::return_type::OK;
+  }
+
   // MARK: ACT
   CallbackReturn
   on_activate(const rclcpp_lifecycle::State & /*previous_state*/) override {
     // Open serial port
-    m_serial_fd = open(p_device.c_str(), O_RDWR | O_NOCTTY | O_NDELAY);
+    m_serial_fd = open(p_device.c_str(), O_RDWR | O_NOCTTY);
     if (m_serial_fd == -1) {
       RCLCPP_ERROR(m_logger, "Failed to open serial device: %s", p_device.c_str());
       return CallbackReturn::ERROR;
@@ -191,6 +275,10 @@ public:
     // Flush any existing data
     tcflush(m_serial_fd, TCIOFLUSH);
 
+    // Initialize time tracking
+    m_last_read_time_      = rclcpp::Time(0, 0, RCL_STEADY_TIME);
+    m_rear_motor_position_ = 0.0;
+
     RCLCPP_INFO(m_logger, "AckermannArduinoHardware activated");
     return CallbackReturn::SUCCESS;
   }
@@ -207,36 +295,107 @@ public:
   }
 
   // MARK: READ
-  return_type read(const rclcpp::Time & /*time*/,
+  return_type read(const rclcpp::Time &time,
                    const rclcpp::Duration & /*period*/) override {
     if (m_serial_fd < 0) {
       // No serial connection, use command values as fallback
       m_pinion_position_state_     = m_pinion_position_cmd_;
       m_rear_motor_velocity_state_ = m_rear_motor_velocity_cmd_;
+    } else {
+      // Read available data from serial port
+      char read_buffer[256];
+      ssize_t bytes_read = ::read(m_serial_fd, read_buffer, sizeof(read_buffer) - 1);
+
+      if (bytes_read > 0) {
+        read_buffer[bytes_read] = '\0'; // Null terminate
+
+        // Parse feedback messages
+        // Expected format: "F:P:<pinion_angle>,V:<velocity>\n"
+        std::string feedback(read_buffer);
+        parseFeedback(feedback);
+      } else {
+        // No data available, use command values as fallback
+        m_pinion_position_state_     = m_pinion_position_cmd_;
+        m_rear_motor_velocity_state_ = m_rear_motor_velocity_cmd_;
+      }
+    }
+
+    if (m_last_read_time_.nanoseconds() <= 0) {
+      m_last_read_time_ = time;
       return return_type::OK;
     }
 
-    // Read available data from serial port
-    char read_buffer[256];
-    ssize_t bytes_read = ::read(m_serial_fd, read_buffer, sizeof(read_buffer) - 1);
-
-    if (bytes_read > 0) {
-      read_buffer[bytes_read] = '\0'; // Null terminate
-
-      // Parse feedback messages
-      // Expected format: "F:P:<pinion_angle>,V:<velocity>\n"
-      std::string feedback(read_buffer);
-      parseFeedback(feedback);
-    } else {
-      // No data available, use command values as fallback
-      m_pinion_position_state_     = m_pinion_position_cmd_;
-      m_rear_motor_velocity_state_ = m_rear_motor_velocity_cmd_;
-    }
+    // Compute derived joint states from pinion and motor states
+    computeDerivedStates(time);
 
     return return_type::OK;
   }
 
 private:
+  // MARK: DERIVED STATES
+  // -----------------------------------------------------------------------------
+  void computeDerivedStates(const rclcpp::Time &time) {
+    // Compute steering angles from pinion angle using linkage calculation
+    const auto linkage_angles       = computeLinkageAngles(m_pinion_position_state_);
+    m_front_left_steering_position_ = linkage_angles.first + M_PI + p_wheel_angle;
+    m_front_right_steering_position_ = linkage_angles.second - p_wheel_angle;
+
+    // Compute wheel positions and velocities from motor velocity
+    // Integrate motor velocity to get position
+    double dt = 0.0;
+    if (m_last_read_time_.nanoseconds() > 0) {
+      dt = (time - m_last_read_time_).seconds();
+    }
+    m_last_read_time_ = time;
+
+    if (dt > 0.0 && dt < 1.0) { // Sanity check
+      m_rear_motor_position_ += m_rear_motor_velocity_state_ * dt;
+    }
+
+    // Both wheels spin at the same rate as the motor
+    m_back_left_wheel_position_  = m_rear_motor_position_;
+    m_back_right_wheel_position_ = m_rear_motor_position_;
+    m_back_left_wheel_velocity_  = m_rear_motor_velocity_state_;
+    m_back_right_wheel_velocity_ = m_rear_motor_velocity_state_;
+  }
+
+  std::pair<double, double> computeLinkageAngles(double pinion_angle) {
+    const double a = p_steering_arm_length; // link_a
+    const double b = p_tie_rod_length;      // link_b
+    const double c = p_rack_offset_x;       // link_c
+    const double d = p_rack_neutral_y + (pinion_angle * p_pinion_gear_ratio *
+                                         p_pinion_radius); // rack position
+
+    // Helper function for slider-crank theta2
+    auto slider_crank_theta2 = [](double K_1, double K_2, double K_3) -> double {
+      const double A            = K_1 - K_3;
+      const double B            = 2.0 * K_2;
+      const double C            = K_1 + K_3;
+      const double discriminant = B * B - 4.0 * A * C;
+      if (discriminant < 0) {
+        return 0.0; // Invalid case
+      }
+      const double theta_2 = 2.0 * atan((-B + sqrt(discriminant)) / (2.0 * A));
+      return theta_2;
+    };
+
+    const double K_1     = a * a - b * b + c * c + d * d;
+    const double K_2     = -2.0 * a * c;
+    const double K_3     = -2.0 * a * d;
+    const double theta_2 = slider_crank_theta2(K_1, K_2, K_3);
+
+    const double e       = a;
+    const double f       = b;
+    const double g       = c;
+    const double h       = (p_rack_neutral_y - d) + p_rack_neutral_y;
+    const double K_4     = e * e - f * f + g * g + h * h;
+    const double K_5     = -2.0 * e * g;
+    const double K_6     = -2.0 * e * h;
+    const double theta_4 = -(slider_crank_theta2(K_4, K_5, K_6) + M_PI);
+
+    return {theta_2, theta_4};
+  }
+
   // MARK: FEEDBACK
   // -----------------------------------------------------------------------------
   void parseFeedback(const std::string &feedback) {
@@ -281,21 +440,17 @@ private:
   // MARK: WRITE
   return_type write(const rclcpp::Time & /*time*/,
                     const rclcpp::Duration & /*period*/) override {
-    if (m_serial_fd < 0) { return return_type::ERROR; }
+    if (m_serial_fd < 0) return return_type::ERROR;
 
-    // Send commands to Arduino
-    // Protocol: "P:<pinion_angle>,V:<velocity>\n"
-    // Pinion angle in radians, velocity in rad/s
-    char cmd_buffer[128];
-    int len = snprintf(cmd_buffer, sizeof(cmd_buffer), "P:%.6f,V:%.6f\n",
-                       m_pinion_position_cmd_, m_rear_motor_velocity_cmd_);
+    // Construct the string: "P:0.123,V:1.23\n"
+    std::string msg = "P:" + std::to_string(m_pinion_position_cmd_) +
+                      ",V:" + std::to_string(m_rear_motor_velocity_cmd_) + "\n";
 
-    if (len > 0 && len < static_cast<int>(sizeof(cmd_buffer))) {
-      ssize_t written = ::write(m_serial_fd, cmd_buffer, len);
-      if (written != len) {
-        RCLCPP_WARN_THROTTLE(m_logger, *m_clock, 1000,
-                             "Failed to write complete command to serial port");
-      }
+    ssize_t bytes_written = ::write(m_serial_fd, msg.c_str(), msg.length());
+
+    if (bytes_written < 0) {
+      RCLCPP_WARN(m_logger, "Failed to write to serial: %s", strerror(errno));
+      return return_type::ERROR;
     }
 
     return return_type::OK;
@@ -313,6 +468,16 @@ private:
   std::string p_pinion_joint_name;
   std::string p_rear_motor_joint_name;
 
+  // Linkage parameters
+  // -----------------------------------------------------------------------------
+  double p_steering_arm_length;
+  double p_tie_rod_length;
+  double p_rack_offset_x;
+  double p_rack_neutral_y;
+  double p_pinion_gear_ratio;
+  double p_pinion_radius;
+  double p_wheel_angle;
+
   // Serial communication
   // -----------------------------------------------------------------------------
   int m_serial_fd = -1;
@@ -326,6 +491,19 @@ private:
   // -----------------------------------------------------------------------------
   double m_pinion_position_state_;
   double m_rear_motor_velocity_state_;
+
+  // Derived joint states
+  // -----------------------------------------------------------------------------
+  double m_front_left_steering_position_;
+  double m_front_right_steering_position_;
+  double m_back_left_wheel_position_;
+  double m_back_left_wheel_velocity_;
+  double m_back_right_wheel_position_;
+  double m_back_right_wheel_velocity_;
+
+  // Position integration tracking
+  double m_rear_motor_position_;
+  rclcpp::Time m_last_read_time_;
 
   // Logger
   rclcpp::Logger m_logger{rclcpp::get_logger("AckermannArduinoHardware")};

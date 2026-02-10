@@ -118,6 +118,14 @@
       <param name="timeout_ms">1000</param>
       <param name="pinion_joint_name">pinion_joint</param>
       <param name="rear_motor_joint_name">rear_motor_joint</param>
+      <!-- Linkage parameters (optional, defaults provided in hardware interface) -->
+      <param name="steering_arm_length">0.0381</param>
+      <param name="tie_rod_length">0.127</param>
+      <param name="rack_offset_x">-0.0315</param>
+      <param name="rack_neutral_y">0.131064</param>
+      <param name="pinion_gear_ratio">1.652</param>
+      <param name="pinion_radius">0.01905</param>
+      <param name="wheel_angle">0.32253</param>
     </hardware>
     <joint name="pinion_joint">
       <command_interface name="position" />
@@ -125,6 +133,20 @@
     </joint>
     <joint name="rear_motor_joint">
       <command_interface name="velocity" />
+      <state_interface name="velocity" />
+    </joint>
+    <joint name="front_left_steering_joint">
+      <state_interface name="position" />
+    </joint>
+    <joint name="front_right_steering_joint">
+      <state_interface name="position" />
+    </joint>
+    <joint name="back_left_wheel_joint">
+      <state_interface name="position" />
+      <state_interface name="velocity" />
+    </joint>
+    <joint name="back_right_wheel_joint">
+      <state_interface name="position" />
       <state_interface name="velocity" />
     </joint>
   </ros2_control>

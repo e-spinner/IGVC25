@@ -129,11 +129,26 @@ def launch_setup(context, *args, **kwargs):
 
   # MARK: Controller Manager
   # -----------------------------------------------------------------------------
+  # Extract controller_manager parameters (without ros__parameters wrapper for programmatic passing)
+  cm_params = ros2_control_config.get("controller_manager", {}).get(
+    "ros__parameters", {}
+  )
+
+  # Ensure controller type definitions are present
+  if "joint_state_broadcaster" not in cm_params:
+    cm_params["joint_state_broadcaster"] = {
+      "type": "joint_state_broadcaster/JointStateBroadcaster"
+    }
+  if "ackermann_angle_controller" not in cm_params:
+    cm_params["ackermann_angle_controller"] = {
+      "type": "igvc_control::AckermannAngleController"
+    }
+
   controller_manager = Node(
     package="controller_manager",
     executable="ros2_control_node",
     parameters=[
-      ros2_control_config.get("controller_manager", {}),
+      cm_params,
       {
         "use_sim_time": False,
       },
