@@ -27,26 +27,6 @@
 
   <link name="base_link" />
 
-  <!-- MARK: STEER
-  === FRONT === -->
-  <xacro:steer name="front_left"
-    parent_link="base_link"
-    wheel_radius="${wheel_radius}"
-    wheel_length="${wheel_length}"
-    wheel_mass="${wheel_mass}"
-    wheel_offset="${wheel_offset}">
-    <origin xyz="0 ${wheel_base/2} 0" />
-  </xacro:steer>
-
-  <xacro:steer name="front_right"
-    parent_link="base_link"
-    wheel_radius="${wheel_radius}"
-    wheel_length="${wheel_length}"
-    wheel_mass="${wheel_mass}"
-    wheel_offset="-${wheel_offset}">
-    <origin xyz="0 -${wheel_base/2} 0" />
-  </xacro:steer>
-
   <link name="pinion">
     <visual>
       <geometry>
@@ -63,10 +43,6 @@
     <axis xyz="0 0 1" />
   </joint>
 
-  <!-- MARK: DRIVE
-  === BACK === -->
-
-
   <link name="diff_link" />
 
   <joint name="diff_joint" type="fixed">
@@ -74,20 +50,6 @@
     <child link="diff_link" />
     <origin xyz="-${track_width} 0 0" />
   </joint>
-
-  <xacro:wheel2 name="back_left"
-    parent_link="diff_link"
-    wheel_radius="${wheel_radius}"
-    wheel_length="${wheel_length}"
-    wheel_mass="${wheel_mass}"
-    wheel_offset="${wheel_base/2}" />
-
-  <xacro:wheel2 name="back_right"
-    parent_link="diff_link"
-    wheel_radius="${wheel_radius}"
-    wheel_length="${wheel_length}"
-    wheel_mass="${wheel_mass}"
-    wheel_offset="-${wheel_base/2}" />
 
   <link name="motor">
     <visual>
@@ -118,14 +80,6 @@
       <param name="timeout_ms">1000</param>
       <param name="pinion_joint_name">pinion_joint</param>
       <param name="rear_motor_joint_name">rear_motor_joint</param>
-      <!-- Linkage parameters (optional, defaults provided in hardware interface) -->
-      <param name="steering_arm_length">0.0381</param>
-      <param name="tie_rod_length">0.127</param>
-      <param name="rack_offset_x">-0.0315</param>
-      <param name="rack_neutral_y">0.131064</param>
-      <param name="pinion_gear_ratio">1.652</param>
-      <param name="pinion_radius">0.01905</param>
-      <param name="wheel_angle">0.32253</param>
     </hardware>
     <joint name="pinion_joint">
       <command_interface name="position" />
@@ -133,20 +87,6 @@
     </joint>
     <joint name="rear_motor_joint">
       <command_interface name="velocity" />
-      <state_interface name="velocity" />
-    </joint>
-    <joint name="front_left_steering_joint">
-      <state_interface name="position" />
-    </joint>
-    <joint name="front_right_steering_joint">
-      <state_interface name="position" />
-    </joint>
-    <joint name="back_left_wheel_joint">
-      <state_interface name="position" />
-      <state_interface name="velocity" />
-    </joint>
-    <joint name="back_right_wheel_joint">
-      <state_interface name="position" />
       <state_interface name="velocity" />
     </joint>
   </ros2_control>
