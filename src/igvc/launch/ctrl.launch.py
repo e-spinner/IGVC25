@@ -29,27 +29,6 @@ def launch_setup(context, *args, **kwargs):
 
   # MARK: Robot Description
   # -----------------------------------------------------------------------------
-  # Load robot description from URDF
-  # Note: The URDF should include ros2_control configuration with
-  # AckermannArduinoHardware plugin. Example ros2_control section:
-  # <ros2_control name="AckermannArduinoSystem" type="system">
-  #   <hardware>
-  #     <plugin>igvc_control/AckermannArduinoHardware</plugin>
-  #     <param name="device">/dev/ttyUSB0</param>
-  #     <param name="baud_rate">9600</param>
-  #     <param name="timeout_ms">1000</param>
-  #     <param name="pinion_joint_name">pinion_joint</param>
-  #     <param name="rear_motor_joint_name">rear_motor_joint</param>
-  #   </hardware>
-  #   <joint name="pinion_joint">
-  #     <command_interface name="position"/>
-  #     <state_interface name="position"/>
-  #   </joint>
-  #   <joint name="rear_motor_joint">
-  #     <command_interface name="velocity"/>
-  #     <state_interface name="velocity"/>
-  #   </joint>
-  # </ros2_control>
   robot_description_path = os.path.join(
     igvc_path, "description", "ackermann_ac.urdf"
   )
@@ -122,7 +101,7 @@ def launch_setup(context, *args, **kwargs):
         "wheel_radius": linkage_params.get("wheel_radius", 0.1524),
         "pinion_joint": "pinion_joint",
         "rear_motor_joint": "rear_motor_joint",
-        "cmd_vel_topic": "/cmd_vel",
+        "cmd_vel_topic": "/cmd_vel_stamped",
         "reference_timeout": 2.0,
         "calibration_sample_size": 1024,
       }
