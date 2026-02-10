@@ -228,7 +228,7 @@ public:
     }
 
     // Set baud rate
-    speed_t baud = B9600; // Default to 9600
+    speed_t baud = B115200; // Default to 9600
     switch (p_baud_rate) {
     case 9600: baud = B9600; break;
     case 19200: baud = B19200; break;
@@ -320,7 +320,7 @@ public:
 
         // Try to show as string if printable, otherwise show hex
         bool is_printable = true;
-        for (size_t i = 0; i < bytes_read; ++i) {
+        for (ssize_t i = 0; i < bytes_read; ++i) {
           if (!std::isprint(static_cast<unsigned char>(read_buffer[i])) &&
               read_buffer[i] != '\n' && read_buffer[i] != '\r' &&
               read_buffer[i] != '\t') {

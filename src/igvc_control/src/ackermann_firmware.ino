@@ -69,7 +69,7 @@ const char COMMAND_TERMINATOR = '\n';
 // -----------------------------------------------------------------------------
 void setup() {
   // Initialize serial communication
-  Serial.begin(9600);
+  Serial.begin(115200);
   while (!Serial) {
     ; // Wait for serial port to connect (only needed for USB)
   }
