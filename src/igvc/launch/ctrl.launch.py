@@ -1,4 +1,5 @@
 import os
+import xacro
 import yaml
 
 from ament_index_python.packages import get_package_share_directory
@@ -13,6 +14,18 @@ from launch.event_handlers import OnProcessExit
 from launch.substitutions import LaunchConfiguration
 
 from launch_ros.actions import Node
+
+
+def load_robot_description(robot_description_path, robot_params_path):
+  with open(robot_params_path, "r") as params:
+    robot_params = yaml.safe_load(params)["/**"]["ros__parameters"]
+
+  robot_description = xacro.process_file(
+    robot_description_path,
+    mappings={key: str(value) for key, value in robot_params.items()},
+  )
+
+  return robot_description.toxml()  # type: ignore
 
 
 def launch_setup(context, *args, **kwargs):
@@ -33,8 +46,8 @@ def launch_setup(context, *args, **kwargs):
     igvc_path, "description", "ackermann_ac.urdf"
   )
 
-  with open(robot_description_path, "r") as f:
-    robot_description = f.read()
+  with open(ros2_control_config_file, "r") as f:
+    ros2_control_config = yaml.safe_load(f)
 
   # Load linkage parameters for controller
   linkage_config_file = os.path.join(
@@ -45,6 +58,55 @@ def launch_setup(context, *args, **kwargs):
     linkage_config = yaml.safe_load(f)
 
   linkage_params = linkage_config["/**"]["ros__parameters"]
+
+  # Merge linkage parameters into controller config
+  controller_params = ros2_control_config.get("ackermann_angle_controller", {}).get(
+    "ros__parameters", {}
+  )
+  controller_params.update(
+    {
+      "pinion_radius": linkage_params.get(
+        "pinion_radius", controller_params.get("pinion_radius", 0.01905)
+      ),
+      "steering_arm_length": linkage_params.get(
+        "steering_arm_length", controller_params.get("steering_arm_length", 0.0381)
+      ),
+      "tie_rod_length": linkage_params.get(
+        "tie_rod_length", controller_params.get("tie_rod_length", 0.127)
+      ),
+      "rack_offset_x": linkage_params.get(
+        "rack_offset_x", controller_params.get("rack_offset_x", -0.0315)
+      ),
+      "rack_neutral_y": linkage_params.get(
+        "rack_neutral_y", controller_params.get("rack_neutral_y", 0.131064)
+      ),
+      "pinion_gear_ratio": linkage_params.get(
+        "pinion_gear_ratio", controller_params.get("pinion_gear_ratio", 1.652)
+      ),
+      "max_pinion_angle": linkage_params.get(
+        "pinion_angle_limit", controller_params.get("max_pinion_angle", 2.0)
+      ),
+      "wheel_angle": linkage_params.get(
+        "wheel_angle", controller_params.get("wheel_angle", 0.32253)
+      ),
+      "wheelbase": linkage_params.get(
+        "wheel_base", controller_params.get("wheelbase", 0.42)
+      ),
+      "track_width": linkage_params.get(
+        "track_width", controller_params.get("track_width", 0.36)
+      ),
+      "wheel_radius": linkage_params.get(
+        "wheel_radius", controller_params.get("wheel_radius", 0.1524)
+      ),
+    }
+  )
+
+  # Update the config with merged parameters
+  if "ackermann_angle_controller" not in ros2_control_config:
+    ros2_control_config["ackermann_angle_controller"] = {}
+  ros2_control_config["ackermann_angle_controller"]["ros__parameters"] = (
+    controller_params
+  )
 
   # Robot State Publisher
   robot_state_publisher = Node(
@@ -65,10 +127,10 @@ def launch_setup(context, *args, **kwargs):
     package="controller_manager",
     executable="ros2_control_node",
     parameters=[
+      ros2_control_config.get("controller_manager", {}),
       {
-        "robot_description": robot_description,
         "use_sim_time": False,
-      }
+      },
     ],
     output="screen",
   )
@@ -118,7 +180,13 @@ def launch_setup(context, *args, **kwargs):
       "--controller-manager-timeout",
       "10",
     ],
-    parameters=[controller_params],
+    parameters=[
+      {
+        "ackermann_angle_controller": ros2_control_config[
+          "ackermann_angle_controller"
+        ]
+      }
+    ],
     output="screen",
   )
 

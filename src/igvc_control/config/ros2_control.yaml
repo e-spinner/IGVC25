@@ -1,0 +1,35 @@
+controller_manager:
+  ros__parameters:
+    use_sim_time: false
+    update_rate: 100 # Hz
+
+    joint_state_broadcaster:
+      type: joint_state_broadcaster/JointStateBroadcaster
+
+    ackermann_angle_controller:
+      type: igvc_control/AckermannAngleController
+
+ackermann_angle_controller:
+  ros__parameters:
+    # Joint names
+    pinion_joint: pinion_joint
+    rear_motor_joint: rear_motor_joint
+
+    # Topics
+    cmd_vel_topic: /cmd_vel
+    reference_timeout: 2.0
+    calibration_sample_size: 1024
+
+    # Linkage geometry parameters (will be overridden by linkage config)
+    pinion_radius: 0.01905
+    steering_arm_length: 0.0381
+    tie_rod_length: 0.127
+    rack_offset_x: -0.0315
+    rack_neutral_y: 0.131064
+    pinion_gear_ratio: 1.652
+    max_pinion_angle: 2.0
+    wheel_angle: 0.32253
+    wheelbase: 0.42
+    track_width: 0.36
+    wheel_radius: 0.1524
+

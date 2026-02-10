@@ -332,47 +332,6 @@ private:
 
   // Clock for throttled logging
   rclcpp::Clock::SharedPtr m_clock{std::make_shared<rclcpp::Clock>()};
-
-  // MARK: FEEDBACK
-  // -----------------------------------------------------------------------------
-  void parseFeedback(const std::string &feedback) {
-    // Look for feedback format: "F:P:<angle>,V:<velocity>"
-    size_t f_pos = feedback.find("F:P:");
-    if (f_pos == std::string::npos) {
-      // Not a feedback message, use command values
-      m_pinion_position_state_     = m_pinion_position_cmd_;
-      m_rear_motor_velocity_state_ = m_rear_motor_velocity_cmd_;
-      return;
-    }
-
-    size_t v_pos = feedback.find(",V:", f_pos);
-    if (v_pos == std::string::npos) {
-      // Invalid format, use command values
-      m_pinion_position_state_     = m_pinion_position_cmd_;
-      m_rear_motor_velocity_state_ = m_rear_motor_velocity_cmd_;
-      return;
-    }
-
-    // Extract pinion angle
-    std::string pinion_str = feedback.substr(f_pos + 4, v_pos - (f_pos + 4));
-    try {
-      m_pinion_position_state_ = std::stod(pinion_str);
-    } catch (const std::exception &) {
-      // Parse error, use command value
-      m_pinion_position_state_ = m_pinion_position_cmd_;
-    }
-
-    // Extract velocity
-    size_t end_pos = feedback.find('\n', v_pos);
-    if (end_pos == std::string::npos) { end_pos = feedback.length(); }
-    std::string velocity_str = feedback.substr(v_pos + 3, end_pos - (v_pos + 3));
-    try {
-      m_rear_motor_velocity_state_ = std::stod(velocity_str);
-    } catch (const std::exception &) {
-      // Parse error, use command value
-      m_rear_motor_velocity_state_ = m_rear_motor_velocity_cmd_;
-    }
-  }
 };
 
 } // namespace igvc_control
