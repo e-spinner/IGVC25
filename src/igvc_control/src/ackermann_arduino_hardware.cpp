@@ -314,29 +314,10 @@ public:
       if (bytes_read > 0) {
         read_buffer[bytes_read] = '\0'; // Null terminate
 
-        // Log raw data received with hex dump
+        // Log raw data received
         std::string raw_data(read_buffer, bytes_read);
-        std::string hex_dump = bytesToHex(read_buffer, bytes_read);
-
-        // Try to show as string if printable, otherwise show hex
-        bool is_printable = true;
-        for (ssize_t i = 0; i < bytes_read; ++i) {
-          if (!std::isprint(static_cast<unsigned char>(read_buffer[i])) &&
-              read_buffer[i] != '\n' && read_buffer[i] != '\r' &&
-              read_buffer[i] != '\t') {
-            is_printable = false;
-            break;
-          }
-        }
-
-        if (is_printable) {
-          RCLCPP_INFO(m_logger, "READ from Arduino: [%zd bytes] '%s' (hex: %s)",
-                      bytes_read, raw_data.c_str(), hex_dump.c_str());
-        } else {
-          RCLCPP_INFO(m_logger,
-                      "READ from Arduino: [%zd bytes] (non-printable) hex: %s",
-                      bytes_read, hex_dump.c_str());
-        }
+        RCLCPP_DEBUG(m_logger, "READ from Arduino: [%zd bytes] '%s'", bytes_read,
+                     raw_data.c_str());
 
         // Accumulate data in buffer
         m_serial_buffer_ += raw_data;
@@ -395,19 +376,6 @@ public:
   }
 
 private:
-  // MARK: UTILITY
-  // -----------------------------------------------------------------------------
-  std::string bytesToHex(const char *data, size_t len) {
-    std::string hex;
-    hex.reserve(len * 3); // Each byte becomes "XX "
-    for (size_t i = 0; i < len; ++i) {
-      char buf[4];
-      snprintf(buf, sizeof(buf), "%02X ", static_cast<unsigned char>(data[i]));
-      hex += buf;
-    }
-    return hex;
-  }
-
   // MARK: DERIVED STATES
   // -----------------------------------------------------------------------------
   void computeDerivedStates(const rclcpp::Time &time) {
@@ -533,12 +501,9 @@ private:
     std::string msg = "P:" + std::to_string(m_pinion_position_cmd_) +
                       ",V:" + std::to_string(m_rear_motor_velocity_cmd_) + "\n";
 
-    // Log what we're sending with hex dump
-    std::string hex_dump = bytesToHex(msg.c_str(), msg.length());
-    RCLCPP_INFO(m_logger,
-                "WRITE to Arduino: pinion=%.6f, velocity=%.6f -> '%s' (hex: %s)",
-                m_pinion_position_cmd_, m_rear_motor_velocity_cmd_, msg.c_str(),
-                hex_dump.c_str());
+    // Log what we're sending
+    RCLCPP_DEBUG(m_logger, "WRITE to Arduino: pinion=%.6f, velocity=%.6f -> '%s'",
+                 m_pinion_position_cmd_, m_rear_motor_velocity_cmd_, msg.c_str());
 
     ssize_t bytes_written = ::write(m_serial_fd, msg.c_str(), msg.length());
 
