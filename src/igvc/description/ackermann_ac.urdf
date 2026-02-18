@@ -77,17 +77,18 @@
       <plugin>igvc_control::AckermannArduinoHardware</plugin>
       <param name="device">/dev/ttyACM0</param>
       <param name="baud_rate">115200</param>
-      <param name="timeout_ms">1000</param>
-      <param name="pinion_joint_name">pinion_joint</param>
-      <param name="rear_motor_joint_name">rear_motor_joint</param>
+      <!-- <param name="timeout_ms">1000</param> -->
+      <param name="pinion_joint">pinion_joint</param>
+      <param name="motor_joint">rear_motor_joint</param>
     </hardware>
     <joint name="pinion_joint">
       <command_interface name="position" />
       <state_interface name="position" />
     </joint>
-    <joint name="rear_motor_joint">
+    <joint name="motor_joint">
       <command_interface name="velocity" />
       <state_interface name="velocity" />
+      <state_interface name="position" />
     </joint>
   </ros2_control>
 

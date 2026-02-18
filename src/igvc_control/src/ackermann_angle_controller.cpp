@@ -65,6 +65,43 @@ public:
     return controller_interface::CallbackReturn::SUCCESS;
   }
 
+  // MARK: CMD I
+  controller_interface::InterfaceConfiguration
+  command_interface_configuration() const override {
+    controller_interface::InterfaceConfiguration cmd_interfaces_config;
+    cmd_interfaces_config.type =
+        controller_interface::interface_configuration_type::INDIVIDUAL;
+
+    // COMMAND INTERFACES: Controller writes -> Hardware interface reads
+    //
+    // Hardware actually controls:
+    cmd_interfaces_config.names.push_back(p_pinion_joint_name + "/" +
+                                          hardware_interface::HW_IF_POSITION);
+    // Single rear motor driving differential
+    cmd_interfaces_config.names.push_back(p_rear_motor_joint_name + "/" +
+                                          hardware_interface::HW_IF_VELOCITY);
+
+    return cmd_interfaces_config;
+  }
+
+  // MARK: STATE I
+  controller_interface::InterfaceConfiguration
+  state_interface_configuration() const override {
+    controller_interface::InterfaceConfiguration state_interfaces_config;
+    state_interfaces_config.type =
+        controller_interface::interface_configuration_type::INDIVIDUAL;
+
+    // STATE INTERFACES: Hardware interface writes -> Controller reads
+    state_interfaces_config.names.push_back(p_pinion_joint_name + "/" +
+                                            hardware_interface::HW_IF_POSITION);
+    state_interfaces_config.names.push_back(p_rear_motor_joint_name + "/" +
+                                            hardware_interface::HW_IF_POSITION);
+    state_interfaces_config.names.push_back(p_rear_motor_joint_name + "/" +
+                                            hardware_interface::HW_IF_VELOCITY);
+
+    return state_interfaces_config;
+  }
+
   // MARK: CONF
   controller_interface::CallbackReturn
   on_configure(const rclcpp_lifecycle::State & /*previous_state*/) override {
@@ -173,42 +210,6 @@ public:
     return controller_interface::CallbackReturn::SUCCESS;
   }
 
-  // MARK: CMD I
-  controller_interface::InterfaceConfiguration
-  command_interface_configuration() const override {
-    controller_interface::InterfaceConfiguration cmd_interfaces_config;
-    cmd_interfaces_config.type =
-        controller_interface::interface_configuration_type::INDIVIDUAL;
-
-    // COMMAND INTERFACES: Controller writes -> Hardware interface reads
-    //
-    // Hardware actually controls:
-    cmd_interfaces_config.names.push_back(p_pinion_joint_name + "/" +
-                                          hardware_interface::HW_IF_POSITION);
-    // Single rear motor driving differential (hardware interface drives both wheels
-    // from this)
-    cmd_interfaces_config.names.push_back(p_rear_motor_joint_name + "/" +
-                                          hardware_interface::HW_IF_VELOCITY);
-
-    return cmd_interfaces_config;
-  }
-
-  // MARK: STATE I
-  controller_interface::InterfaceConfiguration
-  state_interface_configuration() const override {
-    controller_interface::InterfaceConfiguration state_interfaces_config;
-    state_interfaces_config.type =
-        controller_interface::interface_configuration_type::INDIVIDUAL;
-
-    // STATE INTERFACES: Hardware interface writes -> Controller reads
-    state_interfaces_config.names.push_back(p_pinion_joint_name + "/" +
-                                            hardware_interface::HW_IF_POSITION);
-    state_interfaces_config.names.push_back(p_rear_motor_joint_name + "/" +
-                                            hardware_interface::HW_IF_VELOCITY);
-
-    return state_interfaces_config;
-  }
-
   // MARK: UPDATE
   controller_interface::return_type
   update(const rclcpp::Time &time, const rclcpp::Duration & /*period*/) override {
@@ -221,15 +222,18 @@ public:
     }
 
     // Get commanded linear velocity (m/s) and ideal angle (rad)
-    const double cmd_linear_x = m_current_twist.linear.x;
+    // TODO: hard coded here as well for now
+    const double cmd_linear_x = 2.3d; // m_current_twist.linear.x;
     const double cmd_ideal_angle =
         m_current_twist.angular.z; // This is ideal angle, not angular velocity!
 
     // Convert ideal angle to pinion angle using calibration lookup
-    const double cmd_pinion_angle = ideal_angle_to_pinion_angle(cmd_ideal_angle);
+    // const double cmd_pinion_angle = ideal_angle_to_pinion_angle(cmd_ideal_angle);
 
     // Write pinion angle command
-    if (m_cmd_pinion_pos) { m_cmd_pinion_pos->set_value(cmd_pinion_angle); }
+    // TODO: passing over calibration for now
+    // if (m_cmd_pinion_pos) { m_cmd_pinion_pos->set_value(cmd_pinion_angle); }
+    if (m_cmd_pinion_pos) { m_cmd_pinion_pos->set_value(cmd_ideal_angle); }
 
     // Convert linear velocity to rear motor velocity (rad/s)
     // linear.x is in m/s, motor velocity = linear_velocity / wheel_radius

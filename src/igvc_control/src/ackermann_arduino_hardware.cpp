@@ -1,10 +1,12 @@
 #include <cctype>
 #include <cmath>
+#include <cstddef>
 #include <cstring>
 #include <errno.h>
 #include <fcntl.h>
 #include <limits>
 #include <string>
+#include <sys/types.h>
 #include <termios.h>
 #include <unistd.h>
 #include <vector>
@@ -28,72 +30,37 @@ public:
   CallbackReturn on_init(const hardware_interface::HardwareInfo &info) override {
     try {
       if (hardware_interface::SystemInterface::on_init(info) !=
-          CallbackReturn::SUCCESS) {
+          CallbackReturn::SUCCESS)
         return CallbackReturn::ERROR;
-      }
 
-      // Get parameters from hardware info
-      // -----------------------------------------------------------------------------
+      // get params
+      p_device       = info_.hardware_parameters.at("device");
+      p_baud_rate    = info_.hardware_parameters.at("baud_rate");
+      p_pinion_joint = info_.hardware_parameters.at("pinion_joint");
+      p_motor_joint  = info_.hardware_parameters.at("motor_joint");
 
-      // Serial communication parameters
-      if (info_.hardware_parameters.find("device") ==
-          info_.hardware_parameters.end()) {
-        RCLCPP_ERROR(m_logger, "Missing required parameter: device");
-        return CallbackReturn::ERROR;
-      }
-      p_device = info_.hardware_parameters.at("device");
+      // init storage
+      m_motor_vel_cmd    = 0.0d;
+      m_motor_vel_state  = 0.0d;
+      m_motor_pos_state  = 0.0d;
+      m_pinion_pos_cmd   = 0.0d;
+      m_pinion_pos_state = 0.0d;
 
-      if (info_.hardware_parameters.find("baud_rate") ==
-          info_.hardware_parameters.end()) {
-        RCLCPP_ERROR(m_logger, "Missing required parameter: baud_rate");
-        return CallbackReturn::ERROR;
-      }
-      p_baud_rate = std::stoi(info_.hardware_parameters.at("baud_rate"));
+      // init position integration
+      m_last_read_time = rclcpp::Time(0, 0, RCL_ROS_TIME);
 
-      if (info_.hardware_parameters.find("timeout_ms") ==
-          info_.hardware_parameters.end()) {
-        RCLCPP_ERROR(m_logger, "Missing required parameter: timeout_ms");
-        return CallbackReturn::ERROR;
-      }
-      p_timeout_ms = std::stoi(info_.hardware_parameters.at("timeout_ms"));
-
-      // Joint names
-      if (info_.hardware_parameters.find("pinion_joint_name") ==
-          info_.hardware_parameters.end()) {
-        RCLCPP_ERROR(m_logger, "Missing required parameter: pinion_joint_name");
-        return CallbackReturn::ERROR;
-      }
-      p_pinion_joint_name = info_.hardware_parameters.at("pinion_joint_name");
-
-      if (info_.hardware_parameters.find("rear_motor_joint_name") ==
-          info_.hardware_parameters.end()) {
-        RCLCPP_ERROR(m_logger, "Missing required parameter: rear_motor_joint_name");
-        return CallbackReturn::ERROR;
-      }
-      p_rear_motor_joint_name =
-          info_.hardware_parameters.at("rear_motor_joint_name");
-
-      // Initialize command and state storage
-      m_pinion_position_cmd_       = 0.0;
-      m_rear_motor_velocity_cmd_   = 0.0;
-      m_pinion_position_state_     = 0.0;
-      m_rear_motor_velocity_state_ = 0.0;
-
-      // Time tracking
-      m_last_read_time_ = rclcpp::Time();
-
-      m_serial_fd      = -1;
-      m_serial_buffer_ = ""; // Initialize serial read buffer
+      // init serial
+      m_serial_fd     = -1;
+      m_serial_buffer = "";
 
     } catch (const std::exception &e) {
-      RCLCPP_ERROR(m_logger, "Exception thrown during init stage with message: %s",
-                   e.what());
+      RCLCPP_ERROR(m_logger, "Exception during init: %s", e.what());
       return CallbackReturn::ERROR;
     }
 
-    RCLCPP_INFO(m_logger, "AckermannArduinoHardware initialized: device=%s, baud=%d",
+    RCLCPP_INFO(m_logger,
+                "AckermannArduinoHardware initailized: device[%s], baud[%d]",
                 p_device.c_str(), p_baud_rate);
-
     return CallbackReturn::SUCCESS;
   }
 
@@ -102,13 +69,13 @@ public:
   export_state_interfaces() override {
     std::vector<hardware_interface::StateInterface> state_interfaces;
 
-    // STATE INTERFACES: Hardware interface writes → Controller reads
+    // Hardware writes -> controller reads
     state_interfaces.emplace_back(hardware_interface::StateInterface(
-        p_pinion_joint_name, hardware_interface::HW_IF_POSITION,
-        &m_pinion_position_state_));
+        p_pinion_joint, hardware_interface::HW_IF_POSITION, &m_pinion_pos_state));
     state_interfaces.emplace_back(hardware_interface::StateInterface(
-        p_rear_motor_joint_name, hardware_interface::HW_IF_VELOCITY,
-        &m_rear_motor_velocity_state_));
+        p_motor_joint, hardware_interface::HW_IF_VELOCITY, &m_motor_vel_state));
+    state_interfaces.emplace_back(hardware_interface::StateInterface(
+        p_motor_joint, hardware_interface::HW_IF_POSITION, &m_motor_pos_state));
 
     return state_interfaces;
   }
@@ -118,62 +85,46 @@ public:
   export_command_interfaces() override {
     std::vector<hardware_interface::CommandInterface> command_interfaces;
 
-    // COMMAND INTERFACES: Controller writes → Hardware interface reads
+    // Controller writes -> hardware reads
     command_interfaces.emplace_back(hardware_interface::CommandInterface(
-        p_pinion_joint_name, hardware_interface::HW_IF_POSITION,
-        &m_pinion_position_cmd_));
+        p_pinion_joint, hardware_interface::HW_IF_POSITION, &m_pinion_pos_cmd));
     command_interfaces.emplace_back(hardware_interface::CommandInterface(
-        p_rear_motor_joint_name, hardware_interface::HW_IF_VELOCITY,
-        &m_rear_motor_velocity_cmd_));
+        p_motor_joint, hardware_interface::HW_IF_VELOCITY, &m_motor_vel_cmd));
 
     return command_interfaces;
-  }
-
-  hardware_interface::return_type prepare_command_mode_switch(
-      const std::vector<std::string> & /*start_interfaces*/,
-      const std::vector<std::string> & /*stop_interfaces*/) override {
-
-    return hardware_interface::return_type::OK;
-  }
-
-  hardware_interface::return_type perform_command_mode_switch(
-      const std::vector<std::string> & /*start_interfaces*/,
-      const std::vector<std::string> & /*stop_interfaces*/) override {
-
-    return hardware_interface::return_type::OK;
   }
 
   // MARK: ACT
   CallbackReturn
   on_activate(const rclcpp_lifecycle::State & /*previous_state*/) override {
-    // Open serial port
+    // open serial port
     m_serial_fd = open(p_device.c_str(), O_RDWR | O_NOCTTY);
     if (m_serial_fd == -1) {
       RCLCPP_ERROR(m_logger, "Failed to open serial device: %s", p_device.c_str());
       return CallbackReturn::ERROR;
     }
 
-    // Configure serial port
+    // config serial
     struct termios tty;
     if (tcgetattr(m_serial_fd, &tty) != 0) {
-      RCLCPP_ERROR(m_logger, "Failed to get serial attributes");
+      RCLCPP_ERROR(m_logger, "Failed to get serial attributes!");
       close(m_serial_fd);
       m_serial_fd = -1;
       return CallbackReturn::ERROR;
     }
 
     // Set baud rate
-    speed_t baud = B115200; // Default to 9600
+    speed_t baud = B9600;
     switch (p_baud_rate) {
-    case 9600: baud = B9600; break;
+    case 9600: break;
     case 19200: baud = B19200; break;
     case 38400: baud = B38400; break;
     case 57600: baud = B57600; break;
     case 115200: baud = B115200; break;
     default:
-      RCLCPP_WARN(m_logger, "Unsupported baud rate %d, using 9600", p_baud_rate);
-      baud = B9600;
     }
+
+    RCLCPP_INFO(m_logger, "Serial opened using baud[%i]", baud);
 
     cfsetospeed(&tty, baud);
     cfsetispeed(&tty, baud);
@@ -212,11 +163,8 @@ public:
     // Flush any existing data
     tcflush(m_serial_fd, TCIOFLUSH);
 
-    // Initialize time tracking
-    m_last_read_time_ = rclcpp::Time(0, 0, RCL_STEADY_TIME);
-    m_serial_buffer_  = ""; // Clear serial buffer
+    m_serial_buffer = ""; // Clear serial buffer
 
-    RCLCPP_INFO(m_logger, "AckermannArduinoHardware activated");
     return CallbackReturn::SUCCESS;
   }
 
@@ -226,96 +174,126 @@ public:
     if (m_serial_fd >= 0) {
       close(m_serial_fd);
       m_serial_fd = -1;
-      RCLCPP_INFO(m_logger, "AckermannArduinoHardware deactivated");
+      RCLCPP_INFO(m_logger, "Serial Connection closed");
     }
     return CallbackReturn::SUCCESS;
   }
 
   // MARK: READ
   return_type read(const rclcpp::Time &time,
-                   const rclcpp::Duration & /*period*/) override {
-    if (m_serial_fd < 0) {
-      // No serial connection, use command values as fallback
-      m_pinion_position_state_     = m_pinion_position_cmd_;
-      m_rear_motor_velocity_state_ = m_rear_motor_velocity_cmd_;
-      RCLCPP_DEBUG(m_logger,
-                   "READ: No serial connection, using command values as fallback");
-    } else {
-      // Read available data from serial port and accumulate in buffer
+                   const rclcpp::Duration &period) override {
+    // Integrate motor position from velocity
+    if (m_last_read_time.nanoseconds() > 0) {
+      // Calculate time delta in seconds
+      double dt = period.seconds();
+      // Integrate velocity to get position: position += velocity * dt
+      m_motor_pos_state += m_motor_vel_state * dt;
+    }
+    m_last_read_time = time;
+
+    if (m_serial_fd < 0)
+      RCLCPP_WARN(m_logger, "No serial connection, Cannot read!");
+    else {
+      // read available data from port and accumulate in buffer
       char read_buffer[256];
       ssize_t bytes_read = ::read(m_serial_fd, read_buffer, sizeof(read_buffer) - 1);
 
       if (bytes_read > 0) {
-        read_buffer[bytes_read] = '\0'; // Null terminate
+        read_buffer[bytes_read] = '\0'; // terminate message
 
-        // Log raw data received
-        std::string raw_data(read_buffer, bytes_read);
-        RCLCPP_DEBUG(m_logger, "READ from Arduino: [%zd bytes] '%s'", bytes_read,
-                     raw_data.c_str());
+        // log for debug TODO: Stop doing this
+        RCLCPP_DEBUG(m_logger, "%s", std::string(read_buffer, bytes_read).c_str());
 
-        // Accumulate data in buffer
-        m_serial_buffer_ += raw_data;
+        // accumulate new data
+        m_serial_buffer += std::string(read_buffer, bytes_read);
 
-        // Process complete lines (ending with '\n')
+        // Proccess all complete lines in buffer
         size_t newline_pos;
-        while ((newline_pos = m_serial_buffer_.find('\n')) != std::string::npos) {
-          // Extract complete line (including newline)
-          std::string complete_line = m_serial_buffer_.substr(0, newline_pos + 1);
-          m_serial_buffer_.erase(0, newline_pos +
-                                        1); // Remove processed line from buffer
+        while ((newline_pos = m_serial_buffer.find('\n')) != std::string::npos) {
 
-          // Parse feedback messages
-          // Expected format: "F:P:<pinion_angle>,V:<velocity>\n"
-          double pinion_before   = m_pinion_position_state_;
-          double velocity_before = m_rear_motor_velocity_state_;
-          parseFeedback(complete_line);
+          std::string complete_line = m_serial_buffer.substr(0, newline_pos);
+          m_serial_buffer.erase(0, newline_pos + 1);
 
-          // Log parsed values
-          if (m_pinion_position_state_ != pinion_before ||
-              m_rear_motor_velocity_state_ != velocity_before) {
-            RCLCPP_INFO(m_logger, "READ parsed: pinion=%.6f, velocity=%.6f",
-                        m_pinion_position_state_, m_rear_motor_velocity_state_);
+          parse_feedback(complete_line);
+
+          if (m_serial_buffer.length() > 512) {
+            RCLCPP_WARN(m_logger, "Serial buffer overflow, oof!");
+            m_serial_buffer.clear();
           }
         }
-
-        // Warn if buffer is getting too large (indicates no newlines received)
-        if (m_serial_buffer_.length() > 512) {
-          RCLCPP_WARN(m_logger,
-                      "Serial buffer overflow (>512 bytes), clearing buffer. Buffer "
-                      "content: '%s'",
-                      m_serial_buffer_.c_str());
-          m_serial_buffer_.clear();
-        }
       } else if (bytes_read == 0) {
-        // No data available, use command values as fallback
-        m_pinion_position_state_     = m_pinion_position_cmd_;
-        m_rear_motor_velocity_state_ = m_rear_motor_velocity_cmd_;
-        RCLCPP_DEBUG(m_logger,
-                     "READ: No data available from Arduino, using command values");
-      } else {
-        // Error reading
-        RCLCPP_WARN(m_logger, "READ error: %s", strerror(errno));
-      }
+        RCLCPP_WARN(m_logger, "no data available over serial!");
+      } else
+        RCLCPP_WARN(m_logger, "Read error: %s", strerror(errno));
+
+      return return_type::OK;
+    }
+  }
+
+  // MARK: WRITE
+  return_type write(const rclcpp::Time & /*time*/,
+                    const rclcpp::Duration & /*period*/) override {
+    if (m_serial_fd < 0) {
+      RCLCPP_WARN(m_logger, "No serial device available!");
+      return return_type::ERROR;
     }
 
-    // Update time tracking
-    m_last_read_time_ = time;
+    std::string msg = "P:" + std::to_string(m_pinion_pos_cmd) +
+                      ",V:" + std::to_string(m_motor_vel_cmd) + "\n";
+
+    ssize_t bytes_written = ::write(m_serial_fd, msg.c_str(), msg.length());
+
+    if (bytes_written < 0) {
+      RCLCPP_WARN(m_logger, "Write failed: %s", strerror(errno));
+      return return_type::ERROR;
+    }
+
+    if (bytes_written != static_cast<ssize_t>(msg.length())) {
+      RCLCPP_WARN(m_logger, "Write incomplete!");
+    }
 
     return return_type::OK;
   }
 
 private:
+  // Serial communication
+  std::string p_device;
+  int p_baud_rate;
+  int p_timeout_ms;
+
+  int m_serial_fd;
+  std::string m_serial_buffer;
+
+  // Joint names
+  std::string p_pinion_joint;
+  std::string p_motor_joint;
+
+  // Command storage
+  double m_pinion_pos_cmd;
+  double m_motor_vel_cmd;
+
+  // State storage
+  double m_pinion_pos_state;
+  double m_motor_vel_state;
+  double m_motor_pos_state;
+
+  // Position integration
+  rclcpp::Time m_last_read_time;
+
+  // Logging
+  rclcpp::Logger m_logger{rclcpp::get_logger("AckermannArduinoHardware")};
+
   // MARK: FEEDBACK
   // -----------------------------------------------------------------------------
-  void parseFeedback(const std::string &feedback) {
+  void parse_feedback(const std::string &feedback) {
     // Look for feedback format: "F:P:<angle>,V:<velocity>"
     size_t f_pos = feedback.find("F:P:");
     if (f_pos == std::string::npos) {
       // Not a feedback message, use command values
       RCLCPP_WARN(m_logger, "PARSE: Feedback message missing 'F:P:' marker in: '%s'",
                   feedback.c_str());
-      m_pinion_position_state_     = m_pinion_position_cmd_;
-      m_rear_motor_velocity_state_ = m_rear_motor_velocity_cmd_;
+      m_pinion_pos_state = m_pinion_pos_cmd;
+      m_motor_vel_state  = m_motor_vel_cmd;
       return;
     }
 
@@ -324,20 +302,20 @@ private:
       // Invalid format, use command values
       RCLCPP_WARN(m_logger, "PARSE: Feedback message missing ',V:' marker in: '%s'",
                   feedback.c_str());
-      m_pinion_position_state_     = m_pinion_position_cmd_;
-      m_rear_motor_velocity_state_ = m_rear_motor_velocity_cmd_;
+      m_pinion_pos_state = m_pinion_pos_cmd;
+      m_motor_vel_state  = m_motor_vel_cmd;
       return;
     }
 
     // Extract pinion angle
     std::string pinion_str = feedback.substr(f_pos + 4, v_pos - (f_pos + 4));
     try {
-      m_pinion_position_state_ = std::stod(pinion_str);
+      m_pinion_pos_state = std::stod(pinion_str);
     } catch (const std::exception &e) {
       // Parse error, use command value
       RCLCPP_WARN(m_logger, "PARSE: Failed to parse pinion angle from '%s': %s",
                   pinion_str.c_str(), e.what());
-      m_pinion_position_state_ = m_pinion_position_cmd_;
+      m_pinion_pos_state = m_pinion_pos_cmd;
     }
 
     // Extract velocity
@@ -345,85 +323,14 @@ private:
     if (end_pos == std::string::npos) { end_pos = feedback.length(); }
     std::string velocity_str = feedback.substr(v_pos + 3, end_pos - (v_pos + 3));
     try {
-      m_rear_motor_velocity_state_ = std::stod(velocity_str);
+      m_motor_vel_state = std::stod(velocity_str);
     } catch (const std::exception &e) {
       // Parse error, use command value
       RCLCPP_WARN(m_logger, "PARSE: Failed to parse velocity from '%s': %s",
                   velocity_str.c_str(), e.what());
-      m_rear_motor_velocity_state_ = m_rear_motor_velocity_cmd_;
+      m_motor_vel_state = m_motor_vel_cmd;
     }
   }
-
-  // MARK: WRITE
-  return_type write(const rclcpp::Time & /*time*/,
-                    const rclcpp::Duration & /*period*/) override {
-    if (m_serial_fd < 0) {
-      RCLCPP_WARN(m_logger, "WRITE: No serial connection available");
-      return return_type::ERROR;
-    }
-
-    // Construct the string: "P:0.123,V:1.23\n"
-    std::string msg = "P:" + std::to_string(m_pinion_position_cmd_) +
-                      ",V:" + std::to_string(m_rear_motor_velocity_cmd_) + "\n";
-
-    // Log what we're sending
-    RCLCPP_DEBUG(m_logger, "WRITE to Arduino: pinion=%.6f, velocity=%.6f -> '%s'",
-                 m_pinion_position_cmd_, m_rear_motor_velocity_cmd_, msg.c_str());
-
-    ssize_t bytes_written = ::write(m_serial_fd, msg.c_str(), msg.length());
-
-    if (bytes_written < 0) {
-      RCLCPP_WARN(m_logger, "WRITE failed: %s", strerror(errno));
-      return return_type::ERROR;
-    }
-
-    if (bytes_written != static_cast<ssize_t>(msg.length())) {
-      RCLCPP_WARN(m_logger, "WRITE incomplete: wrote %zd of %zu bytes",
-                  bytes_written, msg.length());
-    } else {
-      RCLCPP_DEBUG(m_logger, "WRITE successful: %zd bytes written", bytes_written);
-    }
-
-    return return_type::OK;
-  }
-
-private:
-  // Serial communication parameters
-  // -----------------------------------------------------------------------------
-  std::string p_device;
-  int p_baud_rate;
-  int p_timeout_ms;
-
-  // Joint names
-  // -----------------------------------------------------------------------------
-  std::string p_pinion_joint_name;
-  std::string p_rear_motor_joint_name;
-
-  // Serial communication
-  // -----------------------------------------------------------------------------
-  int m_serial_fd = -1;
-
-  // Command storage
-  // -----------------------------------------------------------------------------
-  double m_pinion_position_cmd_;
-  double m_rear_motor_velocity_cmd_;
-
-  // State storage
-  // -----------------------------------------------------------------------------
-  double m_pinion_position_state_;
-  double m_rear_motor_velocity_state_;
-
-  // Time tracking
-  rclcpp::Time m_last_read_time_;
-
-  // Serial read buffer (accumulates data until complete line received)
-  std::string m_serial_buffer_;
-
-  // Logger
-  rclcpp::Logger m_logger{rclcpp::get_logger("AckermannArduinoHardware")};
-
-  // Clock for throttled logging
-  rclcpp::Clock::SharedPtr m_clock{std::make_shared<rclcpp::Clock>()};
 };
 
 } // namespace igvc_control

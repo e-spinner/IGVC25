@@ -40,16 +40,16 @@ public:
     node->get_parameter(m_plugin_name + ".wheel_base", p_wheel_base);
   }
 
-  void cleanup() override {
-    RCLCPP_INFO(m_logger, "Cleaning up controller: %s", m_plugin_name.c_str());
-  }
-
   void activate() override {
     RCLCPP_INFO(m_logger, "Activating controller: %s", m_plugin_name.c_str());
   }
 
   void deactivate() override {
     RCLCPP_INFO(m_logger, "Deactivating up controller: %s", m_plugin_name.c_str());
+  }
+
+  void cleanup() override {
+    RCLCPP_INFO(m_logger, "Cleaning up controller: %s", m_plugin_name.c_str());
   }
 
   void setPlan(const nav_msgs::msg::Path &path) override { m_plan = path; }
@@ -78,10 +78,11 @@ public:
     if (goal_pose_it == transformed_plan.poses.end()) {
       goal_pose_it = std::prev(transformed_plan.poses.end());
     }
+    `
 
-    // Get target point coordinates
-    const double x_tp = goal_pose_it->pose.position.x;
-    const double y_tp = goal_pose_it->pose.position.y;
+        // Get target point coordinates
+        const double x_tp = goal_pose_it->pose.position.x;
+    const double y_tp     = goal_pose_it->pose.position.y;
 
     // Calculate alpha: angle from vehicle heading to target point
     const double alpha = std::atan2(y_tp, x_tp);
