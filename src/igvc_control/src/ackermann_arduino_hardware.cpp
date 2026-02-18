@@ -238,7 +238,7 @@ public:
       return return_type::ERROR;
     }
 
-    std::string msg = "P:" + std::to_string(m_pinion_pos_cmd) +
+    std::string msg = "C:P:" + std::to_string(m_pinion_pos_cmd) +
                       ",V:" + std::to_string(m_motor_vel_cmd) + "\n";
 
     ssize_t bytes_written = ::write(m_serial_fd, msg.c_str(), msg.length());
