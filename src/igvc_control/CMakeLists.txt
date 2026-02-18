@@ -23,33 +23,6 @@ find_package(controller_interface REQUIRED)
 find_package(hardware_interface REQUIRED)
 # find_package(nav2_ros_common REQUIRED)
 
-
-# ----------------
-# C++ nodes
-# ----------------
-
-# cmd_interpreter
-add_executable(cmd_interpreter src/cmd_interpreter.cpp)
-ament_target_dependencies(
-  cmd_interpreter
-  rclcpp
-  geometry_msgs
-  tf2_ros
-  igvc
-)
-
-# transform
-add_executable(transform src/transform.cpp)
-ament_target_dependencies(
-  transform
-  rclcpp
-  geometry_msgs
-  tf2_ros
-  sensor_msgs
-  igvc
-)
-
-
 # --------------------
 # Builld Plugin
 # --------------------
@@ -123,47 +96,13 @@ install(TARGETS ackermann_arduino_hardware
   RUNTIME DESTINATION bin
 )
 
-# --------------------
-# Headers
-# --------------------
-include_directories(
-  include
-)
-
-# install(
-#   DIRECTORY include/
-#   DESTINATION include
-# )
-
-# --------------------
-# Install Nodes
-# --------------------
-install(
-  TARGETS cmd_interpreter transform
-  DESTINATION lib/${PROJECT_NAME}
-)
 
 # --------------------
 # Install Extra Folders
 # --------------------
 install(
-  DIRECTORY launch config
+  DIRECTORY config
   DESTINATION share/${PROJECT_NAME}
-)
-
-# --------------------
-# Python nodes
-# --------------------
-find_package(ament_cmake_python REQUIRED)
-
-# Install Python module
-ament_python_install_package(igvc_control_py)
-
-# Install Python executables
-install(PROGRAMS
-  igvc_control_py/ack_calc.py
-  igvc_control_py/ackermann_controller.py
-  DESTINATION lib/${PROJECT_NAME}
 )
 
 # --------------------

@@ -223,7 +223,7 @@ public:
 
     // Get commanded linear velocity (m/s) and ideal angle (rad)
     // TODO: hard coded here as well for now
-    const double cmd_linear_x = 2.3d; // m_current_twist.linear.x;
+    const double cmd_linear_x = 2.3; // m_current_twist.linear.x;
     const double cmd_ideal_angle =
         m_current_twist.angular.z; // This is ideal angle, not angular velocity!
 

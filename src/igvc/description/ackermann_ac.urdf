@@ -60,7 +60,7 @@
     </visual>
   </link>
 
-  <joint name="rear_motor_joint" type="continuous">
+  <joint name="motor_joint" type="continuous">
     <parent link="diff_link" />
     <child link="motor" />
     <origin xyz="0.0 0.0 0.1" rpy="0.0 -${pi/2} 0.0" />

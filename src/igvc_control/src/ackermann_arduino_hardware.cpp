@@ -4,6 +4,7 @@
 #include <cstring>
 #include <errno.h>
 #include <fcntl.h>
+#include <hardware_interface/types/hardware_interface_return_values.hpp>
 #include <limits>
 #include <string>
 #include <sys/types.h>
@@ -35,16 +36,16 @@ public:
 
       // get params
       p_device       = info_.hardware_parameters.at("device");
-      p_baud_rate    = info_.hardware_parameters.at("baud_rate");
+      p_baud_rate    = std::stoi(info_.hardware_parameters.at("baud_rate"));
       p_pinion_joint = info_.hardware_parameters.at("pinion_joint");
       p_motor_joint  = info_.hardware_parameters.at("motor_joint");
 
       // init storage
-      m_motor_vel_cmd    = 0.0d;
-      m_motor_vel_state  = 0.0d;
-      m_motor_pos_state  = 0.0d;
-      m_pinion_pos_cmd   = 0.0d;
-      m_pinion_pos_state = 0.0d;
+      m_motor_vel_cmd    = 0.0;
+      m_motor_vel_state  = 0.0;
+      m_motor_pos_state  = 0.0;
+      m_pinion_pos_cmd   = 0.0;
+      m_pinion_pos_state = 0.0;
 
       // init position integration
       m_last_read_time = rclcpp::Time(0, 0, RCL_ROS_TIME);
@@ -114,14 +115,14 @@ public:
     }
 
     // Set baud rate
-    speed_t baud = B9600;
+    speed_t baud;
     switch (p_baud_rate) {
-    case 9600: break;
+    case 9600: baud = B9600; break;
     case 19200: baud = B19200; break;
     case 38400: baud = B38400; break;
     case 57600: baud = B57600; break;
     case 115200: baud = B115200; break;
-    default:
+    default: baud = B9600;
     }
 
     RCLCPP_INFO(m_logger, "Serial opened using baud[%i]", baud);
@@ -191,9 +192,10 @@ public:
     }
     m_last_read_time = time;
 
-    if (m_serial_fd < 0)
+    if (m_serial_fd < 0) {
       RCLCPP_WARN(m_logger, "No serial connection, Cannot read!");
-    else {
+      return return_type::ERROR;
+    } else {
       // read available data from port and accumulate in buffer
       char read_buffer[256];
       ssize_t bytes_read = ::read(m_serial_fd, read_buffer, sizeof(read_buffer) - 1);

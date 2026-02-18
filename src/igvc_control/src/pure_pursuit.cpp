@@ -78,11 +78,10 @@ public:
     if (goal_pose_it == transformed_plan.poses.end()) {
       goal_pose_it = std::prev(transformed_plan.poses.end());
     }
-    `
 
-        // Get target point coordinates
-        const double x_tp = goal_pose_it->pose.position.x;
-    const double y_tp     = goal_pose_it->pose.position.y;
+    // Get target point coordinates
+    const double x_tp = goal_pose_it->pose.position.x;
+    const double y_tp = goal_pose_it->pose.position.y;
 
     // Calculate alpha: angle from vehicle heading to target point
     const double alpha = std::atan2(y_tp, x_tp);
