@@ -1,6 +1,10 @@
-# igvc Capstone Software
-> subtitle!
----
+# Polor Autonomous
+IGVC 2026
+
+See the [Final Proposal]() For in depth information and references.
+
+
+## Installation
 
 To use this software you first need an ubuntu 22 environment:
 
@@ -47,6 +51,8 @@ sudo udevadm trigger
 ```bash
 colcon build --symlink-install --cmake-args -DCMAKE_EXPORT_COMPILE_COMMANDS=ON --packages-select igcv26
 ```
+
+## Usage
 
 ### Package Structure
 
