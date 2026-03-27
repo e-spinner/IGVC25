@@ -1,8 +1,16 @@
 # Polor Autonomous
 IGVC 2026
 
-See the [Final Proposal]() For in depth information and references.
+See the [Final Proposal](./IGVC%20Final%20Proposal.pdf) for in-depth information and references.
 
+## Full Diagram
+![Diagram](./Diagram.png)
+
+## Demo
+
+Click below to watch the simulation:
+
+[![Simulation Demo](https://img.youtube.com/vi/WGtT7YmnFjI/0.jpg)](https://youtu.be/WGtT7YmnFjI)
 
 ## Installation
 
