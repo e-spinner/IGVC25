@@ -12,6 +12,8 @@
 
 namespace igvc_control {
 
+constexpr double MAX_LINEAR_SPEED_MPS = 2.2352; // 5 mph
+
 class AckermannAngleController final
     : public controller_interface::ControllerInterface {
 public:
@@ -221,11 +223,13 @@ public:
       return controller_interface::return_type::OK;
     }
 
-    // Get commanded linear velocity (m/s) and ideal angle (rad)
-    // TODO: hard coded here as well for now
-    const double cmd_linear_x = 2.3; // m_current_twist.linear.x;
+    // Get commanded linear velocity (m/s) and ideal steering angle (rad)
+    const double cmd_linear_x =
+        std::clamp(m_current_twist.linear.x, -MAX_LINEAR_SPEED_MPS,
+                   MAX_LINEAR_SPEED_MPS);
     const double cmd_ideal_angle =
-        m_current_twist.angular.z; // This is ideal angle, not angular velocity!
+        std::clamp(m_current_twist.angular.z, -p_max_pinion_angle,
+                   p_max_pinion_angle);
 
     // Convert ideal angle to pinion angle using calibration lookup
     // const double cmd_pinion_angle = ideal_angle_to_pinion_angle(cmd_ideal_angle);

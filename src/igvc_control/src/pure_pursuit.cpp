@@ -1,4 +1,5 @@
-
+#include <algorithm>
+#include <cmath>
 #include "nav2_core/exceptions.hpp"
 #include "nav2_util/geometry_utils.hpp"
 #include <nav2_core/controller.hpp>
@@ -10,6 +11,10 @@
 #include <rclcpp_lifecycle/lifecycle_node.hpp>
 
 namespace igvc_control {
+
+constexpr double MAX_LINEAR_SPEED_MPS = 2.2352; // 5 mph
+constexpr double MAX_CENTRIPETAL_ACCEL_MPS2 = 4.0;
+constexpr double CURVATURE_EPSILON = 1e-6;
 
 class PurePursuit final : public nav2_core::Controller {
 public:
@@ -90,10 +95,24 @@ public:
     const double steering_angle =
         std::atan(2.0 * p_wheel_base * std::sin(alpha) / p_lookahead_distance);
 
+    // Curvature-based target speed:
+    // kappa = tan(delta) / L, R = 1 / |kappa|, v = sqrt(R * a_max)
+    const double kappa = std::tan(steering_angle) / p_wheel_base;
+    double curvature_limited_velocity = MAX_LINEAR_SPEED_MPS;
+    if (std::abs(kappa) > CURVATURE_EPSILON) {
+      const double turn_radius = 1.0 / std::abs(kappa);
+      curvature_limited_velocity =
+          std::sqrt(turn_radius * MAX_CENTRIPETAL_ACCEL_MPS2);
+    }
+    const double configured_max_velocity =
+        std::min(p_max_velocity, MAX_LINEAR_SPEED_MPS);
+    const double velocity = std::clamp(curvature_limited_velocity, p_min_velocity,
+                                       configured_max_velocity);
+
     geometry_msgs::msg::TwistStamped cmd;
     cmd.header.stamp    = m_clock->now();
     cmd.header.frame_id = m_costmap_ros->getBaseFrameID();
-    cmd.twist.linear.x  = 2.3;
+    cmd.twist.linear.x  = velocity;
     cmd.twist.linear.y  = 0.0;
     cmd.twist.linear.z  = 0.0;
     cmd.twist.angular.x = 0.0;

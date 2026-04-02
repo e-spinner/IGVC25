@@ -39,6 +39,10 @@ def launch_setup(context, *args, **kwargs):
   device = LaunchConfiguration("device").perform(context)
   baud_rate = LaunchConfiguration("baud_rate").perform(context)
   linkage_config_num = LaunchConfiguration("linkage_config").perform(context)
+  use_sim_time = (
+    LaunchConfiguration("use_sim_time").perform(context).strip().lower()
+    in ["true", "1", "yes", "on"]
+  )
 
   # MARK: Robot Description
   # -----------------------------------------------------------------------------
@@ -122,7 +126,7 @@ def launch_setup(context, *args, **kwargs):
     parameters=[
       {
         "robot_description": robot_description,
-        "use_sim_time": False,
+        "use_sim_time": use_sim_time,
       }
     ],
   )
@@ -150,7 +154,7 @@ def launch_setup(context, *args, **kwargs):
     parameters=[
       cm_params,
       {
-        "use_sim_time": False,
+        "use_sim_time": use_sim_time,
       },
     ],
     output="screen",
@@ -209,8 +213,13 @@ def generate_launch_description():
 
   linkage_config_arg = DeclareLaunchArgument(
     "linkage_config",
-    default_value="2",
+    default_value="3",
     description="Linkage configuration number",
+  )
+  use_sim_time_arg = DeclareLaunchArgument(
+    "use_sim_time",
+    default_value="false",
+    description="Use simulation time if true",
   )
 
   # MARK: Launch!
@@ -220,6 +229,7 @@ def generate_launch_description():
       device_arg,
       baud_rate_arg,
       linkage_config_arg,
+      use_sim_time_arg,
       OpaqueFunction(function=launch_setup),
     ]
   )

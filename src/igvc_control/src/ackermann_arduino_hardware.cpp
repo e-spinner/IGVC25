@@ -39,6 +39,10 @@ public:
       p_baud_rate    = std::stoi(info_.hardware_parameters.at("baud_rate"));
       p_pinion_joint = info_.hardware_parameters.at("pinion_joint");
       p_motor_joint  = info_.hardware_parameters.at("motor_joint");
+      auto timeout_it = info_.hardware_parameters.find("timeout_ms");
+      p_timeout_ms = (timeout_it != info_.hardware_parameters.end())
+                         ? std::stoi(timeout_it->second)
+                         : 1000;
 
       // init storage
       m_motor_vel_cmd    = 0.0;

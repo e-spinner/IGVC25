@@ -3,24 +3,14 @@ import os
 from ament_index_python.packages import get_package_share_directory
 
 from launch import LaunchDescription
-from launch.actions import (
-  IncludeLaunchDescription,
-  DeclareLaunchArgument,
-  GroupAction,
-)
-from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import (
-  LaunchConfiguration,
-  PathJoinSubstitution,
-  PythonExpression,
-)
-from launch.conditions import IfCondition
-
-from launch_ros.actions import Node, PushRosNamespace
+from launch.actions import DeclareLaunchArgument
+from launch.substitutions import LaunchConfiguration
+from launch_ros.actions import Node
 
 
 def generate_launch_description():
   package_name = "igvc"
+  use_sim_time = LaunchConfiguration("use_sim_time")
 
   teleop = Node(
     package="teleop_twist_keyboard",
@@ -39,14 +29,14 @@ def generate_launch_description():
   joy_node = Node(
     package="joy",
     executable="joy_node",
-    parameters=[joystick_params],
+    parameters=[joystick_params, {"use_sim_time": use_sim_time}],
   )
   teleop_joy = Node(
     package="teleop_twist_joy",
     executable="teleop_node",
     name="teleop_node",
     remappings=[("/cmd_vel", "/cmd_vel_teleop_joy")],
-    parameters=[joystick_params],
+    parameters=[joystick_params, {"use_sim_time": use_sim_time}],
   )
 
   # https://github.com/ros-teleop/twist_mux
@@ -57,7 +47,7 @@ def generate_launch_description():
   twist_mux = Node(
     package="twist_mux",
     executable="twist_mux",
-    parameters=[twist_mux_params, {"use_sim_time": True}],
+    parameters=[twist_mux_params, {"use_sim_time": use_sim_time}],
     remappings=[("/cmd_vel_out", "/cmd_vel_unstamped")],
   )
 
@@ -65,7 +55,7 @@ def generate_launch_description():
   twist_stamper = Node(
     package="twist_stamper",
     executable="twist_stamper",
-    parameters=[{"use_sim_time": True}],
+    parameters=[{"use_sim_time": use_sim_time}],
     remappings=[
       ("/cmd_vel_in", "/cmd_vel_unstamped"),
       ("/cmd_vel_out", "/cmd_vel_stamped"),
@@ -77,10 +67,15 @@ def generate_launch_description():
   # MARK: Launch!
   return LaunchDescription(
     [
+      DeclareLaunchArgument(
+        "use_sim_time",
+        default_value="false",
+        description="Use simulation time if true",
+      ),
       # Nodes
       teleop,
-      # joy_node,
-      # teleop_joy,
+      joy_node,
+      teleop_joy,
       twist_mux,
       twist_stamper,
     ]

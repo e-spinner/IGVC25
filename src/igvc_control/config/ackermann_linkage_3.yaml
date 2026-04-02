@@ -91,7 +91,7 @@ teleop_node:
     axis_linear:
       x: 1                            # linear velocity
     scale_linear:
-      x: 2.3                          # max linear velocity (2.3 m/s)
+      x: 2.2352                       # max linear velocity (5 mph)
 
     axis_angular:
       yaw: 0                          # yaw angular velocity
