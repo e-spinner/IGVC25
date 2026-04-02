@@ -8,7 +8,7 @@ controller_manager:
 
       joints:
       - pinion_joint
-      - rear_motor_joint
+      - motor_joint
       - front_left_steering_joint
       - front_right_steering_joint
       - back_left_wheel_joint
@@ -21,7 +21,7 @@ ackermann_angle_controller:
   ros__parameters:
     # Joint names
     pinion_joint: pinion_joint
-    rear_motor_joint: rear_motor_joint
+    motor_joint: motor_joint
 
     # Topics
     cmd_vel_topic: /cmd_vel_stamped

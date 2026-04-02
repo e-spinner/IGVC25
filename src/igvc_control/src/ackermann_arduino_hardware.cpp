@@ -103,7 +103,7 @@ public:
   CallbackReturn
   on_activate(const rclcpp_lifecycle::State & /*previous_state*/) override {
     // open serial port
-    m_serial_fd = open(p_device.c_str(), O_RDWR | O_NOCTTY);
+    m_serial_fd = open(p_device.c_str(), O_RDWR | O_NOCTTY| O_NONBLOCK);
     if (m_serial_fd == -1) {
       RCLCPP_ERROR(m_logger, "Failed to open serial device: %s", p_device.c_str());
       return CallbackReturn::ERROR;
@@ -129,8 +129,6 @@ public:
     default: baud = B9600;
     }
 
-    RCLCPP_INFO(m_logger, "Serial opened using baud[%i]", baud);
-
     cfsetospeed(&tty, baud);
     cfsetispeed(&tty, baud);
 
@@ -155,7 +153,7 @@ public:
     tty.c_oflag &=
         ~ONLCR; // Disable conversion of newline to carriage return/line feed
 
-    tty.c_cc[VTIME] = p_timeout_ms / 100; // Timeout in tenths of seconds
+    tty.c_cc[VTIME] = 0; // Timeout in tenths of seconds
     tty.c_cc[VMIN]  = 0;                  // Non-blocking read
 
     if (tcsetattr(m_serial_fd, TCSANOW, &tty) != 0) {
@@ -208,7 +206,7 @@ public:
         read_buffer[bytes_read] = '\0'; // terminate message
 
         // log for debug TODO: Stop doing this
-        RCLCPP_DEBUG(m_logger, "%s", std::string(read_buffer, bytes_read).c_str());
+        // RCLCPP_INFO(m_logger, "%s", std::string(read_buffer, bytes_read).c_str());
 
         // accumulate new data
         m_serial_buffer += std::string(read_buffer, bytes_read);
@@ -228,7 +226,7 @@ public:
           }
         }
       } else if (bytes_read == 0) {
-        RCLCPP_WARN(m_logger, "no data available over serial!");
+        // RCLCPP_WARN(m_logger, "no data available over serial!");
       } else
         RCLCPP_WARN(m_logger, "Read error: %s", strerror(errno));
 

@@ -79,7 +79,7 @@
       <param name="baud_rate">115200</param>
       <!-- <param name="timeout_ms">1000</param> -->
       <param name="pinion_joint">pinion_joint</param>
-      <param name="motor_joint">rear_motor_joint</param>
+      <param name="motor_joint">motor_joint</param>
     </hardware>
     <joint name="pinion_joint">
       <command_interface name="position" />

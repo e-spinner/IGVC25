@@ -106,13 +106,13 @@ public:
     }
     const double configured_max_velocity =
         std::min(p_max_velocity, MAX_LINEAR_SPEED_MPS);
-    const double velocity = std::clamp(curvature_limited_velocity, p_min_velocity,
+    const double velocity_out = std::clamp(curvature_limited_velocity, p_min_velocity,
                                        configured_max_velocity);
 
     geometry_msgs::msg::TwistStamped cmd;
     cmd.header.stamp    = m_clock->now();
     cmd.header.frame_id = m_costmap_ros->getBaseFrameID();
-    cmd.twist.linear.x  = velocity;
+    cmd.twist.linear.x  = velocity_out;
     cmd.twist.linear.y  = 0.0;
     cmd.twist.linear.z  = 0.0;
     cmd.twist.angular.x = 0.0;

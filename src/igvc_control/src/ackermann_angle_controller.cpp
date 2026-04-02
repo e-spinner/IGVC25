@@ -50,7 +50,7 @@ public:
       node->declare_parameter("pinion_joint", "pinion_joint");
       node->declare_parameter("back_left_wheel_joint", "back_left_wheel_joint");
       node->declare_parameter("back_right_wheel_joint", "back_right_wheel_joint");
-      node->declare_parameter("rear_motor_joint", "rear_motor_joint");
+      node->declare_parameter("motor_joint", "motor_joint");
 
       // Twist subscription
       node->declare_parameter("cmd_vel_topic", "/cmd_vel_unstamped");
@@ -80,7 +80,7 @@ public:
     cmd_interfaces_config.names.push_back(p_pinion_joint_name + "/" +
                                           hardware_interface::HW_IF_POSITION);
     // Single rear motor driving differential
-    cmd_interfaces_config.names.push_back(p_rear_motor_joint_name + "/" +
+    cmd_interfaces_config.names.push_back(p_motor_joint_name + "/" +
                                           hardware_interface::HW_IF_VELOCITY);
 
     return cmd_interfaces_config;
@@ -96,9 +96,9 @@ public:
     // STATE INTERFACES: Hardware interface writes -> Controller reads
     state_interfaces_config.names.push_back(p_pinion_joint_name + "/" +
                                             hardware_interface::HW_IF_POSITION);
-    state_interfaces_config.names.push_back(p_rear_motor_joint_name + "/" +
+    state_interfaces_config.names.push_back(p_motor_joint_name + "/" +
                                             hardware_interface::HW_IF_POSITION);
-    state_interfaces_config.names.push_back(p_rear_motor_joint_name + "/" +
+    state_interfaces_config.names.push_back(p_motor_joint_name + "/" +
                                             hardware_interface::HW_IF_VELOCITY);
 
     return state_interfaces_config;
@@ -133,7 +133,7 @@ public:
         node->get_parameter("back_left_wheel_joint").as_string();
     p_back_right_wheel_joint_name =
         node->get_parameter("back_right_wheel_joint").as_string();
-    p_rear_motor_joint_name = node->get_parameter("rear_motor_joint").as_string();
+    p_motor_joint_name = node->get_parameter("motor_joint").as_string();
 
     p_cmd_vel_topic     = node->get_parameter("cmd_vel_topic").as_string();
     p_reference_timeout = node->get_parameter("reference_timeout").as_double();
@@ -167,7 +167,7 @@ public:
     const std::string pinion_pos_cmd =
         p_pinion_joint_name + "/" + hardware_interface::HW_IF_POSITION;
     const std::string rear_motor_vel_cmd =
-        p_rear_motor_joint_name + "/" + hardware_interface::HW_IF_VELOCITY;
+        p_motor_joint_name + "/" + hardware_interface::HW_IF_VELOCITY;
 
     for (auto &cmd_interface : command_interfaces_) {
       if (cmd_interface.get_name() == pinion_pos_cmd) {
@@ -181,7 +181,7 @@ public:
     const std::string pinion_pos_state =
         p_pinion_joint_name + "/" + hardware_interface::HW_IF_POSITION;
     const std::string rear_motor_vel_state =
-        p_rear_motor_joint_name + "/" + hardware_interface::HW_IF_VELOCITY;
+        p_motor_joint_name + "/" + hardware_interface::HW_IF_VELOCITY;
 
     for (const auto &state_interface : state_interfaces_) {
       if (state_interface.get_name() == pinion_pos_state) {
@@ -276,7 +276,7 @@ private:
   std::string p_pinion_joint_name;
   std::string p_back_left_wheel_joint_name;
   std::string p_back_right_wheel_joint_name;
-  std::string p_rear_motor_joint_name;
+  std::string p_motor_joint_name;
 
   // Twist subscription
   // -----------------------------------------------------------------------------
