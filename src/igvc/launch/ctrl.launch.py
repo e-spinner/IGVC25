@@ -1,5 +1,6 @@
 import os
 import xacro
+import re
 import yaml
 
 from ament_index_python.packages import get_package_share_directory
@@ -49,6 +50,21 @@ def launch_setup(context, *args, **kwargs):
   robot_description = load_robot_description(
     os.path.join(igvc_path, "description", "ackermann_ac.urdf"),
     os.path.join(igvc_path, "config", "ackermann.yaml"),
+  )
+
+  # Inject runtime hardware params (device, baud_rate) into ros2_control block
+  # so the hardware plugin reads launch-provided values instead of URDF defaults.
+  robot_description = re.sub(
+    r'(<param name="device">)([^<]+)(</param>)',
+    r'\g<1>' + device + r'\3',
+    robot_description,
+    count=1,
+  )
+  robot_description = re.sub(
+    r'(<param name="baud_rate">)([^<]+)(</param>)',
+    r'\g<1>' + str(baud_rate) + r'\3',
+    robot_description,
+    count=1,
   )
 
   # Load ros2_control config
@@ -155,6 +171,7 @@ def launch_setup(context, *args, **kwargs):
       cm_params,
       {
         "use_sim_time": use_sim_time,
+        "robot_description": robot_description,
       },
     ],
     output="screen",
