@@ -15,8 +15,8 @@ constexpr uint8_t LED_CLK_PIN = 11; // clock to MAX7219
 constexpr uint8_t LED_CS_PIN  = 10; // chip select / load to MAX7219
 
 // Sign-based display deadbands (within these -> treated as zero/center)
-constexpr float PINION_DEADBAND_RAD    = 0.05f;
-constexpr float VELOCITY_DEADBAND_RPS  = 0.50f;
+constexpr float PINION_DEADBAND_RAD    = 0.075f;
+constexpr float VELOCITY_DEADBAND_RPS  = 0.75f;
 
 // MARK: STATE
 // ------------------------------------------------------------------------
@@ -73,28 +73,7 @@ void set_motor(int direction, int speed, int spd_pin, int fwd_pin, int rev_pin) 
 
 // MARK: LED MATRIX
 // ------------------------------------------------------------------------
-static inline int clamp_int(int value, int lo, int hi) {
-  if (value < lo) { return lo; }
-  if (value > hi) { return hi; }
-  return value;
-}
 
-static inline int map_float_to_index(float value, float abs_range, int max_index) {
-  // Normalize to [-1, 1] based on abs_range, then map to [0, max_index]
-  if (abs_range <= 0.0f) { return max_index / 2; }
-  float n = value / abs_range;         // [-inf, +inf] ideally within [-1, 1]
-  if (n < -1.0f) n = -1.0f;
-  if (n >  1.0f) n =  1.0f;
-  float scaled = (n + 1.0f) * 0.5f;    // [0, 1]
-  int idx = static_cast<int>(scaled * static_cast<float>(max_index) + 0.5f);
-  return clamp_int(idx, 0, max_index);
-}
-
-void draw_point_on_matrix(uint8_t row, uint8_t col) {
-  // Clear entire display, then set the target LED
-  g_led_matrix.clearDisplay(0);
-  g_led_matrix.setLed(0, row, col, true);
-}
 
 void draw_block_2x2(uint8_t row_start, uint8_t col_start) {
   g_led_matrix.clearDisplay(0);
