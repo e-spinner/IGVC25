@@ -57,7 +57,7 @@ sudo udevadm trigger
 ### Building the software again
 
 ```bash
-colcon build --symlink-install --cmake-args -DCMAKE_EXPORT_COMPILE_COMMANDS=ON --packages-select igcv26
+colcon build --symlink-install --cmake-args -DCMAKE_EXPORT_COMPILE_COMMANDS=ON --packages-select igvc
 ```
 
 ## Usage
@@ -86,15 +86,5 @@ source install/setup.bash
 Run different system configurations:
 
 ```bash
-# Ackermann linkage visualzation + control by joy-teleop
-ros2 launch igvc ack.launch.py linkage_config:=2
-
-# Navigation stack  --- intended to be used on top of sim
-ros2 launch igvc nav.launch.py
-
-# Simulation environment + basic ackermann robot
-ros2 launch igvc sim.launch.py
-
-# Vision sensors drivers (GPS and IMU)
-ros2 launch igvc vision.launch.py
+ros2 launch igvc <launch_file> [arguments ...]
 ```

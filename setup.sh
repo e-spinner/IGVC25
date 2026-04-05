@@ -21,7 +21,6 @@ curl -L -o /tmp/ros2-apt-source.deb "https://github.com/ros-infrastructure/ros-a
 sudo dpkg -i /tmp/ros2-apt-source.deb
 
 
-
 sudo apt update
 sudo apt upgrade -y
 
@@ -32,7 +31,18 @@ sudo apt install -y \
     ros-humble-rqt-graph \
     ros-humble-imu-tools \
     ros-humble-xacro \
-    xterm
+    xterm \
+    ros-humble-ros2-controllers \
+    ros-humble-controller-manager \
+    ros-humble-joint-state-publisher \
+    ros-humble-robot-state-publisher \
+    ros-humble-teleop-twist-keyboard \
+    ros-humble-teleop-twist-joy \
+    ros-humble-twist-stamper \
+    ros-humble-twist-mux \
+    ros-humble-navigation2 \
+    ros-humble-nav2-bringup \
+    ros-humble-robot-localization
 
 sudo apt install -y \
     ros-humble-nmea-navsat-driver \
@@ -41,30 +51,6 @@ sudo apt install -y \
 sudo apt install -y \
     python3-pip \
     clang-format
-
-pip install --user \
-    irobot_edu_sdk
-
-# === Install Gazebo Ignition Fortress === #
-sudo apt-get install lsb-release gnupg
-sudo curl https://packages.osrfoundation.org/gazebo.gpg --output /usr/share/keyrings/pkgs-osrf-archive-keyring.gpg
-echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/pkgs-osrf-archive-keyring.gpg] https://packages.osrfoundation.org/gazebo/ubuntu-stable $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/gazebo-stable.list > /dev/null
-sudo apt-get update
-sudo apt-get install ignition-fortress
-
-sudo apt install -y \
-    ros-humble-ros2-controllers \
-    ros-humble-gz-ros2-control \
-    ros-humble-ros-gz \
-    ros-humble-ros-gz-bridge \
-    ros-humble-joint-state-publisher \
-    ros-humble-robot-state-publisher \
-    ros-humble-teleop-twist-keyboard \
-    ros-humble-twist-stamper \
-    ros-humble-twist-mux \
-    ros-humble-navigation2 \
-    ros-humble-nav2-bringup \
-    ros-humble-robot-localization
 
 # === Rosdep === #
 sudo rosdep init 2>/dev/null || true
