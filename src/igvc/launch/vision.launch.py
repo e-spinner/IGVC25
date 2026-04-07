@@ -39,6 +39,11 @@ def device_connected(device_id):
 
 def generate_launch_description():
   package_name = "igvc"
+  velodyne_calibration = os.path.join(
+    get_package_share_directory("velodyne_pointcloud"),
+    "params",
+    "VLP16db.yaml",
+  )
 
   # MARK: GPS
   gps_driver = Node(
@@ -91,11 +96,50 @@ def generate_launch_description():
     ),
   )
 
+  # MARK: LiDAR
+  velodyne_driver = Node(
+    package="velodyne_driver",
+    executable="velodyne_driver_node",
+    output=OUTPUT,
+    name="velodyne_driver",
+    namespace=NAMESPACE,
+    parameters=[
+      {
+        "model": "VLP16",
+        "device_ip": "192.168.1.201",
+        "port": 2368,
+        "frame_id": "velodyne",
+        "rpm": 600.0,
+      }
+    ],
+    
+  )
+
+  velodyne_pointcloud = Node(
+    package="velodyne_pointcloud",
+    executable="velodyne_transform_node",
+    output=OUTPUT,
+    name="velodyne_transform",
+    namespace=NAMESPACE,
+    parameters=[
+      {
+        "calibration": velodyne_calibration,
+        "model": "VLP16",
+        "fixed_frame": "map",
+        "target_frame": "",
+        "min_range": 0.9,
+        "max_range": 130.0,
+      }
+    ],
+  )
+
   # MARK: Launch!
   return LaunchDescription(
     [
       # Nodes
       gps_driver,
       imu_driver,
+      velodyne_driver,
+      velodyne_pointcloud,
     ]
   )

@@ -239,7 +239,7 @@
     </link>
 
     <!-- Gazebo requires ... -->
-    <gazebo reference="velodyne">
+    <!-- <gazebo reference="velodyne">
       <sensor name="velodyne" type="gpu_lidar">
         <pose>0 0 0 0 0 0</pose>
         <update_rate>10</update_rate>
@@ -276,7 +276,7 @@
           </noise>
         </ray>
       </sensor>
-    </gazebo>
+    </gazebo> -->
 
   </xacro:macro>
 
