@@ -2,7 +2,6 @@
 #include <AltSoftSerial.h>
 
 // https://www.pjrc.com/teensy/td_libs_Encoder.html
-#define ENCODER_OPTIMIZE_INTERRUPTS
 #include <Encoder.h>
 
 // MARK: TOGGLE
@@ -13,12 +12,12 @@
 
 // 1 = on; 0 = off
 
-#define T_DRIVE 1
+#define T_DRIVE 0
 #define T_HALL 0
 #define T_STEER 1
 #define T_LIGHTS 1
 
-#define T_MOTION_LOG 0
+#define T_MOTION_LOG 1
 
 
 
@@ -69,7 +68,11 @@ constexpr uint32_t SPEED_CALC_INTERVAL = 500; // [ms]
 #endif
 
 #if T_STEER
-Encoder ENCODER(3, 4);
+// Needs to be interrupt pins, UNO [D2, D3], MEGA [D2, D3, D18, D19, D20, D21]
+// #define PIN_ENCODER_A 3
+// #define PIN_ENCODER_B 4
+Encoder steer_enc(3, 4);
+
 #define PIN_LEFT_LIMIT 5
 #define PIN_RIGHT_LIMIT 6
 
@@ -133,6 +136,8 @@ double PID_ramped_output = 0;
 double PID_max_step = 2;
 double PID_braking_zone = 100;
 
+// volatile int32_t VOL_encoder_count = 0;
+
 // Limit switches
 volatile bool f_left_limit  = false;
 volatile bool f_right_limit = false;
@@ -151,6 +156,13 @@ int g_lights_state         = LOW;
 
 // MARK: SETUP
 void setup() {
+
+
+#if T_LIGHTS
+  pinMode(PIN_LIGHTS, OUTPUT);
+  digitalWrite(PIN_LIGHTS, HIGH);
+#endif
+
   Serial.begin(BAUD_RATE);
   while (!Serial) {} // Wait for USB -- NOTE: blocking
   Serial.println("Serial Connection Initialized");
@@ -168,6 +180,10 @@ void setup() {
 #endif
 
 #if T_STEER
+  // pinMode(PIN_ENCODER_A, INPUT_PULLUP);
+  // pinMode(PIN_ENCODER_B, INPUT_PULLUP);
+  // attachInterrupt(digitalPinToInterrupt(PIN_ENCODER_A), encoder_ISR, RISING);
+
   pinMode(PIN_LEFT_LIMIT, INPUT_PULLUP);
   pinMode(PIN_RIGHT_LIMIT, INPUT_PULLUP);
 
@@ -175,10 +191,6 @@ void setup() {
   positionPID.SetMode(AUTOMATIC);
 
   zero_steering();
-#endif
-
-#if T_LIGHTS
-  pinMode(PIN_LIGHTS, OUTPUT);
 #endif
 
   Serial.println("setup complete");
@@ -213,7 +225,7 @@ void loop() {
     update_steering();
 #endif
 
-    send_feedback();
+    // send_feedback();
   }
 }
 
@@ -225,16 +237,16 @@ void loop() {
 // and read hall sensor for speed feedback //
 // --------------------------------------- //
 #if T_DRIVE
-int old_drive_cmd = 100;
+int old_drive_spd = 100;
 void send_motor_S2(int speed) {
   // Sabertooth Simplified Serial: 192 is STOP, 128 is Full Reverse, 255 is Full Forward
   // speed arrives as -63 to 63
   // -1 because for some reason that is stop
-  if (command != old_drive_cmd) {
+  if (speed != old_drive_spd) {
     int command = 192 + speed -1;
     command = constrain(command, 128, 255);
     SABERTOOTH_SERIAL.write(command);
-    old_drive_cmd = command;
+    old_drive_spd = command;
   }
 }
 
@@ -300,15 +312,15 @@ void calculate_speed() {
 // and zero system using limit switches    //
 // --------------------------------------- //
 #if T_STEER
-int old_steer_cmd = 100;
+int old_steer_spd = 100;
 void send_motor_S1(int speed) {
   // Sabertooth Simplified Serial: 64 is STOP, 1 is Full Reverse, 127 is Full Forward
   // speed arrives as -63 to 63
-  if (command != old_steer_cmd) {
+  if (speed != old_steer_spd) {
     int command = 64 + (speed * -1);
     command = constrain(command, 1, 127);
-    SABERTOOTH_SERIAL.write(command)
-    old_steer_cmd = command;
+    SABERTOOTH_SERIAL.write(command);
+    old_steer_spd = command;
   }
 }
 
@@ -317,7 +329,11 @@ void update_steering() {
   f_left_limit  = (digitalRead(PIN_LEFT_LIMIT) == LIMIT_SWITCH_ACTIVE);
   f_right_limit = (digitalRead(PIN_RIGHT_LIMIT) == LIMIT_SWITCH_ACTIVE);
 
-  PID_input = ENCODER.read();
+  // noInterrupts();
+  // PID_input = (double)VOL_encoder_count;
+  // interrupts();
+
+  PID_input = (double)steer_enc.read();
 
   // We want to stop 5% before the physical switch
   float safe_range_counts = abs(g_right_limit_count - g_left_limit_count) * 0.95;
@@ -399,6 +415,10 @@ void zero_steering() {
   delay(500);
 
   g_left_limit_count = 0;
+  // noInterrupts();
+  // VOL_encoder_count = 0;
+  // interrupts();
+  steer_enc.write(0);
 
   Serial.print("Left Lim: ");
   Serial.println(g_left_limit_count);
@@ -411,13 +431,18 @@ void zero_steering() {
   send_motor_S1(0);
   delay(500);
 
-  g_right_limit_count = ENCODER.read();
+  // noInterrupts();
+  // g_right_limit_count = VOL_encoder_count;
+  // interrupts();
+
+  g_right_limit_count = steer_enc.read();
+
 
   Serial.print("Right Lim: ");
   Serial.println(g_right_limit_count);
 
   // Calculate Center
-  g_center_count = (g_left_limit_count + g_right_limit_count) / 2;
+  g_center_count = g_right_limit_count / 2;
 
   Serial.print("Center: ");
   Serial.println(g_center_count);
@@ -426,6 +451,14 @@ void zero_steering() {
   COMMAND_pinion = 0.0; // Set target to center for the PID to take over
   Serial.println("zero_steering complete");
 }
+
+
+// void encoder_ISR() {
+//   if (digitalRead(PIN_ENCODER_B))
+//     VOL_encoder_count++;
+//   else
+//     VOL_encoder_count--;
+// }
 
 #endif
 

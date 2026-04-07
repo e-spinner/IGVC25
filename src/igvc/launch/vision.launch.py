@@ -106,13 +106,13 @@ def generate_launch_description():
     parameters=[
       {
         "model": "VLP16",
-        "device_ip": "192.168.1.201",
+        # "device_ip": "192.168.1.201",
         "port": 2368,
         "frame_id": "velodyne",
         "rpm": 600.0,
       }
     ],
-    
+
   )
 
   velodyne_pointcloud = Node(
@@ -125,8 +125,7 @@ def generate_launch_description():
       {
         "calibration": velodyne_calibration,
         "model": "VLP16",
-        "fixed_frame": "map",
-        "target_frame": "",
+        "fixed_frame": "velodyne",
         "min_range": 0.9,
         "max_range": 130.0,
       }

@@ -119,18 +119,18 @@ public:
     }
 
     // Set baud rate
-    speed_t baud;
-    switch (p_baud_rate) {
-    case 9600: baud = B9600; break;
-    case 19200: baud = B19200; break;
-    case 38400: baud = B38400; break;
-    case 57600: baud = B57600; break;
-    case 115200: baud = B115200; break;
-    default: baud = B9600;
-    }
+    // speed_t baud;
+    // switch (p_baud_rate) {
+    // case 9600: baud = B9600; break;
+    // case 19200: baud = B19200; break;
+    // case 38400: baud = B38400; break;
+    // case 57600: baud = B57600; break;
+    // case 115200: baud = B115200; break;
+    // default: baud = B9600;
+    // }
 
-    cfsetospeed(&tty, baud);
-    cfsetispeed(&tty, baud);
+    cfsetospeed(&tty, B115200);
+    cfsetispeed(&tty, B115200);
 
     // Configure serial port settings
     tty.c_cflag &= ~PARENB;        // No parity
@@ -204,9 +204,6 @@ public:
 
       if (bytes_read > 0) {
         read_buffer[bytes_read] = '\0'; // terminate message
-
-        // log for debug TODO: Stop doing this
-        // RCLCPP_INFO(m_logger, "%s", std::string(read_buffer, bytes_read).c_str());
 
         // accumulate new data
         m_serial_buffer += std::string(read_buffer, bytes_read);
@@ -294,7 +291,7 @@ private:
     size_t f_pos = feedback.find("F:P:");
     if (f_pos == std::string::npos) {
       // Not a feedback message, use command values
-      RCLCPP_WARN(m_logger, "PARSE: Feedback message missing 'F:P:' marker in: '%s'",
+      RCLCPP_WARN(m_logger, "PARSE: %s",
                   feedback.c_str());
       m_pinion_pos_state = m_pinion_pos_cmd;
       m_motor_vel_state  = m_motor_vel_cmd;
@@ -304,7 +301,7 @@ private:
     size_t v_pos = feedback.find(",V:", f_pos);
     if (v_pos == std::string::npos) {
       // Invalid format, use command values
-      RCLCPP_WARN(m_logger, "PARSE: Feedback message missing ',V:' marker in: '%s'",
+      RCLCPP_WARN(m_logger, "PARSE: %s",
                   feedback.c_str());
       m_pinion_pos_state = m_pinion_pos_cmd;
       m_motor_vel_state  = m_motor_vel_cmd;

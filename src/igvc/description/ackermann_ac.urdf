@@ -77,13 +77,12 @@
   </xacro:VLP-16>
 
   <!-- IMU -->
-  <xacro:ph-imu parent="base_link" name="imu">
-    <origin xyz="-0.3 0 0.4" rpy="0 0 0" />
+  <xacro:ph-imu parent="base_link" name="imu-front">
+    <origin xyz="-0.3 0.3 0.4" rpy="0 0 0" />
   </xacro:ph-imu>
 
-  <!-- Second IMU -->
-  <xacro:ph-imu parent="base_link" name="imu_2">
-    <origin xyz="-0.15 0 0.4" rpy="0 0 0" />
+  <xacro:ph-imu parent="base_link" name="imu-back">
+    <origin xyz="-0.3 -0.3 0.4" rpy="${pi} 0 ${pi}" />
   </xacro:ph-imu>
 
   <!-- GPS -->
