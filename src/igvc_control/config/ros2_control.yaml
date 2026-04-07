@@ -35,5 +35,5 @@ ackermann_angle_controller:
     wheel_angle: 0.32253
     wheelbase: 0.42
     track_width: 0.36
-    wheel_radius: 0.1524
+    wheel_radius: 0.1016
 

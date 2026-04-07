@@ -39,7 +39,7 @@
     frame_thickness: 0.0254           # [m] visual dimension
 
     # Wheel positions (for visualization)
-    wheel_radius: 0.1524              # [m] 6 inches
+    wheel_radius: 0.1016              # [m] 4 inches
     wheel_length: 0.0762              # [m] 3 inches
     wheel_offset_x: 0.1               # [m] forward from steering arm
     wheel_angle:  0.32253             # [rad] correct for steering arm angle

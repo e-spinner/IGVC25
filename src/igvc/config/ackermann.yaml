@@ -10,7 +10,7 @@
 
     # === WHEELS === #
     wheel_length: 0.0508  # [m]
-    wheel_radius: 0.1524  # [m]
+    wheel_radius: 0.1016  # [m]
     wheel_mass: 1.0       # [kg]
 
     track_width: 0.9144  # [m]
