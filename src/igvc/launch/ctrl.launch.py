@@ -8,25 +8,15 @@ from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import (
   DeclareLaunchArgument,
+  IncludeLaunchDescription,
   OpaqueFunction,
   RegisterEventHandler,
 )
 from launch.event_handlers import OnProcessExit
+from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
 
 from launch_ros.actions import Node
-
-
-def load_robot_description(robot_description_path, robot_params_path):
-  with open(robot_params_path, "r") as params:
-    robot_params = yaml.safe_load(params)["/**"]["ros__parameters"]
-
-  robot_description = xacro.process_file(
-    robot_description_path,
-    mappings={key: str(value) for key, value in robot_params.items()},
-  )
-
-  return robot_description.toxml()  # type: ignore
 
 
 def launch_setup(context, *args, **kwargs):
@@ -43,28 +33,6 @@ def launch_setup(context, *args, **kwargs):
   use_sim_time = (
     LaunchConfiguration("use_sim_time").perform(context).strip().lower()
     in ["true", "1", "yes", "on"]
-  )
-
-  # MARK: Robot Description
-  # -----------------------------------------------------------------------------
-  robot_description = load_robot_description(
-    os.path.join(igvc_path, "description", "ackermann_ac.urdf"),
-    os.path.join(igvc_path, "config", "ackermann.yaml"),
-  )
-
-  # Inject runtime hardware params (device, baud_rate) into ros2_control block
-  # so the hardware plugin reads launch-provided values instead of URDF defaults.
-  robot_description = re.sub(
-    r'(<param name="device">)([^<]+)(</param>)',
-    r'\g<1>' + device + r'\3',
-    robot_description,
-    count=1,
-  )
-  robot_description = re.sub(
-    r'(<param name="baud_rate">)([^<]+)(</param>)',
-    r'\g<1>' + str(baud_rate) + r'\3',
-    robot_description,
-    count=1,
   )
 
   # Load ros2_control config
@@ -134,17 +102,16 @@ def launch_setup(context, *args, **kwargs):
     controller_params
   )
 
-  # Robot State Publisher
-  robot_state_publisher = Node(
-    package="robot_state_publisher",
-    executable="robot_state_publisher",
-    output="screen",
-    parameters=[
-      {
-        "robot_description": robot_description,
-        "use_sim_time": use_sim_time,
-      }
-    ],
+  # Robot State Publisher (included from dedicated launch file)
+  rsp_launch = IncludeLaunchDescription(
+    PythonLaunchDescriptionSource(
+      os.path.join(igvc_path, "launch", "rsp.launch.py")
+    ),
+    launch_arguments={
+      "device": device,
+      "baud_rate": baud_rate,
+      "use_sim_time": "true" if use_sim_time else "false",
+    }.items(),
   )
 
   # MARK: Controller Manager
@@ -206,7 +173,7 @@ def launch_setup(context, *args, **kwargs):
   )
 
   return [
-    robot_state_publisher,
+    rsp_launch,
     controller_manager,
     joint_state_broadcaster_spawner,
     ackermann_angle_controller_spawner,
