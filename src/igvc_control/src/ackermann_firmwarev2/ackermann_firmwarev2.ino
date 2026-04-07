@@ -1,6 +1,9 @@
 #include <PID_v1.h>
-#include <LedControl.h>
-#include <SoftwareSerial.h>
+#include <AltSoftSerial.h>
+
+// https://www.pjrc.com/teensy/td_libs_Encoder.html
+#define ENCODER_OPTIMIZE_INTERRUPTS
+#include <Encoder.h>
 
 // MARK: TOGGLE
 // ------------------------------------ //
@@ -14,23 +17,32 @@
 #define T_HALL 0
 #define T_STEER 1
 #define T_LIGHTS 1
-#define T_GRID 1
-#define T_DEBUG 1
+
 #define T_MOTION_LOG 0
+
+
 
 // MARK: CONST
 // --------------------------------- //
 // constants used to configure setup //
 // --------------------------------- //
 
-// Debug helper
-#if T_DEBUG
-#define DBG_HERE(msg) do {            \
-  Serial.println(msg);                \
-} while (0)
-#else
-#define DBG_HERE(msg) do {} while (0)
-#endif
+// PINS --- UNO
+
+// 13   :
+// 12   :
+// 11~  :
+// 10~  : no ~
+// 9 ~  : AltSoftSerial [TX] -> Sabertooth S1
+// 8    : AltSoftSerial [RX]
+// 7    : Lights
+// 6 ~  : Limit right
+// 5 ~  : Limit left
+// 4    : Encoder B -> white
+// 3 ~i : Encoder A -> green [encoder_ISR()]
+// 2  i : Hall Sensor [hall_ISR()]
+// 1    : HardwareSerial [TX] -> rpi usb
+// 0    : HardwareSerial [RX] -> rpi usb
 
 // Serial
 constexpr uint32_t BAUD_RATE         = 115200;
@@ -39,8 +51,7 @@ constexpr uint32_t FEEDBACK_INTERVAL = 50; // [ms]
 constexpr uint8_t FEEDBACK_PRECISION = 1;  // [decimals]
 constexpr char TERMINATOR            = '\n';
 
-#define PIN_SABER_TX 11  // Connect to Sabertooth S1
-SoftwareSerial SABERTOOTH_SERIAL(-1, PIN_SABER_TX); // RX not needed
+AltSoftSerial SABERTOOTH_SERIAL; // uses 8 [RX], 9 [TX], and steals pwm timer from 10
 
 #if T_DRIVE
 constexpr float MAX_MOTOR_RAD_S = 3000 * ((2 * PI) / 60); // 3000 rpm -> rad/s
@@ -54,13 +65,11 @@ constexpr uint32_t MOTION_LOG_INTERVAL_MS = 250;
 #define PIN_HALL 2
 constexpr float WHEEL_RADIUS  = 0.1016; // [m] ~4 in.
 constexpr uint8_t MAG_PER_REV = 1; // according to kevin
-constexpr uint32_t SPEED_CALC_INTERVAL = 100; // [ms]
+constexpr uint32_t SPEED_CALC_INTERVAL = 500; // [ms]
 #endif
 
 #if T_STEER
-// Needs to be interrupt pins, UNO [D2, D3], MEGA [D2, D3, D18, D19, D20, D21]
-#define PIN_ENCODER_A 3
-#define PIN_ENCODER_B 4
+Encoder ENCODER(3, 4);
 #define PIN_LEFT_LIMIT 5
 #define PIN_RIGHT_LIMIT 6
 
@@ -77,19 +86,8 @@ constexpr int LIMIT_SWITCH_ACTIVE = LOW; // Using INPUT_PULLUP
 
 #if T_LIGHTS
 #define PIN_LIGHTS 7
-constexpr uint32_t FLASH_INTERVAL = 1000; // [ms]
+constexpr uint32_t FLASH_INTERVAL = 250; // [ms]
 #endif
-
-#if T_GRID
-// MAX7219
-#define PIN_LED_DIN 12
-#define PIN_LED_CLK 9
-#define PIN_LED_CS 10
-
-constexpr float PINION_DEADBAND_RAD    = 0.075f;
-constexpr float VELOCITY_DEADBAND_RPS  = 0.75f;
-#endif
-
 
 
 // MARK: STATE
@@ -135,11 +133,9 @@ double PID_ramped_output = 0;
 double PID_max_step = 2;
 double PID_braking_zone = 100;
 
-volatile int32_t VOL_encoder_count = 0;
-
 // Limit switches
-volatile bool VOL_left_limit  = false;
-volatile bool VOL_right_limit = false;
+volatile bool f_left_limit  = false;
+volatile bool f_right_limit = false;
 int32_t g_left_limit_count = 0;
 int32_t g_right_limit_count = 0;
 int32_t g_center_count = 0;
@@ -149,10 +145,6 @@ bool g_homing_complete = false;
 #if T_LIGHTS
 uint32_t g_last_light_time = 0;
 int g_lights_state         = LOW;
-#endif
-
-#if T_GRID
-LedControl g_led_matrix = LedControl(PIN_LED_DIN, PIN_LED_CLK, PIN_LED_CS, 1);
 #endif
 
 
@@ -176,24 +168,11 @@ void setup() {
 #endif
 
 #if T_STEER
-  pinMode(PIN_ENCODER_A, INPUT_PULLUP);
-  pinMode(PIN_ENCODER_B, INPUT_PULLUP);
-  attachInterrupt(digitalPinToInterrupt(PIN_ENCODER_A), encoder_ISR, RISING);
-
   pinMode(PIN_LEFT_LIMIT, INPUT_PULLUP);
   pinMode(PIN_RIGHT_LIMIT, INPUT_PULLUP);
 
-  // attachInterrupt(digitalPinToInterrupt(PIN_LEFT_LIMIT), left_ISR, CHANGE);
-  // attachInterrupt(digitalPinToInterrupt(PIN_RIGHT_LIMIT), right_ISR, CHANGE);
-
   positionPID.SetOutputLimits(-63,63);
   positionPID.SetMode(AUTOMATIC);
-
-  // for (int s = 3; s >= -5; --s) {
-  //   send_motor_S2(s);
-  //   Serial.println(s);
-  //   delay(5000);
-  // }
 
   zero_steering();
 #endif
@@ -202,13 +181,7 @@ void setup() {
   pinMode(PIN_LIGHTS, OUTPUT);
 #endif
 
-#if T_GRID
-  g_led_matrix.shutdown(0, false);
-  g_led_matrix.setIntensity(0, 6); // brightness [0..15]
-  g_led_matrix.clearDisplay(0);
-#endif
-
-  DBG_HERE("setup complete");
+  Serial.println("setup complete");
 }
 
 
@@ -240,11 +213,7 @@ void loop() {
     update_steering();
 #endif
 
-#if T_GRID
-    update_led_matrix();
-#endif
-
-    // send_feedback();
+    send_feedback();
   }
 }
 
@@ -256,17 +225,22 @@ void loop() {
 // and read hall sensor for speed feedback //
 // --------------------------------------- //
 #if T_DRIVE
+int old_drive_cmd = 100;
 void send_motor_S2(int speed) {
   // Sabertooth Simplified Serial: 192 is STOP, 128 is Full Reverse, 255 is Full Forward
   // speed arrives as -63 to 63
   // -1 because for some reason that is stop
-  int command = 192 + speed -1;
-  command = constrain(command, 128, 255);
-  SABERTOOTH_SERIAL.write(command);
+  if (command != old_drive_cmd) {
+    int command = 192 + speed -1;
+    command = constrain(command, 128, 255);
+    SABERTOOTH_SERIAL.write(command);
+    old_drive_cmd = command;
+  }
 }
 
+constexpr float VELOCITY_CALC = (DIFF_RATIO / MAX_MOTOR_RAD_S) * 63.0;
 void update_drive() {
-  // DBG_HERE("update_drive");
+  // Serial.println("update_drive");
   // Serial.println(COMMAND_velocity, 2);
 
   if (COMMAND_velocity == 0.0f) {
@@ -277,12 +251,8 @@ void update_drive() {
     velocity_req = constrain(velocity_req, -MAX_MOTOR_RAD_S, MAX_MOTOR_RAD_S);
 
     // map rad/s -> [-63, 63] (Requested * GR / Max) * 63
-    int sabertooth_speed = (int)(velocity_req * DIFF_RATIO / MAX_MOTOR_RAD_S * 63);
+    int sabertooth_speed = (int)(velocity_req * VELOCITY_CALC);
 
-    Serial.print(" cmd: ");
-    Serial.print(COMMAND_velocity, 2);
-    Serial.print(" sab: ");
-    Serial.println(sabertooth_speed);
     send_motor_S2(sabertooth_speed);
   }
 
@@ -298,6 +268,7 @@ void update_drive() {
 #if T_HALL
 void hall_ISR() { VOL_hall_pulse_count++; }
 
+constexpr float PULSE_TO_RADS = (2 * PI / 60.0);
 void calculate_speed() {
   uint32_t current_time = millis();
 
@@ -310,10 +281,10 @@ void calculate_speed() {
     float delta_time = (current_time - g_last_speed_calc_time) / 1000.0;
 
     // (# of pulses / pulses per revolution) / dt in minutes -> rpm
-    float rpm = (pulses / (float)MAG_PER_REV) / (delta_time / 60.0);
+    float rpm = pulses / ((float)MAG_PER_REV) / (delta_time / 60.0);
 
     // (rpm -> rad/s of drive motor)
-    STATE_velocity = rpm * (2 * PI / 60.0);
+    STATE_velocity = rpm * PULSE_TO_RADS;
 
     g_last_speed_calc_time = current_time;
   }
@@ -329,24 +300,25 @@ void calculate_speed() {
 // and zero system using limit switches    //
 // --------------------------------------- //
 #if T_STEER
+int old_steer_cmd = 100;
 void send_motor_S1(int speed) {
   // Sabertooth Simplified Serial: 64 is STOP, 1 is Full Reverse, 127 is Full Forward
   // speed arrives as -63 to 63
-  int command = 64 + (speed * -1);
-  command = constrain(command, 1, 127);
-  SABERTOOTH_SERIAL.write(command);
+  if (command != old_steer_cmd) {
+    int command = 64 + (speed * -1);
+    command = constrain(command, 1, 127);
+    SABERTOOTH_SERIAL.write(command)
+    old_steer_cmd = command;
+  }
 }
 
 void update_steering() {
-  // DBG_HERE("update_steering");
-  VOL_left_limit  = (digitalRead(PIN_LEFT_LIMIT) == LIMIT_SWITCH_ACTIVE);
-  VOL_right_limit = (digitalRead(PIN_RIGHT_LIMIT) == LIMIT_SWITCH_ACTIVE);
+  // Serial.println("update_steering");
+  f_left_limit  = (digitalRead(PIN_LEFT_LIMIT) == LIMIT_SWITCH_ACTIVE);
+  f_right_limit = (digitalRead(PIN_RIGHT_LIMIT) == LIMIT_SWITCH_ACTIVE);
 
-  noInterrupts();
-  PID_input = (double)VOL_encoder_count;
-  interrupts();
+  PID_input = ENCODER.read();
 
-  // TODO: pick percentage
   // We want to stop 5% before the physical switch
   float safe_range_counts = abs(g_right_limit_count - g_left_limit_count) * 0.95;
   float max_rad = (safe_range_counts / 2.0) / ENCODER_COUNTS_PER_RAD;
@@ -371,12 +343,12 @@ void update_steering() {
   PID_ramped_output = constrain(PID_ramped_output, -63, 63);
 
   // check limit --- bools are atomic
-  if (VOL_left_limit && PID_ramped_output < 0) {
+  if (f_left_limit && PID_ramped_output < 0) {
     // If moving left (-speed) while left limit is active: STOP
     PID_ramped_output = 0;
     send_motor_S1(0);
   }
-  else if (VOL_right_limit && PID_ramped_output > 0) {
+  else if (f_right_limit && PID_ramped_output > 0) {
     // If moving right (+speed) while right limit is active: STOP
     PID_ramped_output = 0;
     send_motor_S1(0);
@@ -416,7 +388,7 @@ void update_steering() {
 }
 
 void zero_steering() {
-  DBG_HERE("zero_steering begin");
+  Serial.println("zero_steering begin");
 
   // Move Left slowly until PIN_LEFT_LIMIT is triggered
   while (digitalRead(PIN_LEFT_LIMIT) != LIMIT_SWITCH_ACTIVE) {
@@ -426,9 +398,7 @@ void zero_steering() {
   send_motor_S1(0);
   delay(500);
 
-  noInterrupts();
-  g_left_limit_count = VOL_encoder_count;
-  interrupts();
+  g_left_limit_count = 0;
 
   Serial.print("Left Lim: ");
   Serial.println(g_left_limit_count);
@@ -441,9 +411,7 @@ void zero_steering() {
   send_motor_S1(0);
   delay(500);
 
-  noInterrupts();
-  g_right_limit_count = VOL_encoder_count;
-  interrupts();
+  g_right_limit_count = ENCODER.read();
 
   Serial.print("Right Lim: ");
   Serial.println(g_right_limit_count);
@@ -456,18 +424,8 @@ void zero_steering() {
 
   // Move to Center
   COMMAND_pinion = 0.0; // Set target to center for the PID to take over
-  DBG_HERE("zero_steering complete");
+  Serial.println("zero_steering complete");
 }
-
-void encoder_ISR() {
-  if (digitalRead(PIN_ENCODER_B))
-    VOL_encoder_count++;
-  else
-    VOL_encoder_count--;
-}
-
-void left_ISR() { VOL_left_limit = (digitalRead(PIN_LEFT_LIMIT) == LIMIT_SWITCH_ACTIVE); }
-void right_ISR() { VOL_right_limit = (digitalRead(PIN_RIGHT_LIMIT) == LIMIT_SWITCH_ACTIVE); }
 
 #endif
 
@@ -485,7 +443,7 @@ void read_commands() {
 
     if (c == TERMINATOR) {
       g_serial_buffer[g_serial_len] = '\0';
-      parse_command(String(g_serial_buffer));
+      parse_command(g_serial_buffer);
       g_serial_len = 0; // clear buffer
 
     } else if (g_serial_len < SERIAL_BUF_SIZE - 1) {
@@ -497,18 +455,15 @@ void read_commands() {
   }
 }
 
-// TODO: Some concern with arduino string robustness
-void parse_command(String command) {
-  // TODO: some kind of way to activate or deactivate the auto mode
-
+void parse_command(char* buf) {
   // Expected Format "C:P:<pinion_angle>,V:<velocity>"
-  int p = command.indexOf("C:P:");
-  int v = command.indexOf(",V:");
+  char* p_ptr = strstr(buf, "C:P:");
+  char* v_ptr = strstr(buf, ",V:");
 
-  if (p == -1 || v == -1) { return; }
+  if (p_ptr == NULL || v_ptr == NULL) { return; }
 
-  COMMAND_pinion   = command.substring(p + 4, v).toFloat();
-  COMMAND_velocity = command.substring(v + 3).toFloat();
+  COMMAND_pinion   = atof(p_ptr + 4);
+  COMMAND_velocity = atof(v_ptr + 3);
 }
 
 void send_feedback() {
@@ -516,9 +471,9 @@ void send_feedback() {
 
   if (current_time - g_last_feedback_time >= FEEDBACK_INTERVAL) {
     // Format: "F:P:<pinion_angle>,V:<velocity>\n"
-    Serial.print("F:P:");
+    Serial.print(F("F:P:"));
     Serial.print(STATE_pinion, FEEDBACK_PRECISION);
-    Serial.print(",V:");
+    Serial.print(F(",V:"));
     Serial.print(STATE_velocity, FEEDBACK_PRECISION);
     Serial.print(TERMINATOR);
 
@@ -533,38 +488,8 @@ void send_feedback() {
 void flash_lights() {
   unsigned long current_time = millis();
   if (current_time - g_last_light_time >= FLASH_INTERVAL) {
-    digitalWrite(PIN_LIGHTS, (g_lights_state == LOW) ? HIGH : LOW);
+    digitalWrite(PIN_LIGHTS, g_lights_state = (g_lights_state == LOW) ? HIGH : LOW);
     g_last_light_time = current_time;
-  }
-}
-#endif
-
-
-
-// MARK: GRID
-#if T_GRID
-void update_led_matrix() {
-  int x_slot = 1; // 0:left, 1:center, 2:right (pinion)
-  if (COMMAND_pinion > PINION_DEADBAND_RAD) { x_slot = 0;
-  } else if (COMMAND_pinion < -PINION_DEADBAND_RAD) { x_slot = 2; }
-
-  int y_slot = 1; // 0:top, 1:center, 2:bottom (velocity)
-  if (COMMAND_velocity > VELOCITY_DEADBAND_RPS) { y_slot = 0;
-  } else if (COMMAND_velocity < -VELOCITY_DEADBAND_RPS) { y_slot = 2; }
-
-  // Positions: left/center/right( and top/middle/bottom
-  const uint8_t col_starts[3] = {1, 3, 5};
-  const uint8_t row_starts[3] = {1, 3, 5};
-
-  draw_block_2x2(row_starts[y_slot], col_starts[x_slot]);
-}
-
-void draw_block_2x2(uint8_t row_start, uint8_t col_start) {
-  g_led_matrix.clearDisplay(0);
-  for (uint8_t r = 0; r < 2; ++r) {
-    for (uint8_t c = 0; c < 2; ++c) {
-      g_led_matrix.setLed(0, row_start + r, col_start + c, true);
-    }
   }
 }
 #endif

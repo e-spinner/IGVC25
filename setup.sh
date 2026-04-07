@@ -46,7 +46,8 @@ sudo apt install -y \
 
 sudo apt install -y \
     ros-humble-nmea-navsat-driver \
-    ros-humble-phidgets-drivers
+    ros-humble-phidgets-drivers \
+    ros-humble-velodyne
 
 sudo apt install -y \
     python3-pip \
