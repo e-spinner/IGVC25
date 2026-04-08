@@ -1,4 +1,5 @@
 #include <PID_v1.h>
+#include <pidautotuner.h>
 #include <AltSoftSerial.h>
 
 // https://www.pjrc.com/teensy/td_libs_Encoder.html
@@ -8,14 +9,15 @@
 // ------------------------------------ //
 // toggles used to enable and disable   //
 // functions of the code at compilation //
-// ------------------------------------ //
+// ------------------------------------ //v
 
 // 1 = on; 0 = off
 
 #define T_DRIVE 0
-#define T_HALL 0
 #define T_STEER 1
 #define T_LIGHTS 1
+
+#define T_TUNE_PID 1
 
 #define T_MOTION_LOG 1
 
@@ -25,23 +27,6 @@
 // --------------------------------- //
 // constants used to configure setup //
 // --------------------------------- //
-
-// PINS --- UNO
-
-// 13   :
-// 12   :
-// 11~  :
-// 10~  : no ~
-// 9 ~  : AltSoftSerial [TX] -> Sabertooth S1
-// 8    : AltSoftSerial [RX]
-// 7    : Lights
-// 6 ~  : Limit right
-// 5 ~  : Limit left
-// 4    : Encoder B -> white
-// 3 ~i : Encoder A -> green [encoder_ISR()]
-// 2  i : Hall Sensor [hall_ISR()]
-// 1    : HardwareSerial [TX] -> rpi usb
-// 0    : HardwareSerial [RX] -> rpi usb
 
 // Serial
 constexpr uint32_t BAUD_RATE         = 115200;
@@ -68,9 +53,6 @@ constexpr uint32_t SPEED_CALC_INTERVAL = 500; // [ms]
 #endif
 
 #if T_STEER
-// Needs to be interrupt pins, UNO [D2, D3], MEGA [D2, D3, D18, D19, D20, D21]
-// #define PIN_ENCODER_A 3
-// #define PIN_ENCODER_B 4
 Encoder steer_enc(3, 4);
 
 #define PIN_LEFT_LIMIT 5
@@ -78,11 +60,6 @@ Encoder steer_enc(3, 4);
 
 constexpr float ENCODER_COUNTS_PER_RAD = 600 / (2 * PI); // according to kevin
 constexpr float PINION_CMD_TOLERANCE = ENCODER_COUNTS_PER_RAD; // just setting it to encoder accuracy
-
-// PID Constants
-constexpr double Kp = 1.5;
-constexpr double Kd = 0.010;
-constexpr double Ki = 0.3;
 
 constexpr int LIMIT_SWITCH_ACTIVE = LOW; // Using INPUT_PULLUP
 #endif
@@ -103,12 +80,12 @@ bool f_in_auto_mode = true; // TO3DO: from hardware interface
 // ========================================= //
 // Command interface from hardware interface //
 float COMMAND_pinion   = 0.0; // [rad] target angle
-float COMMAND_velocity = 0.0; // [rad/s] target motor speed?
+float COMMAND_velocity = 0.0; // [rad/s] target motor speed
 
 // ===================================== //
 // state interface to hardware interface //
 float STATE_pinion   = 0.0; // [rad] actual angle
-float STATE_velocity = 0.0; // [rad/s] target motor speed?
+float STATE_velocity = 0.0; // [rad/s] actual motor speed
 
 // Serial
 uint32_t g_last_feedback_time = 0;
@@ -125,6 +102,12 @@ uint32_t g_last_speed_calc_time       = 0;
 #if T_STEER
 float g_prev_cmd_pinion = PINION_CMD_TOLERANCE * 2; // [rad]
 
+
+// PID Constants
+double Kp = 1.5;
+double Kd = 0.010;
+double Ki = 0.3;
+
 double PID_setpoint = 0;
 double PID_input = 0;
 double PID_output = 0;
@@ -135,8 +118,6 @@ PID positionPID(&PID_input, &PID_output, &PID_setpoint, Kp, Ki, Kd, DIRECT);
 double PID_ramped_output = 0;
 double PID_max_step = 2;
 double PID_braking_zone = 100;
-
-// volatile int32_t VOL_encoder_count = 0;
 
 // Limit switches
 volatile bool f_left_limit  = false;
@@ -180,10 +161,6 @@ void setup() {
 #endif
 
 #if T_STEER
-  // pinMode(PIN_ENCODER_A, INPUT_PULLUP);
-  // pinMode(PIN_ENCODER_B, INPUT_PULLUP);
-  // attachInterrupt(digitalPinToInterrupt(PIN_ENCODER_A), encoder_ISR, RISING);
-
   pinMode(PIN_LEFT_LIMIT, INPUT_PULLUP);
   pinMode(PIN_RIGHT_LIMIT, INPUT_PULLUP);
 
@@ -191,6 +168,10 @@ void setup() {
   positionPID.SetMode(AUTOMATIC);
 
   zero_steering();
+
+  #if T_TUNE_PID
+    tune_pid();
+  #endif
 #endif
 
   Serial.println("setup complete");
@@ -252,9 +233,6 @@ void send_motor_S2(int speed) {
 
 constexpr float VELOCITY_CALC = (DIFF_RATIO / MAX_MOTOR_RAD_S) * 63.0;
 void update_drive() {
-  // Serial.println("update_drive");
-  // Serial.println(COMMAND_velocity, 2);
-
   if (COMMAND_velocity == 0.0f) {
     send_motor_S2(0);
   } else {
@@ -328,10 +306,6 @@ void update_steering() {
   // Serial.println("update_steering");
   f_left_limit  = (digitalRead(PIN_LEFT_LIMIT) == LIMIT_SWITCH_ACTIVE);
   f_right_limit = (digitalRead(PIN_RIGHT_LIMIT) == LIMIT_SWITCH_ACTIVE);
-
-  // noInterrupts();
-  // PID_input = (double)VOL_encoder_count;
-  // interrupts();
 
   PID_input = (double)steer_enc.read();
 
@@ -415,9 +389,6 @@ void zero_steering() {
   delay(500);
 
   g_left_limit_count = 0;
-  // noInterrupts();
-  // VOL_encoder_count = 0;
-  // interrupts();
   steer_enc.write(0);
 
   Serial.print("Left Lim: ");
@@ -430,10 +401,6 @@ void zero_steering() {
   }
   send_motor_S1(0);
   delay(500);
-
-  // noInterrupts();
-  // g_right_limit_count = VOL_encoder_count;
-  // interrupts();
 
   g_right_limit_count = steer_enc.read();
 
@@ -451,14 +418,6 @@ void zero_steering() {
   COMMAND_pinion = 0.0; // Set target to center for the PID to take over
   Serial.println("zero_steering complete");
 }
-
-
-// void encoder_ISR() {
-//   if (digitalRead(PIN_ENCODER_B))
-//     VOL_encoder_count++;
-//   else
-//     VOL_encoder_count--;
-// }
 
 #endif
 
@@ -525,4 +484,63 @@ void flash_lights() {
     g_last_light_time = current_time;
   }
 }
+#endif
+
+
+
+// MARK: TUNE
+#if T_TUNE_PID
+
+void tune_pid() {
+Serial.println("Starting PID Autotune...");
+    PIDAutotuner tuner = PIDAutotuner();
+
+    // 1. Configure the tuner
+    // Set target to g_center_count (the middle of your steering rack)
+    tuner.setTargetInputValue(g_center_count);
+
+    // Your update_steering logic runs roughly every loop,
+    // but let's define a fixed interval in microseconds (e.g., 10ms = 10000us)
+    uint32_t tune_interval = 10000;
+    tuner.setLoopInterval(tune_interval);
+
+    // Sabertooth range is -63 to 63
+    tuner.setOutputRange(-63, 63);
+    tuner.setZNMode(PIDAutotuner::ZNModeNoOvershoot); // Safest for steering
+
+    tuner.startTuningLoop(micros());
+
+    while (!tuner.isFinished()) {
+        long now = micros();
+
+        // 2. Get Input (Encoder)
+        double input = (double)steer_enc.read();
+
+        // 3. Get Output from Tuner
+        double output = tuner.tunePID(input, now);
+
+        // 4. Set Output (Sabertooth)
+        // Note: We bypass the ramping/braking logic here to get raw response
+        send_motor_S1((int)output);
+
+        // 5. Safety Check: Stop if we hit a limit switch during tuning
+        if ((digitalRead(PIN_LEFT_LIMIT) == LIMIT_SWITCH_ACTIVE && output < 0) ||
+            (digitalRead(PIN_RIGHT_LIMIT) == LIMIT_SWITCH_ACTIVE && output > 0)) {
+            break;
+        }
+
+        while (micros() - now < tune_interval) delayMicroseconds(1);
+    }
+
+    send_motor_S1(0); // Stop motor
+
+    Kp = tuner.getKp();
+    Ki = tuner.getKi();
+    Kd = tuner.getKd();
+
+    Serial.print("Tuning Complete. Kp: "); Serial.print(Kp);
+    Serial.print(" Ki: "); Serial.print(Ki);
+    Serial.print(" Kd: "); Serial.println(Kd);
+}
+
 #endif
