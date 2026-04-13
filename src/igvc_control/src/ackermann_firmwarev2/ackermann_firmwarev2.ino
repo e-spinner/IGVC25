@@ -1,8 +1,7 @@
-#include <PID_v1.h>
-#include <pidautotuner.h>
+#include <QuickPID.h>
+#include <sTune.h>
 #include <AltSoftSerial.h>
-
-// https://www.pjrc.com/teensy/td_libs_Encoder.html
+#define ENCODER_OPTIMIZE_INTERRUPTS
 #include <Encoder.h>
 
 // MARK: TOGGLE
@@ -13,13 +12,15 @@
 
 // 1 = on; 0 = off
 
-#define T_DRIVE 0
+#define T_DRIVE 1
 #define T_STEER 1
 #define T_LIGHTS 1
 
-#define T_TUNE_PID 1
+#define T_LOG_PID 0
+#define T_LOG_PIN 0
+#define T_LOG_SPD 0
 
-#define T_MOTION_LOG 1
+#define T_HALL 0
 
 
 
@@ -53,7 +54,7 @@ constexpr uint32_t SPEED_CALC_INTERVAL = 500; // [ms]
 #endif
 
 #if T_STEER
-Encoder steer_enc(3, 4);
+Encoder steer_enc(3, 2);
 
 #define PIN_LEFT_LIMIT 5
 #define PIN_RIGHT_LIMIT 6
@@ -104,15 +105,10 @@ float g_prev_cmd_pinion = PINION_CMD_TOLERANCE * 2; // [rad]
 
 
 // PID Constants
-double Kp = 1.5;
-double Kd = 0.010;
-double Ki = 0.3;
+float Kp = 0.3, Ki = 0.0, Kd = 0.0;
+float PID_setpoint = 0, PID_input = 0, PID_output = 0;
 
-double PID_setpoint = 0;
-double PID_input = 0;
-double PID_output = 0;
-
-PID positionPID(&PID_input, &PID_output, &PID_setpoint, Kp, Ki, Kd, DIRECT);
+QuickPID positionPID(&PID_input, &PID_output, &PID_setpoint, Kp, Ki, Kd, QuickPID::Action::direct);
 
 // Motion shaping
 double PID_ramped_output = 0;
@@ -164,14 +160,11 @@ void setup() {
   pinMode(PIN_LEFT_LIMIT, INPUT_PULLUP);
   pinMode(PIN_RIGHT_LIMIT, INPUT_PULLUP);
 
-  positionPID.SetOutputLimits(-63,63);
-  positionPID.SetMode(AUTOMATIC);
-
+  positionPID.SetOutputLimits(-63, 63);
+  positionPID.SetSampleTimeUs(10000); // 10ms sample time
+  positionPID.SetMode(QuickPID::Control::automatic);
   zero_steering();
 
-  #if T_TUNE_PID
-    tune_pid();
-  #endif
 #endif
 
   Serial.println("setup complete");
@@ -206,7 +199,7 @@ void loop() {
     update_steering();
 #endif
 
-    // send_feedback();
+    send_feedback();
   }
 }
 
@@ -224,6 +217,9 @@ void send_motor_S2(int speed) {
   // speed arrives as -63 to 63
   // -1 because for some reason that is stop
   if (speed != old_drive_spd) {
+#if T_LOG_SPD
+    Serial.println(speed);
+#endif
     int command = 192 + speed -1;
     command = constrain(command, 128, 255);
     SABERTOOTH_SERIAL.write(command);
@@ -317,46 +313,59 @@ void update_steering() {
   // Mapping COMMAND_pinion (rad) to encoder ticks for the PID setpoint
   PID_setpoint = (constrained_pinion * ENCODER_COUNTS_PER_RAD) + g_center_count;
 
-  positionPID.Compute();
-  double error = PID_setpoint - PID_input;
+#if T_LOG_PIN
+  Serial.print("cmd: ");
+  Serial.print(COMMAND_pinion);
+  Serial.print(", con: ");
+  Serial.print(constrained_pinion);
+  Serial.print(", set: ");
+  Serial.println(PID_setpoint);
+#endif
 
-  // Braking zone
-  double scaled_output = PID_output;
-  if (abs(error) < PID_braking_zone) {
-    double scale = (double)abs(error) / PID_braking_zone;
-    scaled_output *= scale;
-  }
+  // true if calculation was made
+  if (positionPID.Compute()) {
+    double error = PID_setpoint - PID_input;
 
-  // ramp for smooth motion
-  if (scaled_output > PID_ramped_output) PID_ramped_output += PID_max_step;
-  else if (scaled_output < PID_ramped_output) PID_ramped_output -= PID_max_step;
-  PID_ramped_output = constrain(PID_ramped_output, -63, 63);
+    // Braking zone
+    // double scaled_output = PID_output;
+    // if (abs(error) < PID_braking_zone) {
+    //   double scale = (double)abs(error) / PID_braking_zone;
+    //   scaled_output *= scale;
+    // }
 
-  // check limit --- bools are atomic
-  if (f_left_limit && PID_ramped_output < 0) {
-    // If moving left (-speed) while left limit is active: STOP
-    PID_ramped_output = 0;
-    send_motor_S1(0);
-  }
-  else if (f_right_limit && PID_ramped_output > 0) {
-    // If moving right (+speed) while right limit is active: STOP
-    PID_ramped_output = 0;
-    send_motor_S1(0);
-  }
+    // // ramp for smooth motion
+    // if (scaled_output > PID_ramped_output) PID_ramped_output += PID_max_step;
+    // else if (scaled_output < PID_ramped_output) PID_ramped_output -= PID_max_step;
+    // PID_ramped_output = constrain(PID_ramped_output, -63, 63);
 
-  if (abs(error) < 10) {
-    // stop near target
-    PID_ramped_output = 0;
-    send_motor_S1(0); // Sends 64
-  } else {
-    // send command to sabertooth
-    send_motor_S1((int)PID_ramped_output);
+    PID_ramped_output =  constrain(PID_output, -63, 63);
+
+    // check limit --- bools are atomic
+    if (f_left_limit && PID_ramped_output < 0) {
+      // If moving left (-speed) while left limit is active: STOP
+      PID_ramped_output = 0;
+      send_motor_S1(0);
+    }
+    else if (f_right_limit && PID_ramped_output > 0) {
+      // If moving right (+speed) while right limit is active: STOP
+      PID_ramped_output = 0;
+      send_motor_S1(0);
+    }
+
+    if (abs(error) < 30) {
+      // stop near target
+      PID_ramped_output = 0;
+      send_motor_S1(0); // Sends 64
+    } else {
+      // send command to sabertooth
+      send_motor_S1((int)PID_ramped_output);
+    }
   }
 
   // Update state for feedback
   STATE_pinion = (PID_input - g_center_count) / ENCODER_COUNTS_PER_RAD;
 
-#if T_MOTION_LOG
+#if T_LOG_PID
   if (abs((int)PID_ramped_output) > 0) {
     uint32_t now = millis();
     if (now - g_last_motion_log >= MOTION_LOG_INTERVAL_MS) {
@@ -377,6 +386,9 @@ void update_steering() {
 #endif
 }
 
+
+
+// MARK: ZERO
 void zero_steering() {
   Serial.println("zero_steering begin");
 
@@ -415,6 +427,19 @@ void zero_steering() {
   Serial.println(g_center_count);
 
   // Move to Center
+  // Serial.println("Moving to center...");
+  // long target = g_center_count;
+  // while (abs(steer_enc.read() - target) > 50) {
+  //   long err = target - steer_enc.read();
+  //   int spd = constrain((int)(err / 10), -20, 20);
+  //   if (spd == 0) spd = (err > 0) ? 1 : -1; // minimum nudge
+  //   send_motor_S1(spd);
+  //   delay(10);
+  // }
+  // send_motor_S1(0);
+  // delay(300); // let it settle
+  // Serial.println("At center.");
+
   COMMAND_pinion = 0.0; // Set target to center for the PID to take over
   Serial.println("zero_steering complete");
 }
@@ -484,63 +509,4 @@ void flash_lights() {
     g_last_light_time = current_time;
   }
 }
-#endif
-
-
-
-// MARK: TUNE
-#if T_TUNE_PID
-
-void tune_pid() {
-Serial.println("Starting PID Autotune...");
-    PIDAutotuner tuner = PIDAutotuner();
-
-    // 1. Configure the tuner
-    // Set target to g_center_count (the middle of your steering rack)
-    tuner.setTargetInputValue(g_center_count);
-
-    // Your update_steering logic runs roughly every loop,
-    // but let's define a fixed interval in microseconds (e.g., 10ms = 10000us)
-    uint32_t tune_interval = 10000;
-    tuner.setLoopInterval(tune_interval);
-
-    // Sabertooth range is -63 to 63
-    tuner.setOutputRange(-63, 63);
-    tuner.setZNMode(PIDAutotuner::ZNModeNoOvershoot); // Safest for steering
-
-    tuner.startTuningLoop(micros());
-
-    while (!tuner.isFinished()) {
-        long now = micros();
-
-        // 2. Get Input (Encoder)
-        double input = (double)steer_enc.read();
-
-        // 3. Get Output from Tuner
-        double output = tuner.tunePID(input, now);
-
-        // 4. Set Output (Sabertooth)
-        // Note: We bypass the ramping/braking logic here to get raw response
-        send_motor_S1((int)output);
-
-        // 5. Safety Check: Stop if we hit a limit switch during tuning
-        if ((digitalRead(PIN_LEFT_LIMIT) == LIMIT_SWITCH_ACTIVE && output < 0) ||
-            (digitalRead(PIN_RIGHT_LIMIT) == LIMIT_SWITCH_ACTIVE && output > 0)) {
-            break;
-        }
-
-        while (micros() - now < tune_interval) delayMicroseconds(1);
-    }
-
-    send_motor_S1(0); // Stop motor
-
-    Kp = tuner.getKp();
-    Ki = tuner.getKi();
-    Kd = tuner.getKd();
-
-    Serial.print("Tuning Complete. Kp: "); Serial.print(Kp);
-    Serial.print(" Ki: "); Serial.print(Ki);
-    Serial.print(" Kd: "); Serial.println(Kd);
-}
-
 #endif

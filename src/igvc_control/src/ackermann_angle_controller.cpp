@@ -10,6 +10,10 @@
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp_lifecycle/lifecycle_node.hpp>
 
+#include <nav_msgs/msg/odometry.hpp>
+#include <tf2/LinearMath/Quaternion.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
+
 namespace igvc_control {
 
 constexpr double MAX_LINEAR_SPEED_MPS = 2.2352; // 5 mph
@@ -21,49 +25,37 @@ public:
 
   // MARK: INIT
   controller_interface::CallbackReturn on_init() override {
-    try {
-      m_node    = get_node();
-      auto node = m_node.lock();
-      m_logger  = node->get_logger();
+        m_node   = get_node();
+    auto node = m_node.lock();
+    m_logger = node->get_logger();
 
-      // Declare parameters
-      // -----------------------------------------------------------------------------
+    auto declare = [&](const std::string& name, auto value) {
+        if (!node->has_parameter(name)) {
+            node->declare_parameter(name, value);
+        }
+    };
 
-      // Linkage Parameters
-      node->declare_parameter("pinion_radius", 0.01905);
-      node->declare_parameter("steering_arm_length", 0.0381);
-      node->declare_parameter("tie_rod_length", 0.127);
-      node->declare_parameter("rack_offset_x", -0.0315);
-      node->declare_parameter("rack_neutral_y", 0.131064);
-      node->declare_parameter("pinion_gear_ratio", 1.652);
-      node->declare_parameter("max_pinion_angle", 2.0);
-      node->declare_parameter("wheel_angle", 0.32253);
-      node->declare_parameter("wheelbase", 0.42);
-      node->declare_parameter("track_width", 0.36);
-      node->declare_parameter("wheel_radius", 0.1524);
+    declare("pinion_radius",              0.01905);
+    declare("steering_arm_length",        0.0381);
+    declare("tie_rod_length",             0.127);
+    declare("rack_offset_x",              -0.0315);
+    declare("rack_neutral_y",             0.131064);
+    declare("pinion_gear_ratio",          1.652);
+    declare("max_pinion_angle",           2.0);
+    declare("wheel_angle",                0.32253);
+    declare("wheelbase",                  0.42);
+    declare("track_width",                0.36);
+    declare("wheel_radius",               0.1524);
+    declare("pinion_joint",               std::string("pinion_joint"));
+    declare("motor_joint",                std::string("motor_joint"));
+    declare("front_left_steering_joint",  std::string("front_left_steering_joint"));
+    declare("front_right_steering_joint", std::string("front_right_steering_joint"));
+    declare("back_left_wheel_joint",      std::string("back_left_wheel_joint"));
+    declare("back_right_wheel_joint",     std::string("back_right_wheel_joint"));
+    declare("cmd_vel_topic",              std::string("/cmd_vel_unstamped"));
+    declare("reference_timeout",          2.0);
+    declare("calibration_sample_size",    1024);
 
-      // Joint names
-      node->declare_parameter("front_left_steering_joint",
-                              "front_left_steering_joint");
-      node->declare_parameter("front_right_steering_joint",
-                              "front_right_steering_joint");
-      node->declare_parameter("pinion_joint", "pinion_joint");
-      node->declare_parameter("back_left_wheel_joint", "back_left_wheel_joint");
-      node->declare_parameter("back_right_wheel_joint", "back_right_wheel_joint");
-      node->declare_parameter("motor_joint", "motor_joint");
-
-      // Twist subscription
-      node->declare_parameter("cmd_vel_topic", "/cmd_vel_unstamped");
-      node->declare_parameter("reference_timeout", 2.0);
-
-      // Calibration parameters
-      node->declare_parameter("calibration_sample_size", 1024);
-
-    } catch (const std::exception &e) {
-      RCLCPP_ERROR(m_logger, "Exception thrown during init stage with message: %s",
-                   e.what());
-      return controller_interface::CallbackReturn::ERROR;
-    }
     return controller_interface::CallbackReturn::SUCCESS;
   }
 
@@ -149,6 +141,8 @@ public:
           m_current_twist     = msg;
           m_last_command_time = node->now();
         });
+    m_odom_pub = node->create_publisher<nav_msgs::msg::Odometry>("/odometry/raw", 10);
+    m_last_odom_time = node->now();
 
     RCLCPP_INFO(
         m_logger,
@@ -248,7 +242,65 @@ public:
       m_cmd_rear_motor_vel->set_value(cmd_rear_motor_velocity);
     }
 
+    update_odometry(time);
+
     return controller_interface::return_type::OK;
+  }
+
+  void update_odometry(const rclcpp::Time &time) {
+    if (!m_state_pinion_pos || !m_state_rear_motor_vel) return;
+
+    double dt = (time - m_last_odom_time).seconds();
+    if (dt <= 0.0) return;
+
+    // 1. Get States
+    double pinion_pos = m_state_pinion_pos->get_value();
+    double motor_vel  = m_state_rear_motor_vel->get_value(); // rad/s
+
+    // 2. Convert to linear velocity and steering angle
+    double v = motor_vel * p_wheel_radius;
+
+    // Use your linkage logic to find the average wheel angle (delta)
+    auto angles = linkage_angles(pinion_pos);
+    double theta_l = compute_wheel_angle(angles.first, true);
+    double theta_r = compute_wheel_angle(angles.second, false);
+    double delta = (theta_l + theta_r) / 2.0;
+
+    // 3. Update Pose (Dead Reckoning)
+    m_pose_x   += v * cos(m_pose_yaw) * dt;
+    m_pose_y   += v * sin(m_pose_yaw) * dt;
+    m_pose_yaw += (v / p_wheelbase) * tan(delta) * dt;
+    m_last_odom_time = time;
+
+    // 4. Create and Publish Message
+    nav_msgs::msg::Odometry odom_msg;
+    odom_msg.header.stamp = time;
+    odom_msg.header.frame_id = "odom";
+    odom_msg.child_frame_id = "base_link";
+
+    odom_msg.pose.pose.position.x = m_pose_x;
+    odom_msg.pose.pose.position.y = m_pose_y;
+
+    // Set covariance (diagonal values for X, Y, Z, Roll, Pitch, Yaw)
+    // Position covariance
+    odom_msg.pose.covariance.fill(0.0);
+    odom_msg.pose.covariance[0]  = 0.05; // X
+    odom_msg.pose.covariance[7]  = 0.05; // Y
+    odom_msg.pose.covariance[35] = 0.1;  // Yaw
+
+    // Twist (Velocity) covariance
+    odom_msg.twist.covariance.fill(0.0);
+    odom_msg.twist.covariance[0]  = 0.01; // Linear X
+    odom_msg.twist.covariance[35] = 0.05; // Angular Z
+
+    tf2::Quaternion q;
+    q.setRPY(0, 0, m_pose_yaw);
+    odom_msg.pose.pose.orientation = tf2::toMsg(q);
+
+    odom_msg.twist.twist.linear.x = v;
+    odom_msg.twist.twist.angular.z = (v / p_wheelbase) * tan(delta);
+
+    m_odom_pub->publish(odom_msg);
   }
 
 private:
@@ -292,6 +344,15 @@ private:
   rclcpp_lifecycle::LifecycleNode::WeakPtr m_node;
   // Logger
   rclcpp::Logger m_logger{rclcpp::get_logger("AckermannAngleController")};
+
+  // Odometry State
+  double m_pose_x = 0.0;
+  double m_pose_y = 0.0;
+  double m_pose_yaw = 0.0;
+  rclcpp::Time m_last_odom_time;
+
+  // Standard ROS 2 Publisher
+  rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr m_odom_pub;
 
   // Calibration lookup table (discrete lookup)
   std::vector<double> m_pinion_angles;

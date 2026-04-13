@@ -79,26 +79,5 @@ ackermann_angle_controller:
       calibration_sample_size: 1024
 
 
-# MARK: Joy
-joy_node:
-  ros__parameters:
-    device_id: 0
-    deadzone: 0.05
-    autorepeat_rate: 20.0
-
-teleop_node:
-  ros__parameters:
-    axis_linear:
-      x: 1                            # linear velocity
-    scale_linear:
-      x: 2.2352                       # max linear velocity (5 mph)
-
-    axis_angular:
-      yaw: 0                          # yaw angular velocity
-    scale_angular:
-      yaw: 5.0                        # max yaw angular velocity (1.5 rad/s)
-
-    require_enable_button: false
-
 
 

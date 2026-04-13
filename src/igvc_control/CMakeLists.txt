@@ -66,6 +66,9 @@ ament_target_dependencies(ackermann_angle_controller
   rclcpp_lifecycle
   geometry_msgs
   sensor_msgs
+  nav_msgs             # <--- Add this
+  tf2                  # <--- Add this
+  tf2_geometry_msgs    # <--- Add this if using tf2 transforms
   controller_interface
   pluginlib
 )

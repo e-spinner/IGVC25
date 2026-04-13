@@ -20,20 +20,21 @@ ackermann_angle_controller:
     motor_joint: motor_joint
 
     # Topics
-    cmd_vel_topic: /cmd_vel_stamped
+    cmd_vel_topic: /cmd_vel_unstamped
     reference_timeout: 2.0
     calibration_sample_size: 1024
 
-    # Linkage geometry parameters (will be overridden by linkage config)
+    max_pinion_angle: 15.0
+
+    # Linkage geometry parameters
     pinion_radius: 0.01905
-    steering_arm_length: 0.0381
-    tie_rod_length: 0.127
-    rack_offset_x: -0.0315
-    rack_neutral_y: 0.131064
+    steering_arm_length: 0.159
+    tie_rod_length: 0.1813
+    rack_offset_x: -0.100
+    rack_neutral_y: 0.2298
     pinion_gear_ratio: 1.652
-    max_pinion_angle: 2.0
     wheel_angle: 0.32253
-    wheelbase: 0.42
-    track_width: 0.36
+    wheelbase: 0.6096
+    track_width: 0.9144
     wheel_radius: 0.1016
 
