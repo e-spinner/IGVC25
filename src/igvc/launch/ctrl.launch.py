@@ -133,7 +133,7 @@ def generate_launch_description():
   # -----------------------------------------------------------------------------
   device_arg = DeclareLaunchArgument(
     "device",
-    default_value="/dev/ttyACM0",
+    default_value="/dev/ttyACM1",
     description="Serial device path for Arduino",
   )
 

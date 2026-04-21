@@ -1,9 +1,96 @@
+# pos.launch.py: hall odometry + odom EKF (odom->base_link) + navsat + map EKF (map->odom).
+# slam_toolbox block kept for optional SLAM launches (do not run SLAM TF with map EKF).
+#
+# MARK: slam tlbx
+# https://github.com/SteveMacenski/slam_toolbox/blob/jazzy/config/mapper_params_online_async.yaml
 
-# https://docs.ros.org/en/noetic/api/robot_localization/html/configuring_robot_localization.html
+slam_toolbox:
+  ros__parameters:
+
+    # Plugin params
+    solver_plugin: solver_plugins::CeresSolver
+    ceres_linear_solver: SPARSE_NORMAL_CHOLESKY
+    ceres_preconditioner: SCHUR_JACOBI
+    ceres_trust_strategy: LEVENBERG_MARQUARDT
+    ceres_dogleg_type: TRADITIONAL_DOGLEG
+    ceres_loss_function: None
+
+    # ROS Parameters
+    odom_frame: odom
+    map_frame: map
+    base_frame: base_link
+    scan_topic: /scan
+    use_map_saver: false
+    mode: mapping #localization
+
+    # if you'd like to immediately start continuing a map at a given pose
+    # or at the dock, but they are mutually exclusive, if pose is given
+    # will use pose
+    #map_file_name: test_steve
+    # map_start_pose: [0.0, 0.0, 0.0]
+    #map_start_at_dock: true
+
+    debug_logging: true
+    throttle_scans: 1
+    # When SLAM is enabled: >0 publishes map->odom TF; 0 disables it.
+    transform_publish_period: 0.02
+    map_update_interval: 5.0
+    resolution: 0.05
+    max_laser_range: 20.0 #for rastering images
+    minimum_time_interval: 0.5
+    transform_timeout: 0.2
+    tf_buffer_duration: 30.0
+    stack_size_to_use: 40000000 #// program needs a larger stack size to serialize large maps
+    enable_interactive_mode: true
+
+    # General Parameters
+    use_scan_matching: true
+    use_scan_barycenter: true
+    minimum_travel_distance: 0.5
+    minimum_travel_heading: 0.5
+    scan_buffer_size: 10
+    scan_buffer_maximum_scan_distance: 10.0
+    link_match_minimum_response_fine: 0.1
+    link_scan_maximum_distance: 1.5
+    loop_search_maximum_distance: 3.0
+    do_loop_closing: true
+    loop_match_minimum_chain_size: 10
+    loop_match_maximum_variance_coarse: 3.0
+    loop_match_minimum_response_coarse: 0.35
+    loop_match_minimum_response_fine: 0.45
+
+    # Correlation Parameters - Correlation Parameters
+    correlation_search_space_dimension: 0.5
+    correlation_search_space_resolution: 0.01
+    correlation_search_space_smear_deviation: 0.1
+
+    # Correlation Parameters - Loop Closure Parameters
+    loop_search_space_dimension: 8.0
+    loop_search_space_resolution: 0.05
+    loop_search_space_smear_deviation: 0.03
+
+    # Scan Matcher Parameters
+    distance_variance_penalty: 0.5
+    angle_variance_penalty: 1.0
+
+    fine_search_angle_offset: 0.00349
+    coarse_search_angle_offset: 0.349
+    coarse_angle_resolution: 0.0349
+    minimum_angle_penalty: 0.9
+    minimum_distance_penalty: 0.5
+    use_response_expansion: true
+    min_pass_through: 2
+    occupancy_threshold: 0.1
+
+
+# https://docs.ros.org/en/humble/p/robot_localization/doc/configuring_robot_localization.html
 # MARK: odom lztn
+# wheel odometry (/odometry/wheel) + IMU (publishes odom->base_link)
+# imu0_config order: x,y,z, r,p,y, vx,vy,vz, vr,vp,vy, ax,ay,az
+# Fuse x,y,vx,vyaw from hall wheel integration; yaw from IMU (not wheel) to limit heading drift.
 ekf_filter_node_odom:
   ros__parameters:
-    frequency: 100.0
+    frequency: 50.0
     two_d_mode: true
     print_diagnostics: true
     debug: false
@@ -14,26 +101,38 @@ ekf_filter_node_odom:
     base_link_frame: base_link
     world_frame: odom
 
-    odom0: /odometry/raw # odometry from encoder data
-    odom0_config: [false, false, false,
-                   false, false, false,
-                   true,  true,  false, # linear vel x, (y for stability)
-                   false, false, true,  # angular vel yaw (z)
-                   false, false, false]
-    odom0_queue_size: 10
-    odom0_differential: false
-    odom0_relative: false
-
-    imu0: /imu/data
+    # Two Phidgets Spatial topics (vision.launch: imu_front / imu_back composable nodes).
+    imu0: /vision/front/imu/data_raw
     imu0_config: [false, false, false,
-                  true,  true,  true,  # orientation from AHRS
+                  true,  true,  true,
                   false, false, false,
-                  false, false, true,  # angular vel yaw (z)
-                  true,  false, false]  # linear accel x
-    imu0_differential: true
+                  false, false, true,
+                  false, false, false]
+    imu0_differential: false
     imu0_relative: false
     imu0_queue_size: 10
     imu0_remove_gravitational_acceleration: true
+
+    imu1: /vision/back/imu/data_raw
+    imu1_config: [false, false, false,
+                  true,  true,  true,
+                  false, false, false,
+                  false, false, true,
+                  false, false, false]
+    imu1_differential: false
+    imu1_relative: false
+    imu1_queue_size: 10
+    imu1_remove_gravitational_acceleration: true
+
+    odom0: /odometry/wheel
+    odom0_config: [true, true, false,
+                  false, false, false,
+                  true, false, false,
+                  false, false, true,
+                  false, false, false]
+    odom0_queue_size: 10
+    odom0_differential: false
+    odom0_relative: false
 
     use_control: false
 
@@ -54,11 +153,12 @@ ekf_filter_node_odom:
                               0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.3]
 
 
-# MARK: map  lztn
+# MARK: map lztn 
+# GPS (navsat) + IMU; publishes map->odom (no SLAM pose)
 ekf_filter_node_map:
   ros__parameters:
-    frequency: 100.0
-    two_d_mode: true  # Recommended to use 2d mode for nav2 in mostly planar environments
+    frequency: 50.0
+    two_d_mode: true
     print_diagnostics: true
     debug: false
     publish_tf: true
@@ -67,16 +167,6 @@ ekf_filter_node_map:
     odom_frame: odom
     base_link_frame: base_link
     world_frame: map
-
-    odom0: /odometry/filtered/local
-    odom0_config: [false, false, false,
-                   false, false, false,
-                   true,  true,  false,
-                   false, false, true,
-                   false, false, false]
-    odom0_queue_size: 10
-    odom0_differential: false
-    odom0_relative: false
 
     odom1: /odometry/gps
     odom1_config: [true,  true,  false,
@@ -88,16 +178,27 @@ ekf_filter_node_map:
     odom1_differential: false
     odom1_relative: false
 
-    imu0: /imu/data
+    imu0: /vision/front/imu/data_raw
     imu0_config: [false, false, false,
-                  true,  true,  true,  # orientation from AHRS
+                  true,  true,  true,
                   false, false, false,
-                  false, false, true,  # angular vel yaw (z)
-                  true,  false, false]  # linear accel x
-    imu0_differential: true  # If using a real robot you might want to set this to true, since usually absolute measurements from real imu's are not very accurate
+                  false, false, true,
+                  true,  false, false]
+    imu0_differential: false
     imu0_relative: false
     imu0_queue_size: 10
     imu0_remove_gravitational_acceleration: true
+
+    imu1: /vision/back/imu/data_raw
+    imu1_config: [false, false, false,
+                  true,  true,  true,
+                  false, false, false,
+                  false, false, true,
+                  true,  false, false]
+    imu1_differential: false
+    imu1_relative: false
+    imu1_queue_size: 10
+    imu1_remove_gravitational_acceleration: true
 
     use_control: false
 

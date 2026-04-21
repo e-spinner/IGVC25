@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="igvc_test_imu_base">
+
+  <xacro:include filename="macros/materials.xacro" />
+  <xacro:include filename="macros/inertials.xacro" />
+  <xacro:include filename="macros/components.xacro" />
+
+  <link name="base_link" />
+
+  <xacro:ph-imu parent="base_link" name="imu_front">
+    <origin xyz="0 0 0.15" rpy="0 0 0" />
+  </xacro:ph-imu>
+
+  <xacro:ph-imu parent="base_link" name="imu_back">
+    <origin xyz="0 0 0.25" rpy="3.141592653589793 0 3.141592653589793" />
+  </xacro:ph-imu>
+
+</robot>

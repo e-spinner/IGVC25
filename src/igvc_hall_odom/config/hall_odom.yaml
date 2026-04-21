@@ -1,0 +1,16 @@
+/**:
+  ros__parameters:
+    left_hall_pin: 17
+    right_hall_pin: 27
+    gpio_mode_bcm: true
+    pulses_per_revolution: 1.0
+    wheel_radius_m: 0.1016 
+    track_width_m: 0.9144
+    publish_rate_hz: 50.0
+    pulse_timeout_s: 0.35
+    gpio_bounce_ms: 3
+    frame_id: odom
+    child_frame_id: base_link
+    odom_topic: /odometry/wheel
+    publish_tf: false
+    simulate: false

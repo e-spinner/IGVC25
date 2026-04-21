@@ -1,0 +1,14 @@
+# Phidgets Spatial (rear). Must set a different serial than the front IMU when both are USB-connected.
+imu_back:
+  ros__parameters:
+    frame_id: imu_back
+    serial: -1
+    use_orientation: true
+    spatial_algorithm: ahrs
+    ahrs_angular_velocity_threshold: 1.0
+    ahrs_angular_velocity_delta_threshold: 0.1
+    ahrs_acceleration_threshold: 0.05
+    ahrs_mag_time: 10.0
+    ahrs_accel_time: 10.0
+    ahrs_bias_time: 1.25
+    heating_enabled: false

@@ -39,7 +39,7 @@ constexpr char TERMINATOR            = '\n';
 AltSoftSerial SABERTOOTH_SERIAL; // uses 8 [RX], 9 [TX], and steals pwm timer from 10
 
 #if T_DRIVE
-constexpr float MAX_MOTOR_RAD_S = 3000 * ((2 * PI) / 60); // 3000 rpm -> rad/s
+constexpr float MAX_MOTOR_RAD_S = 1500 * ((2 * PI) / 60); // 3000 rpm -> rad/s
 constexpr float DIFF_RATIO    = 2.85; // according to sean
 #endif
 
@@ -105,7 +105,7 @@ float g_prev_cmd_pinion = PINION_CMD_TOLERANCE * 2; // [rad]
 
 
 // PID Constants
-float Kp = 0.3, Ki = 0.0, Kd = 0.0;
+float Kp = 0.3, Ki = 0.0, Kd = 0.015;
 float PID_setpoint = 0, PID_input = 0, PID_output = 0;
 
 QuickPID positionPID(&PID_input, &PID_output, &PID_setpoint, Kp, Ki, Kd, QuickPID::Action::direct);

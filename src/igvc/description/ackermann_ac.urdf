@@ -76,12 +76,12 @@
     <origin xyz="-0.3 0 0.3" rpy="0 0 0" />
   </xacro:VLP-16>
 
-  <!-- IMU -->
-  <xacro:ph-imu parent="base_link" name="imu-front">
-    <origin xyz="-0.3 0.3 0.4" rpy="0 0 0" />
+  <!-- IMUs (frame_id matches vision.launch Phidgets drivers: imu_front / imu_back) -->
+  <xacro:ph-imu parent="base_link" name="imu_front">
+    <origin xyz="-0.04 0.195 .102" rpy="0 0 0" />
   </xacro:ph-imu>
 
-  <xacro:ph-imu parent="base_link" name="imu-back">
+  <xacro:ph-imu parent="base_link" name="imu_back">
     <origin xyz="-0.3 -0.3 0.4" rpy="${pi} 0 ${pi}" />
   </xacro:ph-imu>
 
