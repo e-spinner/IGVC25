@@ -36,8 +36,7 @@ def generate_launch_description():
     "VLP16db.yaml",
   )
 
-  phidgets_imu_front_yaml = os.path.join(igvc_share, "config", "phidgets_imu_front.yaml")
-  phidgets_imu_back_yaml = os.path.join(igvc_share, "config", "phidgets_imu_back.yaml")
+  params = os.path.join(igvc_share, "config", "vision.yaml")
 
   # MARK: GPS
   gps_driver = Node(
@@ -46,17 +45,11 @@ def generate_launch_description():
     output=OUTPUT,
     name="garmin_18x",
     namespace=NAMESPACE,
-    parameters=[{"port": "/dev/gps", "baud": 4800}],
-    condition=IfCondition(
-      PythonExpression([str(device_connected(GPS_USBID))])
-    ),
+    parameters=[params],
+    condition=IfCondition(PythonExpression([str(device_connected(GPS_USBID))])),
   )
 
-  # MARK: IMU — two Phidgets Spatial nodes (matches ackermann_ac.urdf imu_front / imu_back).
-  # Topics: /vision/imu_front/imu/data_raw, /vision/imu_back/imu/data_raw
-  # ComposableNode does NOT inherit the container namespace; without an explicit namespace here,
-  # drivers default to "/" and publish /imu/data_raw (broken with two IMUs).
-  # Set distinct serial: in config/phidgets_imu_front.yaml and phidgets_imu_back.yaml
+  # MARK: IMUS
   imu_drivers = ComposableNodeContainer(
     name="phidget_container",
     namespace=NAMESPACE,
@@ -68,19 +61,17 @@ def generate_launch_description():
         plugin="phidgets::SpatialRosI",
         name="imu_front",
         namespace=f"{NAMESPACE}/front",
-        parameters=[phidgets_imu_front_yaml],
+        parameters=[params],
       ),
       ComposableNode(
         package="phidgets_spatial",
         plugin="phidgets::SpatialRosI",
         name="imu_back",
         namespace=f"{NAMESPACE}/back",
-        parameters=[phidgets_imu_back_yaml],
+        parameters=[params],
       ),
     ],
     output=OUTPUT,
-    # Do not gate on lsusb: Phidgets often enumerate late or drop off the bus; a false
-    # skip meant zero IMU nodes. Use launch_imu:=false on machines without hardware.
     condition=IfCondition(LaunchConfiguration("launch_imu")),
   )
 
@@ -91,16 +82,7 @@ def generate_launch_description():
     output=OUTPUT,
     name="velodyne_driver",
     namespace=NAMESPACE,
-    parameters=[
-      {
-        "model": "VLP16",
-        # "device_ip": "192.168.1.201",
-        "port": 2368,
-        "frame_id": "velodyne",
-        "rpm": 600.0,
-      }
-    ],
-
+    parameters=[params],
   )
 
   velodyne_pointcloud = Node(
@@ -109,15 +91,7 @@ def generate_launch_description():
     output=OUTPUT,
     name="velodyne_transform",
     namespace=NAMESPACE,
-    parameters=[
-      {
-        "calibration": velodyne_calibration,
-        "model": "VLP16",
-        "fixed_frame": "velodyne",
-        "min_range": 0.9,
-        "max_range": 130.0,
-      }
-    ],
+    parameters=[params],
   )
 
   # MARK: Launch!
@@ -126,11 +100,11 @@ def generate_launch_description():
       DeclareLaunchArgument(
         "launch_imu",
         default_value="true",
-        description="Start Phidgets IMU nodes. Set false if no IMUs (avoids startup errors).",
+        description="Start Phidgets IMU nodes.",
       ),
       gps_driver,
       imu_drivers,
-      # velodyne_driver,
-      # velodyne_pointcloud,
+      velodyne_driver,
+      velodyne_pointcloud,
     ]
   )
