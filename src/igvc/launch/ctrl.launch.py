@@ -42,11 +42,9 @@ def launch_setup(context, *args, **kwargs):
   device = LaunchConfiguration("device").perform(context)
   baud_rate = LaunchConfiguration("baud_rate").perform(context)
   linkage_config_num = LaunchConfiguration("linkage_config").perform(context)
-  use_sim_time = (
-    LaunchConfiguration("use_sim_time").perform(context).strip().lower()
-    in ["true", "1", "yes", "on"]
-  )
-
+  use_sim_time = LaunchConfiguration("use_sim_time").perform(
+    context
+  ).strip().lower() in ["true", "1", "yes", "on"]
 
   # MARK: Robot Description
   # -----------------------------------------------------------------------------
@@ -59,20 +57,18 @@ def launch_setup(context, *args, **kwargs):
   # so the hardware plugin reads launch-provided values instead of URDF defaults.
   robot_description = re.sub(
     r'(<param name="device">)([^<]+)(</param>)',
-    r'\g<1>' + device + r'\3',
+    r"\g<1>" + device + r"\3",
     robot_description,
     count=1,
   )
   robot_description = re.sub(
     r'(<param name="baud_rate">)([^<]+)(</param>)',
-    r'\g<1>' + str(baud_rate) + r'\3',
+    r"\g<1>" + str(baud_rate) + r"\3",
     robot_description,
     count=1,
   )
 
-  ros2_control_config_file = os.path.join(
-    igvc_control_path, "config", f"ros2_control.yaml"
-  )
+  ros2_control_config_file = os.path.join(igvc_path, "config", "ros2_control.yaml")
 
   # Robot State Publisher
   robot_state_publisher = Node(
@@ -93,9 +89,9 @@ def launch_setup(context, *args, **kwargs):
     package="controller_manager",
     executable="ros2_control_node",
     parameters=[
-        ros2_control_config_file,
-        {"use_sim_time": use_sim_time},
-        {"robot_description": robot_description},
+      ros2_control_config_file,
+      {"use_sim_time": use_sim_time},
+      {"robot_description": robot_description},
     ],
     output="screen",
     remappings=[("/controller_manager/robot_description", "/robot_description")],
@@ -116,7 +112,6 @@ def launch_setup(context, *args, **kwargs):
     package="controller_manager",
     executable="spawner",
     arguments=["ackermann_angle_controller"],
-
     output="screen",
   )
 

@@ -9,7 +9,6 @@ from launch_ros.actions import Node
 
 
 def generate_launch_description():
-  package_name = "igvc"
   use_sim_time = LaunchConfiguration("use_sim_time")
 
   teleop = Node(
@@ -52,6 +51,7 @@ def generate_launch_description():
   )
 
   # https://github.com/joshnewans/twist_stamper
+  # AckermannAngleController does not use timestamps
   twist_stamper = Node(
     package="twist_stamper",
     executable="twist_stamper",
@@ -77,6 +77,6 @@ def generate_launch_description():
       joy_node,
       teleop_joy,
       twist_mux,
-      twist_stamper,
+      # twist_stamper,
     ]
   )

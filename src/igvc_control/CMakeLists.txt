@@ -103,10 +103,10 @@ install(TARGETS ackermann_arduino_hardware
 # --------------------
 # Install Extra Folders
 # --------------------
-install(
-  DIRECTORY config
-  DESTINATION share/${PROJECT_NAME}
-)
+# install(
+#   DIRECTORY config
+#   DESTINATION share/${PROJECT_NAME}
+# )
 
 # --------------------
 # Export Plugins

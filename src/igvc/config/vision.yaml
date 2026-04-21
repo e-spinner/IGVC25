@@ -1,0 +1,50 @@
+vision:
+  garmin_18x:
+    ros__parameters:
+      port: "/dev/gps"
+      baud: 4800
+
+  velodyne_driver:
+    ros__parameters:
+      model: "VLP16"
+      port: 2368
+      frame_id: "velodyne"
+      rpm: 600.0
+
+  velodyne_transform:
+    ros__parameters:
+      model: "VLP16"
+      fixed_frame: "velodyne"
+      min_range: 0.9
+      max_range: 130.0
+
+
+  front:
+    imu_front:
+      ros__parameters:
+          frame_id: imu_front
+          serial: -1
+          use_orientation: true
+          spatial_algorithm: ahrs
+          ahrs_angular_velocity_threshold: 1.0
+          ahrs_angular_velocity_delta_threshold: 0.1
+          ahrs_acceleration_threshold: 0.05
+          ahrs_mag_time: 10.0
+          ahrs_accel_time: 10.0
+          ahrs_bias_time: 1.25
+          heating_enabled: false
+
+  back:
+    imu_back:
+      ros__parameters:
+        frame_id: imu_back
+        serial: -1
+        use_orientation: true
+        spatial_algorithm: ahrs
+        ahrs_angular_velocity_threshold: 1.0
+        ahrs_angular_velocity_delta_threshold: 0.1
+        ahrs_acceleration_threshold: 0.05
+        ahrs_mag_time: 10.0
+        ahrs_accel_time: 10.0
+        ahrs_bias_time: 1.25
+        heating_enabled: false

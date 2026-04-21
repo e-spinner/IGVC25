@@ -27,6 +27,15 @@
 
   <link name="base_link" />
 
+  <link name="base_footprint" />
+
+  <joint name="footprint_joint">
+    <parent link="base_link" />
+    <child link="base_footprint" />
+    <origin xyz="0.0 0.0 -0.1014" rpy="0.0 0.0 0.0" />
+  </joint>
+
+
   <link name="pinion">
     <visual>
       <geometry>
@@ -39,7 +48,7 @@
   <joint name="pinion_joint" type="continuous">
     <parent link="base_link" />
     <child link="pinion" />
-    <origin xyz="0.0 0.0 0.1" rpy="0.0 -${pi/2} 0.0" />
+    <origin xyz="0.0 0.0 0.1955" rpy="0.0 -${pi/2} 0.0" />
     <axis xyz="0 0 1" />
   </joint>
 
@@ -48,7 +57,7 @@
   <joint name="diff_joint" type="fixed">
     <parent link="base_link" />
     <child link="diff_link" />
-    <origin xyz="-${track_width} 0 0" />
+    <origin xyz="-0.815 0 0" />
   </joint>
 
   <link name="motor">
@@ -63,31 +72,39 @@
   <joint name="motor_joint" type="continuous">
     <parent link="diff_link" />
     <child link="motor" />
-    <origin xyz="0.0 0.0 0.1" rpy="0.0 -${pi/2} 0.0" />
+    <origin xyz="0.0 0.0 0.1955" rpy="0.0 -${pi/2} 0.0" />
     <axis xyz="0 0 1" />
   </joint>
 
-    <!--
+  <link name="chassis" />
+
+  <joint name="chassis_joint" type="fixed">
+    <parent link="base_link" />
+    <child link="chassis" />
+    <origin xyz="-0.4575 0.0, 0.1955" rpy="0.0 -0.0208 0.0" />
+  </joint>
+
+  <!--
   MARK: SENSORS
   -->
 
   <!-- Velodyne VLP-16 -->
-  <xacro:VLP-16 parent="base_link">
-    <origin xyz="-0.3 0 0.3" rpy="0 0 0" />
+  <xacro:VLP-16 parent="chassis">
+    <origin xyz="-0.317 0 0.445" rpy="0 0 0" />
   </xacro:VLP-16>
 
   <!-- IMUs (frame_id matches vision.launch Phidgets drivers: imu_front / imu_back) -->
-  <xacro:ph-imu parent="base_link" name="imu_front">
-    <origin xyz="-0.04 0.195 .102" rpy="0 0 0" />
+  <xacro:ph-imu parent="chassis" name="imu_front">
+    <origin xyz="0.4175 0.236 -0.093" rpy="0 0 0" />
   </xacro:ph-imu>
 
-  <xacro:ph-imu parent="base_link" name="imu_back">
-    <origin xyz="-0.3 -0.3 0.4" rpy="${pi} 0 ${pi}" />
+  <xacro:ph-imu parent="chassis" name="imu_back">
+    <origin xyz="-0.4175 -0.236 0.093" rpy="${pi} 0 ${pi}" />
   </xacro:ph-imu>
 
   <!-- GPS -->
-  <xacro:garmin-gps parent="base_link">
-    <origin xyz="-0.3 0 0.5" rpy="0 0 0" />
+  <xacro:garmin-gps parent="chassis">
+    <origin xyz="-0.4175 -0.082, 0.419" rpy="0 0 0" />
   </xacro:garmin-gps>
 
   <!--

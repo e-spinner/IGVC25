@@ -28,15 +28,14 @@ def device_connected(device_id):
 
 
 def generate_launch_description():
-  package_name = "igvc"
-  igvc_share = get_package_share_directory(package_name)
+  params = os.path.join(get_package_share_directory("igvc"), "config", "vision.yaml")
+  lidar_condition = IfCondition(LaunchConfiguration("lidar"))
+
   velodyne_calibration = os.path.join(
     get_package_share_directory("velodyne_pointcloud"),
     "params",
     "VLP16db.yaml",
   )
-
-  params = os.path.join(igvc_share, "config", "vision.yaml")
 
   # MARK: GPS
   gps_driver = Node(
@@ -72,7 +71,7 @@ def generate_launch_description():
       ),
     ],
     output=OUTPUT,
-    condition=IfCondition(LaunchConfiguration("launch_imu")),
+    condition=IfCondition(LaunchConfiguration("imu")),
   )
 
   # MARK: LiDAR
@@ -83,6 +82,7 @@ def generate_launch_description():
     name="velodyne_driver",
     namespace=NAMESPACE,
     parameters=[params],
+    condition=lidar_condition,
   )
 
   velodyne_pointcloud = Node(
@@ -91,16 +91,18 @@ def generate_launch_description():
     output=OUTPUT,
     name="velodyne_transform",
     namespace=NAMESPACE,
-    parameters=[params],
+    parameters=[params, {"calibration": velodyne_calibration}],
+    condition=lidar_condition,
   )
 
   # MARK: Launch!
   return LaunchDescription(
     [
       DeclareLaunchArgument(
-        "launch_imu",
-        default_value="true",
-        description="Start Phidgets IMU nodes.",
+        "imu", default_value="true", description="Start IMU nodes."
+      ),
+      DeclareLaunchArgument(
+        "lidar", default_value="true", description="Start Lidar nodes."
       ),
       gps_driver,
       imu_drivers,
