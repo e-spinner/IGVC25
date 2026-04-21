@@ -1,16 +1,32 @@
 /**:
   ros__parameters:
-    left_hall_pin: 17
-    right_hall_pin: 27
+    # BCM: A = count (3 rises/rev with 3 magnets). B = direction: read B in the
+    # same poll where A crosses low->high. Works when A and B are slightly
+    # separated along the rim so one leads the other (not co-located).
+    left_a_pin: 27
+    left_b_pin: 22
+    right_a_pin: 17
+    right_b_pin: 23
     gpio_mode_bcm: true
-    pulses_per_revolution: 1.0
-    wheel_radius_m: 0.1016 
-    track_width_m: 0.9144
-    publish_rate_hz: 50.0
-    pulse_timeout_s: 0.35
+    # Same-pin edges ~15 ms apart at ~66 Hz max on one channel; bounce must stay
+    # well below that (a few ms). Poll period 0.5 ms gives plenty of samples/edge.
     gpio_bounce_ms: 3
+    gpio_poll_period_s: 0.0005
+
+    pulses_per_revolution: 3.0
+    # 4 inch diameter wheels
+    wheel_radius_m: 0.1016
+    track_width_m: 0.9144
+
+    # Rolling window for twist.* speed estimate (seconds of pulse history).
+    velocity_window_s: 0.25
+
+    forward_when_b_high: true
+    invert_left: false
+    invert_right: false
+
+    publish_rate_hz: 50.0
     frame_id: odom
-    child_frame_id: base_link
+    child_frame_id: diff_link
     odom_topic: /odometry/wheel
     publish_tf: false
-    simulate: false
