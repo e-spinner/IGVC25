@@ -9,7 +9,7 @@ from launch_ros.actions import Node
 
 def generate_launch_description():
     cfg = os.path.join(
-        get_package_share_directory("igvc_hall_odom"),
+        get_package_share_directory("igvc_odom"),
         "config",
         "hall_odom.yaml",
     )
@@ -17,7 +17,7 @@ def generate_launch_description():
     return LaunchDescription(
         [
             Node(
-                package="igvc_hall_odom",
+                package="igvc_odom",
                 executable="hall_odom_node",
                 output="screen",
                 parameters=[cfg],

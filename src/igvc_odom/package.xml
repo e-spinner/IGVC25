@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
-  <name>igvc_hall_odom</name>
+  <name>igvc_odom</name>
   <version>0.0.1</version>
-  <description>Hall-effect wheel pulses to differential-drive odometry for robot_localization</description>
+  <description>Hall-effect wheel odometry, odometry→TF helpers, and related utilities for IGVC</description>
   <maintainer email="e-spinner@onu.edu">Elijah Spinner</maintainer>
   <license>MIT</license>
 

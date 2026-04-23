@@ -4,7 +4,7 @@ import os
 
 from setuptools import find_packages, setup
 
-package_name = "igvc_hall_odom"
+package_name = "igvc_odom"
 
 setup(
     name=package_name,
@@ -20,11 +20,12 @@ setup(
     zip_safe=True,
     maintainer="Elijah Spinner",
     maintainer_email="e-spinner@onu.edu",
-    description="Hall-effect wheel odometry for IGVC",
+    description="Wheel odometry and odom→TF utilities for IGVC",
     license="MIT",
     entry_points={
         "console_scripts": [
-            "hall_odom_node = igvc_hall_odom.hall_odom_node:main",
+            "hall_odom_node = igvc_odom.hall_odom_node:main",
+            "odom_to_tf = igvc_odom.odom_to_tf:main",
         ],
     },
 )
