@@ -5,9 +5,10 @@
 bt_navigator:
   ros__parameters:
     global_frame: map
-    robot_base_frame: base_link
+    # Match global costmap: map-frame pose at ground (base_footprint)
+    robot_base_frame: base_footprint
     odom_topic: /odometry/filtered/local
-    bt_loop_duration: 50
+    bt_loop_duration: 200
     default_server_timeout: 20
     wait_for_service_timeout: 1000
     action_server_result_timeout: 900.0
@@ -54,14 +55,14 @@ controller_server:
     goal_checker_plugins: ["general_goal_checker"]
     # current_goal_checker: general_goal_checker
     # https://docs.nav2.org/plugins/index.html#controllers
-    controller_plugins: ["pure_pursuit"]
+    controller_plugins: ["regulated_pure_pursuit"]
     use_realtime_priority: false
 
     # Progress checker parameters
     # https://github.com/ros-navigation/navigation2/blob/jazzy/nav2_controller/plugins/simple_progress_checker.cpp
     progress_checker:
       plugin: "nav2_controller::SimpleProgressChecker"
-      required_movement_radius: 0.5
+      required_movement_radius: 0.2
       movement_time_allowance: 10.0
 
     # Goal checker parameters
@@ -71,45 +72,49 @@ controller_server:
       plugin: "nav2_controller::SimpleGoalChecker"
 
       # amount allowed away from goal
-      xy_goal_tolerance: 0.5
-      yaw_goal_tolerance: 0.5
+      xy_goal_tolerance: 0.8
+      yaw_goal_tolerance: 1.5
 
     regulated_pure_pursuit:
       plugin: "nav2_regulated_pure_pursuit_controller::RegulatedPurePursuitController"
       desired_linear_vel: 2.3
-      lookahead_dist: 0.6
-      min_lookahead_dist: 0.3
-      max_lookahead_dist: 0.9
-      lookahead_time: 1.5
-      rotate_to_heading_angular_vel: 1.57
-      transform_tolerance: 2.5
-      use_velocity_scaled_lookahead_dist: false
-      min_approach_linear_velocity: 0.05
-      approach_velocity_scaling_dist: 0.6
+      lookahead_dist: 1.0
+      min_lookahead_dist: 0.8
+      max_lookahead_dist: 1.8
+      lookahead_time: 1.0
+      rotate_to_heading_angular_vel: 1.0
+      transform_tolerance: 0.3
+      use_velocity_scaled_lookahead_dist: true
+      min_approach_linear_velocity: 0.08
+      approach_velocity_scaling_dist: 1.0
       use_collision_detection: true
       max_allowed_time_to_collision_up_to_carrot: 1.0
       use_regulated_linear_velocity_scaling: true
       use_fixed_curvature_lookahead: false
-      curvature_lookahead_dist: 0.25
+      curvature_lookahead_dist: 0.35
       use_cost_regulated_linear_velocity_scaling: false
       cost_scaling_dist: 0.3
       cost_scaling_gain: 1.0
-      regulated_linear_scaling_min_radius: 0.9
-      regulated_linear_scaling_min_speed: 0.25
-      use_rotate_to_heading: true
-      allow_reversing: true
+      regulated_linear_scaling_min_radius: 0.7
+      regulated_linear_scaling_min_speed: 0.15
+      use_rotate_to_heading: false
+      allow_reversing: false
       rotate_to_heading_min_angle: 0.785
-      max_angular_accel: 1.57
+      max_angular_accel: 0.8
       max_robot_pose_search_dist: 10.0
       min_distance_to_obstacle: 0.0
       stateful: true
 
     pure_pursuit:
       plugin: igvc_control::PurePursuit
-      lookahead_distance: 1.0
-      min_velocity: 0.1
+      lookahead_distance: 0.9
+      min_velocity: 0.05
       max_velocity: 2.3
       wheel_base: 0.9144
+      goal_slowdown_distance: 1.2
+      goal_stop_distance: 0.15
+      angular_z_is_steering_angle: false
+      max_steering_rate_rad_s: 1.2
 
     # https://github.com/ros-navigation/navigation2/tree/jazzy/nav2_mppi_controller
     mppi_controller:
@@ -122,8 +127,8 @@ controller_server:
          "PathAngleCritic", "PreferForwardCritic"]
       iteration_count: 1
 
-      batch_size: 2000
-      time_steps: 56
+      batch_size: 2400
+      time_steps: 44
       model_dt: 0.05
 
       # These do not seem to be real
@@ -133,20 +138,20 @@ controller_server:
       # az_max: 0.0
 
       # sampling standard deviation
-      vx_std: 0.1
+      vx_std: 0.18
       vy_std: 0.1
-      wz_std: 0.1
+      wz_std: 0.18
 
       # max speeds
       vx_max: 2.3    # 5mph forward
-      vx_min: -0.5   # backup
+      vx_min: 0.08
       vy_max: 0.0    # cannot drive sideways
       wz_max: 1.57    # rad/s
       temperature: 0.3
       gamma: 0.1
       visualize: true # only for debugging
-      retry_attempt_limit: 1
-      regenerate_noises: true
+      retry_attempt_limit: 3
+      regenerate_noises: false
 
       TrajectoryVisualizer:
          trajectory_step: 5
@@ -154,7 +159,7 @@ controller_server:
 
       PathHandler:
          prune_distance: 1.7
-         transform_tolerance: 2.5
+         transform_tolerance: 0.3
 
       # MARK: ACK RAD
       AckermannConstraints:
@@ -163,30 +168,30 @@ controller_server:
       ConstraintCritic:
          enabled: true
          cost_power: 1
-         cost_weight: 4.0
+         cost_weight: 3.0
 
       GoalCritic:
          enabled: true
          cost_power: 1
-         cost_weight: 5.0
-         threshold_to_consider: 1.4
+         cost_weight: 7.0
+         threshold_to_consider: 1.2
 
       GoalAngleCritic:
          enabled: true
          cost_power: 1
          cost_weight: 3.0
-         threshold_to_consider: 0.5
+         threshold_to_consider: 0.35
 
       PreferForwardCritic:
          enabled: true
          cost_power: 1
          cost_weight: 5.0
-         threshold_to_consider: 0.5
+         threshold_to_consider: 1.0
 
       CostCritic:
          enabled: true
          cost_power: 1
-         cost_weight: 3.81
+         cost_weight: 2.5
          near_collision_cost: 253
          critical_cost: 300.0
          consider_footprint: false
@@ -197,26 +202,26 @@ controller_server:
       PathAlignCritic:
          enabled: true
          cost_power: 1
-         cost_weight: 14.0
+         cost_weight: 6.0
          max_path_occupancy_ratio: 0.05
          trajectory_point_step: 4
          threshold_to_consider: 0.5
-         offset_from_furthest: 20
+         offset_from_furthest: 8
          use_path_orientations: false
 
       PathFollowCritic:
          enabled: true
          cost_power: 1
-         cost_weight: 5.0
+         cost_weight: 10.0
          offset_from_furthest: 5
          threshold_to_consider: 1.4
 
       PathAngleCritic:
          enabled: true
          cost_power: 1
-         cost_weight: 2.0
+         cost_weight: 1.5
          offset_from_furthest: 4
-         threshold_to_consider: 0.5
+         threshold_to_consider: 0.35
          max_angle_to_furthest: 1.0
          mode: 0
 
@@ -273,7 +278,7 @@ planner_server:
         analytic_expansion_ratio: 3.5       # For Hybrid/Lattice nodes: The ratio to attempt analytic expansions during search for final approach.
         analytic_expansion_max_length: 3.0  # For Hybrid/Lattice nodes: The maximum length of the analytic expansion to be considered valid to prevent unsafe shortcutting (in meters). This should be scaled with minimum turning radius and be no less than 4-5x the minimum radius
         # MARK: ACK RAD
-        minimum_turning_radius: 1.11        # For Hybrid/Lattice nodes: minimum turning radius in m of path / vehicle
+        minimum_turning_radius: 1.5       # For Hybrid/Lattice nodes: minimum turning radius in m of path / vehicle
         reverse_penalty: 2.1                # For Reeds-Shepp model: penalty to apply if motion is reversing, must be => 1
         change_penalty: 0.0                 # For Hybrid nodes: penalty to apply if motion is changing directions, must be >= 0
         non_straight_penalty: 1.20          # For Hybrid nodes: penalty to apply if motion is non-straight, must be => 1
@@ -328,7 +333,7 @@ behavior_server:
     drive_on_heading:
       plugin: "nav2_behaviors/DriveOnHeading"
       acceleration_limit: 2.3
-      deceleration_limit: 2.3
+      deceleration_limit: -2.3
 
    # https://github.com/ros-navigation/navigation2/blob/jazzy/nav2_behaviors/plugins/wait.cpp
     wait:
@@ -344,12 +349,13 @@ behavior_server:
 # https://docs.nav2.org/configuration/packages/configuring-costmaps.html#
 # meant for short term planning / obstacle avoidance
 # takes in live scan data to see what is nearby, including moving obstacles
+# Rolling costmap in odom: footprint pose follows base_link (body height in odom).
 local_costmap:
   local_costmap:
     ros__parameters:
       always_send_full_costmap: True
 
-      footprint: "[ [0.3078, 0.4102], [0.3078, -0.4102], [-0.7766, -0.4102], [-0.7766, 0.4102] ]"
+      footprint: "[ [0.25, 0.6], [0.25, -0.6], [-1.0, -0.4], [-1.0, 0.4] ]"
       footprint_padding: 0.01
 
       global_frame: odom
@@ -362,8 +368,6 @@ local_costmap:
       publish_frequency: 5.0
 
       robot_base_frame: base_link
-
-      map_vis_z: 0.1
 
       # https://docs.nav2.org/plugins/index.html#costmap-layers
       plugins: ["obstacle_layer", "inflation_layer"]
@@ -390,8 +394,8 @@ local_costmap:
       # https://docs.nav2.org/configuration/packages/costmap-plugins/inflation.html
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
-        cost_scaling_factor: 4.0
-        inflation_radius: 5.0
+        cost_scaling_factor: 5.0
+        inflation_radius: 7.0
 
       # static_layer:
       #   plugin: "nav2_costmap_2d::StaticLayer"
@@ -402,12 +406,13 @@ local_costmap:
 # https://docs.nav2.org/configuration/packages/configuring-costmaps.html#
 # MARK: Gbl Cstmp
 # meant for long term planning, keeps track of overall situation
+# Global costmap in map: footprint pose follows base_footprint (ground plane in map).
 global_costmap:
   global_costmap:
     ros__parameters:
       always_send_full_costmap: True
 
-      footprint: "[ [0.3078, 0.4102], [0.3078, -0.4102], [-0.7766, -0.4102], [-0.7766, 0.4102] ]"
+      footprint: "[ [0.25, 0.6], [0.25, -0.6], [-1.0, -0.4], [-1.0, 0.4] ]"
       footprint_padding: 0.01
 
       global_frame: map
@@ -420,9 +425,7 @@ global_costmap:
       publish_frequency: 1.0
       track_unknown_space: true
 
-      robot_base_frame: base_link
-
-      map_vis_z: -0.1
+      robot_base_frame: base_footprint
 
       # https://docs.nav2.org/plugins/index.html#costmap-layers
       plugins: ["obstacle_layer", "inflation_layer"]
@@ -457,8 +460,8 @@ global_costmap:
       # https://docs.nav2.org/configuration/packages/costmap-plugins/inflation.html
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
-        cost_scaling_factor: 4.0
-        inflation_radius: 5.0
+        cost_scaling_factor: 5.0
+        inflation_radius: 7.0
 
 
 # MARK: Clsn Mntr

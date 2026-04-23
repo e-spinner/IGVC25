@@ -26,7 +26,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
 # Install Extra Folders
 # --------------------
 install(
-  DIRECTORY launch description config worlds behavior
+  DIRECTORY launch description config worlds behavior rviz
   DESTINATION share/${PROJECT_NAME}
 )
 

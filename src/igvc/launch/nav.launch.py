@@ -23,6 +23,9 @@ def generate_launch_description():
   package_name = "igvc"
 
   use_sim_time = LaunchConfiguration("use_sim_time")
+  nav_bt_xml = os.path.join(
+    get_package_share_directory(package_name), "behavior", "bt_clean.xml"
+  )
 
   # https://docs.nav2.org/index.html
 
@@ -61,7 +64,11 @@ def generate_launch_description():
   bt_navigator = Node(
     package="nav2_bt_navigator",
     executable="bt_navigator",
-    parameters=[nav_params, {"use_sim_time": use_sim_time}],
+    parameters=[
+      nav_params,
+      {"use_sim_time": use_sim_time},
+      {"default_nav_to_pose_bt_xml": nav_bt_xml},
+    ],
   )
   # MARK: Ctrl Svr
   # https://github.com/ros-navigation/navigation2/tree/jazzy/nav2_controller

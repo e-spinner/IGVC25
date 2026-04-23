@@ -45,10 +45,7 @@ sudo apt install -y \
     ros-humble-robot-localization \
     ros-humble-nmea-navsat-driver \
     ros-humble-phidgets-drivers \
-    ros-humble-velodyne
-
-# Gazebo Sim + ROS 2 bridges (igvc sim.launch.py)
-sudo apt install -y \
+    ros-humble-velodyne \
     ros-humble-ros-gz-sim \
     ros-humble-ros-gz-bridge \
     ros-humble-ros-gz-interfaces \

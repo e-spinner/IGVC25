@@ -88,3 +88,22 @@ Run different system configurations:
 ```bash
 ros2 launch igvc <launch_file> [arguments ...]
 ```
+
+
+
+## Docker
+
+```bash
+docker run -it --rm \
+  --name igvc_sim \
+  --gpus all \
+  --network host \
+  -e DISPLAY=$DISPLAY \
+  -e QT_X11_NO_MITSHM=1 \
+  -e NVIDIA_DRIVER_CAPABILITIES=all \
+  -e __NV_PRIME_RENDER_OFFLOAD=1 \
+  -e __GLX_VENDOR_LIBRARY_NAME=nvidia \
+  -v /tmp/.X11-unix:/tmp/.X11-unix \
+  -v ~/Git/IGVC25:/root/ws \
+  osrf/ros:humble-desktop-full
+```

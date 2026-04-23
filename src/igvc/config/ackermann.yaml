@@ -4,9 +4,8 @@
     # === CHASSIS === #
     chassis_length: 0.9144 # [m] 3 ft
     chassis_width: 0.6096  # [m] 2 ft
-    chassis_height: 0.1524 # [m] 6 in
+    chassis_height: 0.2000 # [m] 8 in
     chassis_mass: 24.95    # [kg] 55 lbs
-    chassis_offset: "-0.4572 0.0 0.0762" # "[m m m]" 1.5 ft 0 3 in
 
     # === WHEELS === #
     wheel_length: 0.0508  # [m]

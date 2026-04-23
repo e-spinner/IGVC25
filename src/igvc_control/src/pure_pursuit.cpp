@@ -38,11 +38,28 @@ public:
         node, m_plugin_name + ".max_velocity", rclcpp::ParameterValue(1.0));
     nav2_util::declare_parameter_if_not_declared(node, m_plugin_name + ".wheel_base",
                                                  rclcpp::ParameterValue(1.0));
+    nav2_util::declare_parameter_if_not_declared(
+        node, m_plugin_name + ".goal_slowdown_distance", rclcpp::ParameterValue(1.0));
+    nav2_util::declare_parameter_if_not_declared(
+        node, m_plugin_name + ".goal_stop_distance", rclcpp::ParameterValue(0.15));
+    nav2_util::declare_parameter_if_not_declared(
+        node, m_plugin_name + ".angular_z_is_steering_angle",
+        rclcpp::ParameterValue(false));
+    nav2_util::declare_parameter_if_not_declared(
+        node, m_plugin_name + ".max_steering_rate_rad_s",
+        rclcpp::ParameterValue(1.2));
 
     node->get_parameter(m_plugin_name + ".lookahead_distance", p_lookahead_distance);
     node->get_parameter(m_plugin_name + ".min_velocity", p_min_velocity);
     node->get_parameter(m_plugin_name + ".max_velocity", p_max_velocity);
     node->get_parameter(m_plugin_name + ".wheel_base", p_wheel_base);
+    node->get_parameter(m_plugin_name + ".goal_slowdown_distance",
+                        p_goal_slowdown_distance);
+    node->get_parameter(m_plugin_name + ".goal_stop_distance", p_goal_stop_distance);
+    node->get_parameter(m_plugin_name + ".angular_z_is_steering_angle",
+                        p_angular_z_is_steering_angle);
+    node->get_parameter(m_plugin_name + ".max_steering_rate_rad_s",
+                        p_max_steering_rate_rad_s);
   }
 
   void activate() override {
@@ -92,8 +109,23 @@ public:
     const double alpha = std::atan2(y_tp, x_tp);
 
     // Pure pursuit formula: δ = arctan(2 * L * sin(α) / l_d)
-    const double steering_angle =
-        std::atan(2.0 * p_wheel_base * std::sin(alpha) / p_lookahead_distance);
+    // Using the actual target-point distance
+    // so sparse plans don't artificially reduce steering curvature.
+    const double lookahead_distance_actual =
+        std::max(hypot(x_tp, y_tp), CURVATURE_EPSILON);
+    const double steering_angle_raw = std::atan(
+        2.0 * p_wheel_base * std::sin(alpha) / lookahead_distance_actual);
+    const rclcpp::Time now = m_clock->now();
+    double steering_angle = steering_angle_raw;
+    if (m_has_last_steering_cmd) {
+      const double dt = std::max((now - m_last_steering_cmd_time).seconds(), 1e-3);
+      const double max_delta = p_max_steering_rate_rad_s * dt;
+      steering_angle = std::clamp(steering_angle_raw, m_last_steering_angle - max_delta,
+                                  m_last_steering_angle + max_delta);
+    }
+    m_last_steering_angle = steering_angle;
+    m_last_steering_cmd_time = now;
+    m_has_last_steering_cmd = true;
 
     // Curvature-based target speed:
     // kappa = tan(delta) / L, R = 1 / |kappa|, v = sqrt(R * a_max)
@@ -104,20 +136,41 @@ public:
       curvature_limited_velocity =
           std::sqrt(turn_radius * MAX_CENTRIPETAL_ACCEL_MPS2);
     }
-    const double configured_max_velocity =
-        std::min(p_max_velocity, MAX_LINEAR_SPEED_MPS);
-    const double velocity_out = std::clamp(curvature_limited_velocity, p_min_velocity,
-                                       configured_max_velocity);
+    const auto &final_pose = transformed_plan.poses.back().pose.position;
+    const double distance_to_goal = hypot(final_pose.x, final_pose.y);
 
     geometry_msgs::msg::TwistStamped cmd;
     cmd.header.stamp    = m_clock->now();
     cmd.header.frame_id = m_costmap_ros->getBaseFrameID();
-    cmd.twist.linear.x  = velocity_out;
     cmd.twist.linear.y  = 0.0;
     cmd.twist.linear.z  = 0.0;
     cmd.twist.angular.x = 0.0;
     cmd.twist.angular.y = 0.0;
-    cmd.twist.angular.z = steering_angle;
+
+    // Fully stop inside goal stop radius to avoid overshoot / ping-ponging.
+    if (distance_to_goal <= p_goal_stop_distance) {
+      cmd.twist.linear.x  = 0.0;
+      cmd.twist.angular.z = 0.0;
+      m_last_steering_angle = 0.0;
+      return cmd;
+    }
+
+    const double configured_max_velocity = std::min(p_max_velocity, MAX_LINEAR_SPEED_MPS);
+    const double slowdown_alpha =
+        std::clamp(distance_to_goal / std::max(p_goal_slowdown_distance, CURVATURE_EPSILON),
+                   0.0, 1.0);
+    const double approach_limited_max_velocity =
+        std::max(p_min_velocity, configured_max_velocity * slowdown_alpha);
+    const double velocity_out =
+        std::clamp(curvature_limited_velocity, p_min_velocity, approach_limited_max_velocity);
+    cmd.twist.linear.x = velocity_out;
+    if (p_angular_z_is_steering_angle) {
+      // Legacy/non-standard mode for stacks that interpret angular.z as steering angle.
+      cmd.twist.angular.z = steering_angle;
+    } else {
+      // Standard cmd_vel convention: angular.z is yaw rate.
+      cmd.twist.angular.z = velocity_out * std::tan(steering_angle) / p_wheel_base;
+    }
 
     return cmd;
   }
@@ -252,6 +305,13 @@ private:
   double p_min_velocity;
   double p_max_velocity;
   double p_wheel_base;
+  double p_goal_slowdown_distance;
+  double p_goal_stop_distance;
+  bool p_angular_z_is_steering_angle;
+  double p_max_steering_rate_rad_s;
+  double m_last_steering_angle{0.0};
+  bool m_has_last_steering_cmd{false};
+  rclcpp::Time m_last_steering_cmd_time{0, 0, RCL_ROS_TIME};
 
   nav_msgs::msg::Path m_plan;
 

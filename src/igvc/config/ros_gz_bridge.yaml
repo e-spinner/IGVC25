@@ -31,9 +31,11 @@
   direction: "GZ_TO_ROS"
 
 
-# MARK: Odometry (sim default: world + model name from sim.launch.py spawn)
+# MARK: Odometry — topic must match `gz topic -l` for your sim:
+# - Ignition Gazebo 6 + odom_topic "model_odometry" → typically /model_odometry
+# - Gazebo Harmonic + default OdometryPublisher → often /model/<model_name>/odometry
 - ros_topic_name: "odom"
-  gz_topic_name: "/world/plane/model/igvc_sim/model_odometry"
+  gz_topic_name: "/model_odometry"
   ros_type_name: "nav_msgs/msg/Odometry"
   gz_type_name: "gz.msgs.Odometry"
   direction: "GZ_TO_ROS"
