@@ -16,7 +16,7 @@ class OdomToTf(Node):
         topic = str(self.get_parameter("odom_topic").value)
         self._tf_broadcaster = TransformBroadcaster(self)
         self.create_subscription(Odometry, topic, self._on_odom, 50)
-        self.get_logger().info('Broadcasting TF from "%s" odometry messages', topic)
+        self.get_logger().info(f'Broadcasting TF from "{topic}" odometry messages')
 
     def _on_odom(self, msg: Odometry) -> None:
         t = TransformStamped()

@@ -13,14 +13,14 @@ def generate_launch_description():
     igvc_share = get_package_share_directory("igvc")
     localization_params = os.path.join(igvc_share, "config", "localization.yaml")
     hall_params = os.path.join(
-        get_package_share_directory("igvc_hall_odom"),
+        get_package_share_directory("igvc_odom"),
         "config",
         "hall_odom.yaml",
     )
 
     # Raw wheel integration (GPIO hall sensors). EKF publishes the authoritative odom->base_link.
     hall_odom = Node(
-        package="igvc_hall_odom",
+        package="igvc_odom",
         executable="hall_odom_node",
         output="screen",
         parameters=[

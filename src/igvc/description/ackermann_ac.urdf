@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="igvc25">
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="sarah5">
 
   <!-- ===== Arguments ===== -->
   <xacro:arg name="wheel_length" default="0.0762" />
@@ -81,7 +81,7 @@
   <joint name="chassis_joint" type="fixed">
     <parent link="base_link" />
     <child link="chassis" />
-    <origin xyz="-0.4575 0.0, 0.1955" rpy="0.0 -0.0208 0.0" />
+    <origin xyz="-0.4575 0.0 0.1955" rpy="0.0 -0.0208 0.0" />
   </joint>
 
   <!--
@@ -104,7 +104,7 @@
 
   <!-- GPS -->
   <xacro:garmin-gps parent="chassis">
-    <origin xyz="-0.4175 -0.082, 0.419" rpy="0 0 0" />
+    <origin xyz="-0.4175 -0.082 0.419" rpy="0 0 0" />
   </xacro:garmin-gps>
 
   <!--

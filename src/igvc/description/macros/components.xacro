@@ -121,7 +121,8 @@
         MARK: flat-lidar
     -->
 
-  <xacro:macro name="lidar" params="*origin parent">
+  <!-- Planar 2D lidar for Gazebo Sim → ros_gz_bridge → sensor_msgs/LaserScan on ${topic} -->
+  <xacro:macro name="lidar" params="*origin parent topic:=scan samples:=720">
 
     <joint name="lidar_joint" type="fixed">
       <parent link="${parent}" />
@@ -139,25 +140,33 @@
     </link>
 
     <gazebo reference="lidar_frame">
-      <sensor name="laser" type="gpu_lidar">
-        <pose> 0 0 0 0 0 0 </pose>
+      <sensor name="planar_lidar" type="gpu_lidar">
+        <pose>0 0 0 0 0 0</pose>
+        <topic>${topic}</topic>
+        <update_rate>20</update_rate>
+        <gz_frame_id>lidar_frame</gz_frame_id>
         <visualize>false</visualize>
-        <update_rate>10</update_rate>
-        <ray>
+        <always_on>true</always_on>
+        <lidar>
           <scan>
             <horizontal>
-              <samples>360</samples>
-              <min_angle>-3.14</min_angle>
-              <max_angle>3.14</max_angle>
+              <samples>${samples}</samples>
+              <resolution>1</resolution>
+              <min_angle>-3.14159265</min_angle>
+              <max_angle>3.14159265</max_angle>
             </horizontal>
+            <vertical>
+              <samples>1</samples>
+              <resolution>0.01</resolution>
+              <min_angle>0</min_angle>
+              <max_angle>0</max_angle>
+            </vertical>
           </scan>
           <range>
-            <min>0.3</min>
-            <max>12</max>
+            <min>0.12</min>
+            <max>30.0</max>
           </range>
-        </ray>
-        <topic>scan</topic>
-        <gz_frame_id>lidar_frame</gz_frame_id>
+        </lidar>
       </sensor>
     </gazebo>
 
@@ -166,19 +175,19 @@
   <!--
         MARK: vlp16-lidar
     -->
-  <xacro:macro name="VLP-16" params="*origin parent">
+  <xacro:macro name="VLP-16" params="*origin parent name_prefix:='' lidar_topic:='velodyne_scan'">
 
     <!-- VLP-16 LiDAR -->
 
     <!-- meshes seems to be broken, using simple geometry instead -->
 
-    <joint name="velodyne_base_mount_joint" type="fixed">
+    <joint name="${name_prefix}velodyne_base_mount_joint" type="fixed">
       <xacro:insert_block name="origin" />
       <parent link="${parent}" />
-      <child link="velodyne_base_link" />
+      <child link="${name_prefix}velodyne_base_link" />
     </joint>
 
-    <link name="velodyne_base_link">
+    <link name="${name_prefix}velodyne_base_link">
       <inertial>
         <mass value="0.83" />
         <origin xyz="0 0 0.03585" />
@@ -211,13 +220,13 @@
       </collision>
     </link>
 
-    <joint name="velodyne_base_scan_joint" type="fixed">
+    <joint name="${name_prefix}velodyne_base_scan_joint" type="fixed">
       <origin xyz="0 0 0.0377" rpy="0 0 0" />
-      <parent link="velodyne_base_link" />
-      <child link="velodyne" />
+      <parent link="${name_prefix}velodyne_base_link" />
+      <child link="${name_prefix}velodyne" />
     </joint>
 
-    <link name="velodyne">
+    <link name="${name_prefix}velodyne">
       <inertial>
         <mass value="0.01" />
         <origin xyz="0 0 0" />
@@ -237,6 +246,38 @@
         </geometry>
       </collision>
     </link>
+
+    <!-- Gazebo Sim: planar spinning lidar (PoC obstacle detection / LaserScan bridge) -->
+    <gazebo reference="${name_prefix}velodyne">
+      <sensor name="${name_prefix}vlp16_gpu_lidar" type="gpu_lidar">
+        <pose>0 0 0 0 0 0</pose>
+        <update_rate>15</update_rate>
+        <topic>${lidar_topic}</topic>
+        <gz_frame_id>${name_prefix}velodyne</gz_frame_id>
+        <always_on>true</always_on>
+        <visualize>false</visualize>
+        <lidar>
+          <scan>
+            <horizontal>
+              <samples>720</samples>
+              <resolution>1</resolution>
+              <min_angle>-3.14159265</min_angle>
+              <max_angle>3.14159265</max_angle>
+            </horizontal>
+            <vertical>
+              <samples>1</samples>
+              <resolution>0.01</resolution>
+              <min_angle>0</min_angle>
+              <max_angle>0</max_angle>
+            </vertical>
+          </scan>
+          <range>
+            <min>0.2</min>
+            <max>50.0</max>
+          </range>
+        </lidar>
+      </sensor>
+    </gazebo>
 
   </xacro:macro>
 
@@ -289,15 +330,15 @@
     -->
 
   <!-- https://www.garmin.com/en-US/p/27594#overview -->
-  <xacro:macro name="garmin-gps" params="*origin parent">
+  <xacro:macro name="garmin-gps" params="*origin parent name_prefix:=''">
 
-    <joint name="gps_joint" type="fixed">
+    <joint name="${name_prefix}gps_joint" type="fixed">
       <parent link="${parent}" />
-      <child link="gps" />
+      <child link="${name_prefix}gps" />
       <xacro:insert_block name="origin" />
     </joint>
 
-    <link name="gps">
+    <link name="${name_prefix}gps">
       <visual>
         <geometry>
           <cylinder radius="0.0305" length="0.0195" />

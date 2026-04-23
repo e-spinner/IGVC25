@@ -42,30 +42,35 @@ sudo apt install -y \
     ros-humble-twist-mux \
     ros-humble-navigation2 \
     ros-humble-nav2-bringup \
-    ros-humble-robot-localization
-
-sudo apt install -y \
+    ros-humble-robot-localization \
     ros-humble-nmea-navsat-driver \
     ros-humble-phidgets-drivers \
     ros-humble-velodyne
+
+# Gazebo Sim + ROS 2 bridges (igvc sim.launch.py)
+sudo apt install -y \
+    ros-humble-ros-gz-sim \
+    ros-humble-ros-gz-bridge \
+    ros-humble-ros-gz-interfaces \
+    ros-humble-gz-ros2-control
 
 sudo apt install -y \
     python3-pip \
     clang-format
 
-# === Rosdep === #
-sudo rosdep init 2>/dev/null || true
-rosdep update
-rosdep install --from-paths src --ignore-src -r -y
+# # === Rosdep === #
+# sudo rosdep init 2>/dev/null || true
+# rosdep update
+# rosdep install --from-paths src --ignore-src -r -y
 
-source /opt/ros/humble/setup.bash
+# source /opt/ros/humble/setup.bash
 
-# === Build === #
-colcon build --symlink-install --cmake-args -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
-echo ""
-echo "Done. Ignore cmake compile stderr. Source install to Run:"
-echo ""
-echo "      source ./install/setup.bash"
-echo "   or source ./install/setup.zsh"
+# # === Build === #
+# colcon build --symlink-install --cmake-args -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+# echo ""
+# echo "Done. Ignore cmake compile stderr. Source install to Run:"
+# echo ""
+# echo "      source ./install/setup.bash"
+# echo "   or source ./install/setup.zsh"
 
 

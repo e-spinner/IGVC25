@@ -1,44 +1,39 @@
-# MARK: Clock
-
 # https://github.com/gazebosim/ros_gz/blob/ros2/ros_gz_bridge/README.md
-
-# https://gazebosim.org/docs/latest/migrating_gazebo_classic_ros2_packages/#bridge-ros-topics
-
-# gz topic published by sim
-- ros_topic_name: "clock"
-  gz_topic_name: "clock"
+#
+# MARK: Clock (sim + any GZ session)
+- ros_topic_name: "/clock"
+  gz_topic_name: "/clock"
   ros_type_name: "rosgraph_msgs/msg/Clock"
   gz_type_name: "gz.msgs.Clock"
   direction: "GZ_TO_ROS"
 
 
-# MARK: Sensors
+# MARK: Sensors (adjust gz_topic_name to match `gz topic -l` on your machine)
 
-# gz topic published by sensors plugin (gpu_lidar)
+# Planar lidar (ackermann_gz.xacro:lidar publishes gz topic "scan")
 - ros_topic_name: "scan"
-  gz_topic_name:  "scan"
-  ros_type_name:  "sensor_msgs/msg/LaserScan"
-  gz_type_name:   "gz.msgs.LaserScan"
-  direction:      "GZ_TO_ROS"
+  gz_topic_name: "scan"
+  ros_type_name: "sensor_msgs/msg/LaserScan"
+  gz_type_name: "gz.msgs.LaserScan"
+  direction: "GZ_TO_ROS"
 
-# gz topic published by sensors plugin (imu)
+# IMU / GPS when corresponding GZ sensors are enabled
 - ros_topic_name: "imu/data"
-  gz_topic_name:  "imu"
-  ros_type_name:  "sensor_msgs/msg/Imu"
-  gz_type_name:   "gz.msgs.IMU"
-  direction:      "GZ_TO_ROS"
+  gz_topic_name: "imu"
+  ros_type_name: "sensor_msgs/msg/Imu"
+  gz_type_name: "gz.msgs.IMU"
+  direction: "GZ_TO_ROS"
 
-# gz topic published by sensors plugin (gps)
 - ros_topic_name: "gps/fix"
-  gz_topic_name:  "gps"
-  ros_type_name:  "gps_msgs/msg/GPSFix"
-  gz_type_name:   "gz.msgs.NavSat"
-  direction:      "GZ_TO_ROS"
+  gz_topic_name: "gps"
+  ros_type_name: "gps_msgs/msg/GPSFix"
+  gz_type_name: "gz.msgs.NavSat"
+  direction: "GZ_TO_ROS"
 
 
-# gz topic published by odometry plugin
-- ros_topic_name: "odometry/raw"
-  gz_topic_name: "robot/odometry"
+# MARK: Odometry (sim default: world + model name from sim.launch.py spawn)
+- ros_topic_name: "odom"
+  gz_topic_name: "/world/plane/model/igvc_sim/model_odometry"
   ros_type_name: "nav_msgs/msg/Odometry"
-  gz_type_name: "ignition.msgs.Odometry"
+  gz_type_name: "gz.msgs.Odometry"
   direction: "GZ_TO_ROS"
